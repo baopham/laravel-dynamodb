@@ -64,7 +64,7 @@ abstract class DynamoDbModel extends Model
         try {
             $this->client->putItem([
                 'TableName' => $this->getTable(),
-                'Item' => $this->marshaler->marshalItem($this->attributes),
+                'Item' => $this->marshalItem($this->attributes),
             ]);
 
             return true;
@@ -123,7 +123,7 @@ abstract class DynamoDbModel extends Model
             return null;
         }
 
-        $item = $model->marshaler->unmarshalItem($item);
+        $item = $model->unmarshalItem($item);
 
         $model->fill($item);
 
@@ -155,7 +155,7 @@ abstract class DynamoDbModel extends Model
         $results = [];
 
         foreach ($items as $item) {
-            $attributes = $model->marshaler->unmarshalItem($item);
+            $attributes = $model->unmarshalItem($item);
 
             $newModel = new static($attributes);
 
@@ -182,7 +182,7 @@ abstract class DynamoDbModel extends Model
     {
         $keyName = $model->getKeyName();
 
-        $idKey = $model->marshaler->marshalItem([
+        $idKey = $model->marshalItem([
             $keyName => $id
         ]);
 
@@ -191,5 +191,15 @@ abstract class DynamoDbModel extends Model
         ];
 
         return $key;
+    }
+
+    public function marshalItem($item)
+    {
+        return $this->marshaler->marshalItem($item);
+    }
+
+    public function unmarshalItem($item)
+    {
+        return $this->marshaler->unmarshalItem($item);
     }
 }
