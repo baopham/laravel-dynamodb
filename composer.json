@@ -1,0 +1,22 @@
+{
+    "name": "baopham/laravel-dynamodb",
+    "description": "DynamoDb wrapper for your model and helpers for DynamoDb",
+    "require": {
+        "aws/aws-sdk-php": "3.0.*@dev",
+        "illuminate/support": "5.1.1",
+        "illuminate/database": "5.1.1"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Bao Pham",
+            "email": "gbaopham@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "BaoPham\\DynamoDb\\": "src/"
+        }
+    },
+    "minimum-stability": "dev"
+}
