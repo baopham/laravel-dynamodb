@@ -37,8 +37,16 @@ abstract class DynamoDbModel extends Model
     public function __construct(array $attributes = [])
     {
         $this->bootIfNotBooted();
+
+        $this->syncOriginal();
+
         $this->fill($attributes);
 
+        $this->setupDynamoDb();
+    }
+
+    protected function setupDynamoDb()
+    {
         $this->dynamoDb = App::make('BaoPham\DynamoDb\DynamoDbClientInterface');
         $this->client = $this->dynamoDb->getClient();
         $this->marshaler = $this->dynamoDb->getMarshaler();
@@ -47,11 +55,12 @@ abstract class DynamoDbModel extends Model
 
     public function save(array $options = [])
     {
-        if ($this->id === null) {
+        if (!$this->getKey()) {
             $this->fireModelEvent('creating');
         }
 
         $this->attributeFilter->filter($this->attributes);
+
         try {
              $this->client->putItem([
                  'TableName' => $this->getTable(),
@@ -81,7 +90,7 @@ abstract class DynamoDbModel extends Model
 
     public function delete()
     {
-        //
+        // TODO
     }
 
     public static function find($id, array $columns = [])
@@ -150,5 +159,10 @@ abstract class DynamoDbModel extends Model
     {
         $item = static::all($columns, 1);
         return $item->first();
+    }
+
+    public static function where(array $attributes)
+    {
+        // TODO
     }
 }
