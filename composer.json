@@ -3,8 +3,8 @@
     "description": "DynamoDb wrapper for your Laravel model and helpers",
     "require": {
         "aws/aws-sdk-php": "3.0.*@dev",
-        "illuminate/support": "5.1.1",
-        "illuminate/database": "5.1.1"
+        "illuminate/support": "~5.1",
+        "illuminate/database": "~5.1"
     },
     "license": "MIT",
     "authors": [
