@@ -31,8 +31,11 @@ $model->delete();
 $model->where('key', 'key value')->get();
 
 // See BaoPham\DynamoDb\ComparisonOperator - only tested with '=' and '!=' so far.
-$model->where('key', '!=', 'key value');
 $model->where(['key' => 'key value']);
+// Chainable for 'AND'. 'OR' is not supported.
+$model->where('foo', 'bar')
+    ->where('foo2', '!=' 'bar2')
+    ->get();
 
 // Using scan operator, not too reliable since DynamoDb will only give 1MB total of data.
 $model->all();
