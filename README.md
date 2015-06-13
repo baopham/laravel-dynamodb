@@ -4,6 +4,14 @@ Only supports hash primary key type
 
 Install
 ------
+
+~~~json
+// composer.json
+"require": {
+    "baopham/dynamodb": "dev-master"
+}
+~~~
+
 Install service provider:
 
 ~~~php
