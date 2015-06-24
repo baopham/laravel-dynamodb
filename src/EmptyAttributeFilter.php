@@ -24,10 +24,14 @@ class EmptyAttributeFilter
             if ($empty) {
                 $store[$key] = null;
             } else {
+                if (is_object($value)) {
+                    $value = (array) $value;
+                }
                 if (is_array($value)) {
                     $this->filter($value);
                 }
             }
         }
+
     }
 }
