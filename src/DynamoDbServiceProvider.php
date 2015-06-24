@@ -16,6 +16,10 @@ class DynamoDbServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        $marshalerOptions = [
+            'nullify_invalid' => true,
+        ];
+
         if (App::environment() == 'testing' || config('services.dynamodb.local')) {
             $this->app->singleton('BaoPham\DynamoDb\DynamoDbClientInterface', function ($app) {
                 $region = App::environment() == 'testing' ? 'test' : 'stub';
@@ -29,7 +33,7 @@ class DynamoDbServiceProvider extends ServiceProvider
                     'version' => '2012-08-10',
                     'endpoint' => config('services.dynamodb.local_endpoint')
                 ];
-                $client = new DynamoDbClientService($config, new Marshaler, new EmptyAttributeFilter);
+                $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter);
                 return $client;
             });
         } else {
@@ -42,7 +46,7 @@ class DynamoDbServiceProvider extends ServiceProvider
                     'region' => config('services.dynamodb.region'),
                     'version' => '2012-08-10',
                 ];
-                $client = new DynamoDbClientService($config, new Marshaler, new EmptyAttributeFilter);
+                $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter);
                 return $client;
             });
         }

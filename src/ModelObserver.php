@@ -33,7 +33,7 @@ class ModelObserver
     public function saved($model)
     {
         $attrs = $model->attributesToArray();
-        $this->attributeFilter->filter($attrs);
+        // $this->attributeFilter->filter($attrs);
         try {
             $this->dynamoDbClient->putItem([
                 'TableName' => $model->getDynamoDbTableName(),

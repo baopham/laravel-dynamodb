@@ -64,7 +64,7 @@ abstract class DynamoDbModel extends Model
             $this->fireModelEvent('creating');
         }
 
-        $this->attributeFilter->filter($this->attributes);
+        // $this->attributeFilter->filter($this->attributes);
 
         try {
             $this->client->putItem([
