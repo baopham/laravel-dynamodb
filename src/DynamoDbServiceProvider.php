@@ -21,7 +21,7 @@ class DynamoDbServiceProvider extends ServiceProvider
         ];
 
         if (App::environment() == 'testing' || config('services.dynamodb.local')) {
-            $this->app->singleton('BaoPham\DynamoDb\DynamoDbClientInterface', function ($app) {
+            $this->app->singleton('BaoPham\DynamoDb\DynamoDbClientInterface', function ($app) use ($marshalerOptions) {
                 $region = App::environment() == 'testing' ? 'test' : 'stub';
 
                 $config = [
@@ -37,7 +37,7 @@ class DynamoDbServiceProvider extends ServiceProvider
                 return $client;
             });
         } else {
-            $this->app->singleton('BaoPham\DynamoDb\DynamoDbClientInterface', function ($app) {
+            $this->app->singleton('BaoPham\DynamoDb\DynamoDbClientInterface', function ($app) use ($marshalerOptions) {
                 $config = [
                     'credentials' => [
                         'key' => config('services.dynamodb.key'),
