@@ -191,7 +191,7 @@ abstract class DynamoDbModel extends Model
         // received when the method was called and pass it into the nested where.
         if (is_array($column)) {
             foreach ($column as $key => $value) {
-                $model->where($key, '=', $value);
+                return $model->where($key, '=', $value);
             }
         }
 
@@ -226,7 +226,6 @@ abstract class DynamoDbModel extends Model
         $attributeValueList = $model->marshalItem([
             'AttributeValueList' => $value
         ]);
-
 
         $model->where[$column] = [
             'AttributeValueList' => [$attributeValueList['AttributeValueList']],
