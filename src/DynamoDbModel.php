@@ -39,6 +39,18 @@ abstract class DynamoDbModel extends Model
      */
     protected $where = [];
 
+    /**
+     * Indexes.
+     * [
+     *     'global_index_key' => 'global_index_name',
+     *     'local_index_key' => 'local_index_name',
+     * ]
+     * @var array
+     */
+    protected $dynamoDbIndexKeys = [];
+
+    protected static $instance;
+
     public function __construct(array $attributes = [])
     {
         $this->bootIfNotBooted();
@@ -48,6 +60,17 @@ abstract class DynamoDbModel extends Model
         $this->fill($attributes);
 
         $this->setupDynamoDb();
+
+        static::$instance = $this;
+    }
+
+    protected static function getInstance()
+    {
+        if (is_null(static::$instance)) {
+            static::$instance = new static;
+        }
+
+        return static::$instance;
     }
 
     protected function setupDynamoDb()
@@ -75,6 +98,7 @@ abstract class DynamoDbModel extends Model
             return true;
         } catch (Exception $e) {
             Log::info($e);
+
             return false;
         }
     }
@@ -86,7 +110,7 @@ abstract class DynamoDbModel extends Model
 
     public static function create(array $attributes = [])
     {
-        $model = new static;
+        $model = static::getInstance();
 
         $model->fill($attributes)->save();
 
@@ -141,40 +165,14 @@ abstract class DynamoDbModel extends Model
     {
         $model = new static;
 
-        $query = [];
-
-        if (!empty($columns)) {
-            $query['AttributesToGet'] = $columns;
-        }
-
-        if ($limit > -1) {
-            $query['Limit'] = $limit;
-        }
-
-        $query['TableName'] = $model->getTable();
-
-        $items = $model->client->scan($query);
-
-        $items = array_get($items->toArray(), 'Items');
-
-        $results = [];
-
-        foreach ($items as $item) {
-            $attributes = $model->unmarshalItem($item);
-
-            $newModel = new static($attributes);
-
-            $newModel->id = $attributes[$model->primaryKey];
-
-            $results[] = $newModel;
-        }
-
-        return new Collection($results);
+        return $model->getAll($columns, $limit);
     }
 
     public static function first($columns = [])
     {
-        $item = static::all($columns, 1);
+        $model = static::getInstance();
+        $item = $model->getAll($columns, 1);
+
         return $item->first();
     }
 
@@ -235,37 +233,66 @@ abstract class DynamoDbModel extends Model
         return $model;
     }
 
-    public function get()
+    public function get($columns = [])
     {
+        return $this->getAll($columns);
+    }
+
+    protected function getAll($columns = [], $limit = -1)
+    {
+        $query = [
+            'TableName' => $this->getTable(),
+        ];
+
+        $op = 'Scan';
+        $filter = 'ScanFilter';
+
+        if ($limit > -1) {
+            $query['limit'] = $limit;
+        }
+
+        if (!empty($columns)) {
+            $query['AttributesToGet'] = $columns;
+        }
+
         // If the $where is not empty, we run getIterator.
         if (!empty($this->where)) {
 
-            // Primary key condition exists, then use Query instead of Scan.
-            $op = 'Scan';
-            $filter = 'ScanFilter';
-
-            if (isset($this->where[$this->getKeyName()])) {
+            // Primary key or index key condition exists, then use Query instead of Scan.
+            if ($key = $this->conditionsContainIndexKey()) {
                 $op = 'Query';
-                $filter = 'KeyConditions';
+                $query['IndexName'] = $this->dynamoDbIndexKeys[$key];
             }
 
-            $iterator = $this->client->getIterator($op, [
-                'TableName' => $this->getTable(),
-                $filter => $this->where
-            ]);
-
-            $results = [];
-            foreach ($iterator as $item) {
-                $item = $this->unmarshalItem($item);
-                $results[] = new static($item);
-            }
-
-            return new Collection($results);
-
+            $query['KeyConditions'] = $this->where;
         }
 
-        return $this;
+        $iterator = $this->client->getIterator($op, $query);
+
+        $results = [];
+        foreach ($iterator as $item) {
+            $item = $this->unmarshalItem($item);
+            $results[] = new static($item);
+        }
+
+        return new Collection($results);
     }
+
+    protected function conditionsContainIndexKey()
+    {
+        if (empty($this->where)) {
+            return false;
+        }
+
+        foreach ($this->dynamoDbIndexKeys as $key => $name) {
+            if (isset($this->where[$key])) {
+                return $key;
+            }
+        }
+
+        return false;
+    }
+
 
     protected static function getDynamoDbKey(DynamoDbModel $model, $id)
     {
