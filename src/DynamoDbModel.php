@@ -272,7 +272,9 @@ abstract class DynamoDbModel extends Model
         $results = [];
         foreach ($iterator as $item) {
             $item = $this->unmarshalItem($item);
-            $results[] = new static($item);
+            $model = new static($item);
+            $model->setUnfillableAttributes($item);
+            $results[] = $model;
         }
 
         return new Collection($results);
@@ -293,7 +295,6 @@ abstract class DynamoDbModel extends Model
         return false;
     }
 
-
     protected static function getDynamoDbKey(DynamoDbModel $model, $id)
     {
         $keyName = $model->getKeyName();
@@ -307,6 +308,15 @@ abstract class DynamoDbModel extends Model
         ];
 
         return $key;
+    }
+
+    protected function setUnfillableAttributes($attributes)
+    {
+        $keysToFill = array_diff(array_keys($attributes), $this->fillable);
+
+        foreach ($keysToFill as $key) {
+            $this->setAttribute($key, $attributes[$key]);
+        }
     }
 
     public function marshalItem($item)
