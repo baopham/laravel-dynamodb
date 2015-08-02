@@ -18,5 +18,13 @@
             "BaoPham\\DynamoDb\\": "src/"
         }
     },
-    "minimum-stability": "dev"
+    "minimum-stability": "dev",
+    "require-dev": {
+        "phpunit/phpunit": "^5.0@dev"
+    },
+    "autoload-dev": {
+      "classmap": [
+        "tests/TestCase.php"
+      ]
+    }
 }

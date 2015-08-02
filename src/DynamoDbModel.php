@@ -51,13 +51,15 @@ abstract class DynamoDbModel extends Model
 
     protected static $instance;
 
-    public function __construct(array $attributes = [])
+    public function __construct(array $attributes = [], DynamoDbClientService $dynamoDb = null)
     {
         $this->bootIfNotBooted();
 
         $this->syncOriginal();
 
         $this->fill($attributes);
+
+        $this->dynamoDb = $dynamoDb;
 
         $this->setupDynamoDb();
 
@@ -75,7 +77,10 @@ abstract class DynamoDbModel extends Model
 
     protected function setupDynamoDb()
     {
-        $this->dynamoDb = App::make('BaoPham\DynamoDb\DynamoDbClientInterface');
+        if (is_null($this->dynamoDb)) {
+            $this->dynamoDb = App::make('BaoPham\DynamoDb\DynamoDbClientInterface');
+        }
+
         $this->client = $this->dynamoDb->getClient();
         $this->marshaler = $this->dynamoDb->getMarshaler();
         $this->attributeFilter = $this->dynamoDb->getAttributeFilter();
@@ -103,7 +108,7 @@ abstract class DynamoDbModel extends Model
         }
     }
 
-    public function update(array $attributes = [])
+    public function update(array $attributes = [], array $options = [])
     {
         return $this->fill($attributes)->save();
     }
@@ -132,7 +137,7 @@ abstract class DynamoDbModel extends Model
 
     public static function find($id, array $columns = [])
     {
-        $model = new static;
+        $model = static::getInstance();
 
         $query = [
             'ConsistentRead' => true,
@@ -163,7 +168,7 @@ abstract class DynamoDbModel extends Model
 
     public static function all($columns = [], $limit = -1)
     {
-        $model = new static;
+        $model = static::getInstance();
 
         return $model->getAll($columns, $limit);
     }
@@ -182,7 +187,7 @@ abstract class DynamoDbModel extends Model
             throw new NotSupportedException('Only support "and" in where clause');
         }
 
-        $model = new static;
+        $model = static::getInstance();
 
         // If the column is an array, we will assume it is an array of key-value pairs
         // and can add them each as a where clause. We will maintain the boolean we
@@ -245,7 +250,6 @@ abstract class DynamoDbModel extends Model
         ];
 
         $op = 'Scan';
-        $filter = 'ScanFilter';
 
         if ($limit > -1) {
             $query['limit'] = $limit;
@@ -259,12 +263,19 @@ abstract class DynamoDbModel extends Model
         if (!empty($this->where)) {
 
             // Primary key or index key condition exists, then use Query instead of Scan.
+            // However, Query only supports a few conditions.
             if ($key = $this->conditionsContainIndexKey()) {
-                $op = 'Query';
-                $query['IndexName'] = $this->dynamoDbIndexKeys[$key];
+                $condition = array_get($this->where, "$key.ComparisonOperator");
+
+                if (ComparisonOperator::isValidQueryDynamoDbOperator($condition)) {
+                    $op = 'Query';
+                    $query['IndexName'] = $this->dynamoDbIndexKeys[$key];
+                    $query['KeyConditions'] = $this->where;
+                }
+
             }
 
-            $query['KeyConditions'] = $this->where;
+            $query['ScanFilter'] = $this->where;
         }
 
         $iterator = $this->client->getIterator($op, $query);
@@ -272,7 +283,7 @@ abstract class DynamoDbModel extends Model
         $results = [];
         foreach ($iterator as $item) {
             $item = $this->unmarshalItem($item);
-            $model = new static($item);
+            $model = new static($item, $this->dynamoDb);
             $model->setUnfillableAttributes($item);
             $results[] = $model;
         }
