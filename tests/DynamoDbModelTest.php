@@ -21,11 +21,6 @@ class DynamoDbModelTest extends TestCase
      */
     protected $testModel;
 
-    public static function setUpBeforeClass()
-    {
-
-    }
-
     public function setUp()
     {
         parent::setUp();
