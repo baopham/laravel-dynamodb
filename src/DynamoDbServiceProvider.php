@@ -46,6 +46,10 @@ class DynamoDbServiceProvider extends ServiceProvider
                     'region' => config('services.dynamodb.region'),
                     'version' => '2012-08-10',
                 ];
+                $endpoint = config('services.dynamodb.local_endpoint');
+                if (!is_null($endpoint)) {
+                    $config['endpoint'] = $endpoint;
+                }
                 $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter);
                 return $client;
             });
