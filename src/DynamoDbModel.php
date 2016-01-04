@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\Log;
  */
 abstract class DynamoDbModel extends Model
 {
+    /**
+     * Always set this to false since DynamoDb does not support incremental Id.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
 
     /**
      * @var \BaoPham\DynamoDb\DynamoDbClientInterface
