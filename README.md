@@ -140,6 +140,8 @@ dynamodb.createTable(params, function(err, data) {
 });
 ```
 
+* DynamoDb local version: 2015-07-16_1.0
+
 TODO
 ----
 * Upgrade a few legacy attributes: `AttributesToGet`, `ScanFilter`, ...
