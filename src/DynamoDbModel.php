@@ -55,6 +55,8 @@ abstract class DynamoDbModel extends Model
      */
     protected $dynamoDbIndexKeys = [];
 
+    protected $compositeKey = [];
+
     protected static $instance;
 
     public function __construct(array $attributes = [], DynamoDbClientService $dynamoDb = null)
@@ -133,9 +135,23 @@ abstract class DynamoDbModel extends Model
      */
     public function delete()
     {
+        $key = null;
+        if (!empty($this->compositeKey))
+        {
+            $key = [];
+            foreach ($this->compositeKey as $id)
+            {
+                $key[] = static::getDynamoDbKey($this, $id);
+            }
+        }
+        else
+        {
+            $key = static::getDynamoDbKey($this, $this->getKey());
+        }
+
         $query = [
             'TableName' => $this->getTable(),
-            'Key' => static::getDynamoDbKey($this, $this->getKey())
+            'Key' => $key
         ];
 
         $result = $this->client->deleteItem($query);
@@ -151,10 +167,25 @@ abstract class DynamoDbModel extends Model
     {
         $model = static::getInstance();
 
+        $key = null;
+        if (!empty($this->compositeKey))
+        {
+            $key = [];
+            foreach ($this->compositeKey as $key_name)
+            {
+                $key[] = static::getDynamoDbKey($model, $key_name);
+            }
+        }
+        else
+        {
+            $key = static::getDynamoDbKey($model, $id);
+
+        }
+
         $query = [
             'ConsistentRead' => true,
             'TableName' => $model->getTable(),
-            'Key' => static::getDynamoDbKey($model, $id)
+            'Key' => $key
         ];
 
         if (!empty($columns)) {
