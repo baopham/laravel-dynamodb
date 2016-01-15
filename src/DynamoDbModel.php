@@ -128,6 +128,9 @@ abstract class DynamoDbModel extends Model
         return $model;
     }
 
+    /**
+     * Support composite keys here
+     */
     public function delete()
     {
         $query = [
@@ -141,6 +144,9 @@ abstract class DynamoDbModel extends Model
         return $status == 200;
     }
 
+    /**
+     * Support composite keys here
+     */
     public static function find($id, array $columns = [])
     {
         $model = static::getInstance();
