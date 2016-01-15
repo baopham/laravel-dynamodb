@@ -139,9 +139,10 @@ abstract class DynamoDbModel extends Model
         if (!empty($this->compositeKey))
         {
             $key = [];
-            foreach ($this->compositeKey as $id)
+            foreach ($this->compositeKey as $name)
             {
-                $key[] = static::getDynamoDbKey($this, $id);
+                $value = $this->$name;
+                $key[] = static::getSpecificDynamoDbKey($this, $name, $value);
             }
         }
         else
@@ -168,18 +169,17 @@ abstract class DynamoDbModel extends Model
         $model = static::getInstance();
 
         $key = null;
-        if (!empty($this->compositeKey))
+        if (is_array($id))
         {
             $key = [];
-            foreach ($this->compositeKey as $key_name)
+            foreach ($id as $key_name)
             {
-                $key[] = static::getDynamoDbKey($model, $key_name);
+                $key[] = static::getSpecificDynamoDbKey($model, $key_name, $model->$key_name);
             }
         }
         else
         {
             $key = static::getDynamoDbKey($model, $id);
-
         }
 
         $query = [
@@ -351,10 +351,13 @@ abstract class DynamoDbModel extends Model
 
     protected static function getDynamoDbKey(DynamoDbModel $model, $id)
     {
-        $keyName = $model->getKeyName();
+        return static::getSpecificDynamoDbKey($model, $model->getKeyName(), $id);
+    }
 
+    protected static function getSpecificDynamoDbKey(DynamoDbModel $model, $keyName, $value)
+    {
         $idKey = $model->marshalItem([
-            $keyName => $id
+            $keyName => $value
         ]);
 
         $key = [
