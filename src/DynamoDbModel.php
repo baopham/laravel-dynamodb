@@ -142,7 +142,11 @@ abstract class DynamoDbModel extends Model
             foreach ($this->compositeKey as $name)
             {
                 $value = $this->$name;
-                $key[] = static::getSpecificDynamoDbKey($this, $name, $value);
+                $specific_key = static::getSpecificDynamoDbKey($this, $name, $value);
+                foreach ($specific_key as $key_name => $key_value)
+                {
+                    $key[$key_name] = $key_value;
+                }
             }
         }
         else
@@ -172,9 +176,13 @@ abstract class DynamoDbModel extends Model
         if (is_array($id))
         {
             $key = [];
-            foreach ($id as $key_name)
+            foreach ($id as $name)
             {
-                $key[] = static::getSpecificDynamoDbKey($model, $key_name, $model->$key_name);
+                $specific_key = static::getSpecificDynamoDbKey($model, $name, $model->$name);
+                foreach ($specific_key as $key_name => $key_value)
+                {
+                    $key[$key_name] = $key_value;
+                }
             }
         }
         else
