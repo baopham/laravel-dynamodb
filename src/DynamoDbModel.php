@@ -212,7 +212,24 @@ abstract class DynamoDbModel extends Model
 
         $model->fill($item);
 
-        $model->id = $id;
+        if (is_array($id))
+        {
+            if (isset($model->compositeKey) && !empty($model->compositeKey))
+            {
+                foreach ($model->compositeKey as $var)
+                {
+                    $model->$var = $id[$var];
+                }
+            }
+            else
+            {
+                $model->id = $id[$model->primaryKey];
+            }
+        }
+        else
+        {
+            $model->id = $id;
+        }
 
         return $model;
     }
