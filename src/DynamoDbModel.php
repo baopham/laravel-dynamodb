@@ -351,6 +351,9 @@ abstract class DynamoDbModel extends Model
         return $key;
     }
 
+    /**
+     * Get the key for this model whether composite or simple.
+     */
     protected static function getModelKey($id, $model)
     {
         if (is_array($id)) {

@@ -39,6 +39,7 @@ class DynamoDbClientService implements DynamoDbClientInterface
     }
 
     /**
+     * @param string $name
      * @return \Aws\DynamoDb\DynamoDbClient
      */
     public function getClient($name = null)
