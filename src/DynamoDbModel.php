@@ -8,8 +8,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Class DynamoDbModel
- * @package BaoPham\DynamoDb
+ * Class DynamoDbModel.
  */
 abstract class DynamoDbModel extends Model
 {
@@ -50,7 +49,8 @@ abstract class DynamoDbModel extends Model
      * [
      *     'global_index_key' => 'global_index_name',
      *     'local_index_key' => 'local_index_name',
-     * ]
+     * ].
+     *
      * @var array
      */
     protected $dynamoDbIndexKeys = [];
@@ -77,7 +77,7 @@ abstract class DynamoDbModel extends Model
     protected static function getInstance()
     {
         if (is_null(static::$instance)) {
-            static::$instance = new static;
+            static::$instance = new static();
         }
 
         return static::$instance;
@@ -131,32 +131,15 @@ abstract class DynamoDbModel extends Model
     }
 
     /**
-     * Support composite keys here
+     * Support composite keys here.
      */
     public function delete()
     {
-        $key = null;
-        if (!empty($this->compositeKey))
-        {
-            $key = [];
-            foreach ($this->compositeKey as $name)
-            {
-                $value = $this->$name;
-                $specific_key = static::getSpecificDynamoDbKey($this, $name, $value);
-                foreach ($specific_key as $key_name => $key_value)
-                {
-                    $key[$key_name] = $key_value;
-                }
-            }
-        }
-        else
-        {
-            $key = static::getDynamoDbKey($this, $this->getKey());
-        }
+        $key = $this->getModelKey($this->getKey(), $this);
 
         $query = [
             'TableName' => $this->getTable(),
-            'Key' => $key
+            'Key' => $key,
         ];
 
         $result = $this->client->deleteItem($query);
@@ -166,34 +149,18 @@ abstract class DynamoDbModel extends Model
     }
 
     /**
-     * Support composite keys here
+     * Support composite keys here.
      */
     public static function find($id, array $columns = [])
     {
         $model = static::getInstance();
 
-        $key = null;
-        if (is_array($id))
-        {
-            $key = [];
-            foreach ($id as $name => $value)
-            {
-                $specific_key = static::getSpecificDynamoDbKey($model, $name, $value);
-                foreach ($specific_key as $key_name => $key_value)
-                {
-                    $key[$key_name] = $key_value;
-                }
-            }
-        }
-        else
-        {
-            $key = static::getDynamoDbKey($model, $id);
-        }
+        $key = static::getModelKey($id, $model);
 
         $query = [
             'ConsistentRead' => true,
             'TableName' => $model->getTable(),
-            'Key' => $key
+            'Key' => $key,
         ];
 
         if (!empty($columns)) {
@@ -205,29 +172,22 @@ abstract class DynamoDbModel extends Model
         $item = array_get($item->toArray(), 'Item');
 
         if (empty($item)) {
-            return null;
+            return;
         }
 
         $item = $model->unmarshalItem($item);
 
         $model->fill($item);
 
-        if (is_array($id))
-        {
-            if (isset($model->compositeKey) && !empty($model->compositeKey))
-            {
-                foreach ($model->compositeKey as $var)
-                {
+        if (is_array($id)) {
+            if (isset($model->compositeKey) && !empty($model->compositeKey)) {
+                foreach ($model->compositeKey as $var) {
                     $model->$var = $id[$var];
                 }
-            }
-            else
-            {
+            } else {
                 $model->id = $id[$model->primaryKey];
             }
-        }
-        else
-        {
+        } else {
             $model->id = $id;
         }
 
@@ -295,12 +255,12 @@ abstract class DynamoDbModel extends Model
         }
 
         $attributeValueList = $model->marshalItem([
-            'AttributeValueList' => $value
+            'AttributeValueList' => $value,
         ]);
 
         $model->where[$column] = [
             'AttributeValueList' => [$attributeValueList['AttributeValueList']],
-            'ComparisonOperator' => ComparisonOperator::getDynamoDbOperator($operator)
+            'ComparisonOperator' => ComparisonOperator::getDynamoDbOperator($operator),
         ];
 
         return $model;
@@ -340,7 +300,6 @@ abstract class DynamoDbModel extends Model
                     $query['IndexName'] = $this->dynamoDbIndexKeys[$key];
                     $query['KeyConditions'] = $this->where;
                 }
-
             }
 
             $query['ScanFilter'] = $this->where;
@@ -382,13 +341,29 @@ abstract class DynamoDbModel extends Model
     protected static function getSpecificDynamoDbKey(DynamoDbModel $model, $keyName, $value)
     {
         $idKey = $model->marshalItem([
-            $keyName => $value
+            $keyName => $value,
         ]);
 
         $key = [
-            $keyName => $idKey[$keyName]
+            $keyName => $idKey[$keyName],
         ];
 
+        return $key;
+    }
+
+    protected static function getModelKey($id, $model)
+    {
+        if (is_array($id)) {
+            $key = [];
+            foreach ($id as $name => $value) {
+                $specific_key = static::getSpecificDynamoDbKey($model, $name, $value);
+                foreach ($specific_key as $key_name => $key_value) {
+                    $key[$key_name] = $key_value;
+                }
+            }
+        } else {
+            $key = static::getDynamoDbKey($model, $id);
+        }
         return $key;
     }
 

@@ -11,7 +11,7 @@ class DynamoDbClientService implements DynamoDbClientInterface
     /**
      * @var \Aws\DynamoDb\DynamoDbClient
      */
-    protected $client;
+    protected $client = array();
 
     /**
      * @var \Aws\DynamoDb\Marshaler
@@ -26,17 +26,24 @@ class DynamoDbClientService implements DynamoDbClientInterface
 
     public function __construct($config, Marshaler $marshaler, EmptyAttributeFilter $filter)
     {
-        $this->client = new DynamoDbClient($config);
-        $this->marshaler = $marshaler;
-        $this->attributeFilter = $filter;
+        if (!is_array($config)) {
+            $config = array(
+                null => $config,
+            );
+        }
+        foreach ($config as $name => $named_config) {
+            $this->client[$name] = new DynamoDbClient($named_config);
+            $this->marshaler = $marshaler;
+            $this->attributeFilter = $filter;
+        }
     }
 
     /**
      * @return \Aws\DynamoDb\DynamoDbClient
      */
-    public function getClient()
+    public function getClient($name = null)
     {
-        return $this->client;
+        return $this->client[$name];
     }
 
     /**
