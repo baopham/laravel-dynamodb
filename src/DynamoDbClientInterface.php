@@ -4,9 +4,12 @@ namespace BaoPham\DynamoDb;
 
 interface DynamoDbClientInterface
 {
-    public function getClient();
+    /**
+     * @param string @name
+     */
+    function getClient($name = null);
 
-    public function getMarshaler();
+    function getMarshaler();
 
-    public function getAttributeFilter();
+    function getAttributeFilter();
 }

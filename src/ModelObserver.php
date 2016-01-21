@@ -3,7 +3,8 @@
 namespace BaoPham\DynamoDb;
 
 /**
- * Class ModelObserver.
+ * Class ModelObserver
+ * @package BaoPham\DynamoDb
  */
 class ModelObserver
 {
@@ -42,4 +43,5 @@ class ModelObserver
             Log::info($e);
         }
     }
+
 }

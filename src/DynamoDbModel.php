@@ -57,6 +57,8 @@ abstract class DynamoDbModel extends Model
 
     protected $compositeKey = [];
 
+    protected $optimisticLocking = true;
+
     protected static $instance;
 
     public function __construct(array $attributes = [], DynamoDbClientService $dynamoDb = null)
@@ -70,6 +72,8 @@ abstract class DynamoDbModel extends Model
         $this->dynamoDb = $dynamoDb;
 
         $this->setupDynamoDb();
+
+        $this->setDateFormat('Y-m-d H:m:s');
 
         static::$instance = $this;
     }
@@ -89,7 +93,7 @@ abstract class DynamoDbModel extends Model
             $this->dynamoDb = App::make('BaoPham\DynamoDb\DynamoDbClientInterface');
         }
 
-        $this->client = $this->dynamoDb->getClient();
+        $this->client = $this->dynamoDb->getClient($this->connection);
         $this->marshaler = $this->dynamoDb->getMarshaler();
         $this->attributeFilter = $this->dynamoDb->getAttributeFilter();
     }
@@ -98,15 +102,33 @@ abstract class DynamoDbModel extends Model
     {
         if (!$this->getKey()) {
             $this->fireModelEvent('creating');
+            if ($this->optimisticLocking) {
+                $this->version = 0;
+            }
         }
 
         // $this->attributeFilter->filter($this->attributes);
 
         try {
-            $this->client->putItem([
+            if ($this->timestamps) {
+                $this->updateTimestamps();
+            }
+
+            if ($this->optimisticLocking) {
+                $this->version += 1;
+            }
+
+            $query = [
                 'TableName' => $this->getTable(),
                 'Item' => $this->marshalItem($this->attributes),
-            ]);
+            ];
+            if ($this->optimisticLocking && $this->version > 1) {
+                $query["ConditionExpression"] = "version = :version";
+                $query["ExpressionAttributeValues"] = [
+                    ":version" => ["N" => $this->version - 1]
+                ];
+            }
+            $this->client->putItem($query);
 
             return true;
         } catch (Exception $e) {
@@ -135,19 +157,7 @@ abstract class DynamoDbModel extends Model
      */
     public function delete()
     {
-        $key = null;
-        if (!empty($this->compositeKey)) {
-            $key = [];
-            foreach ($this->compositeKey as $name) {
-                $value = $this->$name;
-                $specific_key = static::getSpecificDynamoDbKey($this, $name, $value);
-                foreach ($specific_key as $key_name => $key_value) {
-                    $key[$key_name] = $key_value;
-                }
-            }
-        } else {
-            $key = static::getDynamoDbKey($this, $this->getKey());
-        }
+        $key = $this->getModelKey($this->getKeyAsArray(), $this);
 
         $query = [
             'TableName' => $this->getTable(),
@@ -167,18 +177,7 @@ abstract class DynamoDbModel extends Model
     {
         $model = static::getInstance();
 
-        $key = null;
-        if (is_array($id)) {
-            $key = [];
-            foreach ($id as $name => $value) {
-                $specific_key = static::getSpecificDynamoDbKey($model, $name, $value);
-                foreach ($specific_key as $key_name => $key_value) {
-                    $key[$key_name] = $key_value;
-                }
-            }
-        } else {
-            $key = static::getDynamoDbKey($model, $id);
-        }
+        $key = static::getModelKey($id, $model);
 
         $query = [
             'ConsistentRead' => true,
@@ -372,6 +371,39 @@ abstract class DynamoDbModel extends Model
         ];
 
         return $key;
+    }
+
+    /**
+     * Get the key for this model whether composite or simple.
+     */
+    protected static function getModelKey($id, $model)
+    {
+        if (is_array($id)) {
+            $key = [];
+            foreach ($id as $name => $value) {
+                $specific_key = static::getSpecificDynamoDbKey($model, $name, $value);
+                foreach ($specific_key as $key_name => $key_value) {
+                    $key[$key_name] = $key_value;
+                }
+            }
+        } else {
+            $key = static::getDynamoDbKey($model, $id);
+        }
+        return $key;
+    }
+
+    protected function getKeyAsArray()
+    {
+        $result = array();
+        if (isset($this->compositeKey) && !empty($this->compositeKey)) {
+            foreach ($this->compositeKey as $var) {
+                $result[$var] = $this->$var;
+            }
+        } else {
+            $result[$this->getKeyName()] = $this->getKey();
+        }
+
+        return $result;
     }
 
     protected function setUnfillableAttributes($attributes)

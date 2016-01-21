@@ -8,8 +8,11 @@ use Illuminate\Support\ServiceProvider;
 
 class DynamoDbServiceProvider extends ServiceProvider
 {
+
     /**
      * Register the service provider.
+     *
+     * @return void
      */
     public function register()
     {
@@ -17,37 +20,33 @@ class DynamoDbServiceProvider extends ServiceProvider
             'nullify_invalid' => true,
         ];
 
-        if (App::environment() == 'testing' || config('services.dynamodb.local')) {
-            $this->app->singleton('BaoPham\DynamoDb\DynamoDbClientInterface', function ($app) use ($marshalerOptions) {
-                $region = App::environment() == 'testing' ? 'test' : 'stub';
+        $this->app->singleton('BaoPham\DynamoDb\DynamoDbClientInterface', function ($app) use ($marshalerOptions) {
+            $service_config = config('services.dynamodb');
+            $config = array();
 
-                $config = [
+            foreach ($service_config as $name => $named_config) {
+                if (App::environment() == 'testing' || $named_config['local']) {
+                    $region = App::environment() == 'testing' ? 'test' : 'stub';
+                } else {
+                    $region = $named_config['region'];
+                }
+
+                $config[$name] = [
                     'credentials' => [
-                        'key' => 'dynamodb_local',
-                        'secret' => 'secret',
+                        'key' => $named_config['key'],
+                        'secret' => $named_config['secret'],
                     ],
                     'region' => $region,
                     'version' => '2012-08-10',
-                    'endpoint' => config('services.dynamodb.local_endpoint'),
                 ];
-                $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter());
 
-                return $client;
-            });
-        } else {
-            $this->app->singleton('BaoPham\DynamoDb\DynamoDbClientInterface', function ($app) use ($marshalerOptions) {
-                $config = [
-                    'credentials' => [
-                        'key' => config('services.dynamodb.key'),
-                        'secret' => config('services.dynamodb.secret'),
-                    ],
-                    'region' => config('services.dynamodb.region'),
-                    'version' => '2012-08-10',
-                ];
-                $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter());
+                if ($named_config['local']) {
+                    $config[$name]['endpoint'] = $named_config['local_endpoint'];
+                }
+            }
 
-                return $client;
-            });
-        }
+            $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter);
+            return $client;
+        });
     }
 }

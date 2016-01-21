@@ -4,6 +4,7 @@ namespace BaoPham\DynamoDb;
 
 class EmptyAttributeFilter
 {
+
     public function __construct()
     {
         //
@@ -18,7 +19,7 @@ class EmptyAttributeFilter
             $value = is_string($value) ? trim($value) : $value;
             $empty = $value === null || (is_array($value) && empty($value));
 
-            $empty = $empty || (is_scalar($value) && $value !== false && (string) $value === '');
+            $empty = $empty || (is_scalar($value) && $value !== false && (string)$value === '');
 
             if ($empty) {
                 $store[$key] = null;
@@ -31,5 +32,6 @@ class EmptyAttributeFilter
                 }
             }
         }
+
     }
 }
