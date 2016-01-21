@@ -8,11 +8,8 @@ use Illuminate\Support\ServiceProvider;
 
 class DynamoDbServiceProvider extends ServiceProvider
 {
-
     /**
      * Register the service provider.
-     *
-     * @return void
      */
     public function register()
     {
@@ -31,9 +28,10 @@ class DynamoDbServiceProvider extends ServiceProvider
                     ],
                     'region' => $region,
                     'version' => '2012-08-10',
-                    'endpoint' => config('services.dynamodb.local_endpoint')
+                    'endpoint' => config('services.dynamodb.local_endpoint'),
                 ];
-                $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter);
+                $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter());
+
                 return $client;
             });
         } else {
@@ -46,7 +44,8 @@ class DynamoDbServiceProvider extends ServiceProvider
                     'region' => config('services.dynamodb.region'),
                     'version' => '2012-08-10',
                 ];
-                $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter);
+                $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter());
+
                 return $client;
             });
         }
