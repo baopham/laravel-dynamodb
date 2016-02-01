@@ -199,6 +199,7 @@ abstract class DynamoDbModel extends Model
 
         $item = $model->unmarshalItem($item);
 
+
         $model->fill($item);
 
         if (is_array($id)) {
@@ -334,6 +335,7 @@ abstract class DynamoDbModel extends Model
             $item = $this->unmarshalItem($item);
             $model = new static($item, $this->dynamoDb);
             $model->setUnfillableAttributes($item);
+            $model->fill($item);
             $results[] = $model;
         }
 
