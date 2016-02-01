@@ -3,12 +3,10 @@
 namespace BaoPham\DynamoDb;
 
 /**
- * Class DynamoDbOperator
- * @package BaoPham\DynamoDb
+ * Class DynamoDbOperator.
  */
 class ComparisonOperator
 {
-
     public static function getOperatorMapping()
     {
         return [
@@ -18,7 +16,7 @@ class ComparisonOperator
             '<' => 'LT',
             '<=' => 'LE',
             'in' => 'IN',
-            '!=' => 'NE'
+            '!=' => 'NE',
         ];
     }
 
@@ -59,5 +57,4 @@ class ComparisonOperator
     {
         return in_array($dynamoDbOperator, static::getQuerySupportedOperators());
     }
-
 }
