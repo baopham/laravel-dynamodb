@@ -22,7 +22,7 @@ abstract class DynamoDbModel extends Model
     /**
      * @var \BaoPham\DynamoDb\DynamoDbClientInterface
      */
-    protected $dynamoDb;
+    protected static $dynamoDb;
 
     /**
      * @var \Aws\DynamoDb\DynamoDbClient
@@ -57,8 +57,6 @@ abstract class DynamoDbModel extends Model
 
     protected $compositeKey = [];
 
-    protected static $instance;
-
     public function __construct(array $attributes = [], DynamoDbClientService $dynamoDb = null)
     {
         $this->bootIfNotBooted();
@@ -67,31 +65,27 @@ abstract class DynamoDbModel extends Model
 
         $this->fill($attributes);
 
-        $this->dynamoDb = $dynamoDb;
+        if (is_null(static::$dynamoDb)) {
+            static::$dynamoDb = $dynamoDb;
+        }
 
         $this->setupDynamoDb();
-
-        static::$instance = $this;
     }
 
     protected static function getInstance()
     {
-        if (is_null(static::$instance)) {
-            static::$instance = new static();
-        }
-
-        return static::$instance;
+        return new static();
     }
 
     protected function setupDynamoDb()
     {
-        if (is_null($this->dynamoDb)) {
-            $this->dynamoDb = App::make('BaoPham\DynamoDb\DynamoDbClientInterface');
+        if (is_null(static::$dynamoDb)) {
+            static::$dynamoDb = App::make('BaoPham\DynamoDb\DynamoDbClientInterface');
         }
 
-        $this->client = $this->dynamoDb->getClient();
-        $this->marshaler = $this->dynamoDb->getMarshaler();
-        $this->attributeFilter = $this->dynamoDb->getAttributeFilter();
+        $this->client = static::$dynamoDb->getClient();
+        $this->marshaler = static::$dynamoDb->getMarshaler();
+        $this->attributeFilter = static::$dynamoDb->getAttributeFilter();
     }
 
     public function save(array $options = [])
@@ -333,7 +327,7 @@ abstract class DynamoDbModel extends Model
         $results = [];
         foreach ($iterator as $item) {
             $item = $this->unmarshalItem($item);
-            $model = new static($item, $this->dynamoDb);
+            $model = new static($item, static::$dynamoDb);
             $model->setUnfillableAttributes($item);
             $results[] = $model;
         }
