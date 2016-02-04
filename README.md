@@ -84,7 +84,7 @@ Composite Keys
 --------------
 To use composite keys with your model:
 
-* Set $compositeKey to an array of the arributes names comprising the key, e.g.
+* Set $compositeKey to an array of the attribute names comprising the key, e.g.
 ```php
 protected $primaryKey = ['customer_id'];
 protected $compositeKey = ['customer_id', 'agent_id'];

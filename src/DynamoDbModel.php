@@ -87,7 +87,8 @@ abstract class DynamoDbModel extends Model
             static::$dynamoDb = App::make('BaoPham\DynamoDb\DynamoDbClientInterface');
         }
 
-        $this->client = static::$dynamoDb->getClient($this->connection);
+        //$this->client = static::$dynamoDb->getClient($this->connection);
+        $this->client = static::$dynamoDb->getClient();
         $this->marshaler = static::$dynamoDb->getMarshaler();
         $this->attributeFilter = static::$dynamoDb->getAttributeFilter();
     }
@@ -218,10 +219,10 @@ abstract class DynamoDbModel extends Model
         return $model->getAll($columns, $limit);
     }
 
-    public static function first($columns = [])
+    public function first($columns = [])
     {
-        $model = static::getInstance();
-        $item = $model->getAll($columns, 1);
+        //$model = static::getInstance();
+        $item = $this->getAll($columns, 1);
 
         return $item->first();
     }
