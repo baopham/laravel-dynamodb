@@ -25,8 +25,9 @@
         "phpunit/phpunit": "^5.0@dev"
     },
     "autoload-dev": {
-      "classmap": [
-        "tests/TestCase.php"
-      ]
+        "classmap": [
+            "tests/TestCase.php",
+            "tests/ModelTest.php"
+        ]
     }
 }

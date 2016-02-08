@@ -1,16 +1,16 @@
 <?php
 
-
-class DynamoDbModelTest extends ModelTest
+class DynamoDbCompositeModelTest extends ModelTest
 {
     protected function getTestModel()
     {
-        return new TestModel([], $this->dynamoDb);
+        return new CompositeTestModel([], $this->dynamoDb);
     }
 
     public function testCreateRecord()
     {
-        $this->testModel->id = str_random(36);
+        $this->testModel->id = 'id1';
+        $this->testModel->id2 = str_random(36);
         $this->testModel->name = 'Test Create';
         $this->testModel->count = 1;
         $this->testModel->save();
@@ -18,7 +18,8 @@ class DynamoDbModelTest extends ModelTest
         $query = [
             'TableName' => $this->testModel->getTable(),
             'Key' => [
-                'id' => ['S' => $this->testModel->id]
+                'id' => ['S' => $this->testModel->id],
+                'id2' => ['S' => $this->testModel->id2],
             ],
         ];
 
@@ -26,18 +27,21 @@ class DynamoDbModelTest extends ModelTest
 
         $this->assertArrayHasKey('Item', $record);
         $this->assertEquals($this->testModel->id, $record['Item']['id']['S']);
+        $this->assertEquals($this->testModel->id2, $record['Item']['id2']['S']);
     }
 
     public function testFindRecord()
     {
         $seed = $this->seed();
         $seedId = array_get($seed, 'id.S');
+        $seedId2 = array_get($seed, 'id2.S');
         $seedName = array_get($seed, 'name.S');
 
-        $item = $this->testModel->find($seedId);
+        $item = $this->testModel->find(['id' => $seedId, 'id2' => $seedId2]);
 
         $this->assertNotEmpty($item);
         $this->assertEquals($seedId, $item->id);
+        $this->assertEquals($seedId2, $item->id2);
         $this->assertEquals($seedName, $item->name);
     }
 
@@ -55,9 +59,10 @@ class DynamoDbModelTest extends ModelTest
     {
         $seed = $this->seed();
         $seedId = array_get($seed, 'id.S');
+        $seedId2 = array_get($seed, 'id2.S');
 
         $newName = 'New Name';
-        $this->testModel = $this->testModel->find($seedId);
+        $this->testModel = $this->testModel->find(['id' => $seedId, 'id2' => $seedId2]);
         $updated = $this->testModel->update(['name' => $newName]);
 
         $this->assertTrue($updated);
@@ -65,7 +70,8 @@ class DynamoDbModelTest extends ModelTest
         $query = [
             'TableName' => $this->testModel->getTable(),
             'Key' => [
-                'id' => ['S' => $seedId]
+                'id' => ['S' => $seedId],
+                'id2' => ['S' => $seedId2],
             ],
         ];
 
@@ -78,9 +84,10 @@ class DynamoDbModelTest extends ModelTest
     {
         $seed = $this->seed();
         $seedId = array_get($seed, 'id.S');
+        $seedId2 = array_get($seed, 'id2.S');
 
         $newName = 'New Name to be saved';
-        $this->testModel = $this->testModel->find($seedId);
+        $this->testModel = $this->testModel->find(['id' => $seedId, 'id2' => $seedId2]);
         $this->testModel->name = $newName;
 
         $this->testModel->save();
@@ -88,7 +95,8 @@ class DynamoDbModelTest extends ModelTest
         $query = [
             'TableName' => $this->testModel->getTable(),
             'Key' => [
-                'id' => ['S' => $seedId]
+                'id' => ['S' => $seedId],
+                'id2' => ['S' => $seedId2]
             ],
         ];
 
@@ -101,13 +109,15 @@ class DynamoDbModelTest extends ModelTest
     {
         $seed = $this->seed();
         $seedId = array_get($seed, 'id.S');
+        $seedId2 = array_get($seed, 'id2.S');
 
-        $this->testModel->find($seedId)->delete();
+        $this->testModel->find(['id' => $seedId, 'id2' => $seedId2])->delete();
 
         $query = [
             'TableName' => $this->testModel->getTable(),
             'Key' => [
-                'id' => ['S' => $seedId]
+                'id' => ['S' => $seedId],
+                'id2' => ['S' => $seedId2]
             ],
         ];
 
@@ -194,7 +204,8 @@ class DynamoDbModelTest extends ModelTest
     protected function seed($attributes = [])
     {
         $item = [
-            'id' => ['S' => str_random(36)],
+            'id' => ['S' => 'id1'],
+            'id2' => ['S' => str_random(36)],
             'name' => ['S' => str_random(36)],
             'description' => ['S' => str_random(256)],
             'count' => ['N' => rand()],
@@ -212,11 +223,13 @@ class DynamoDbModelTest extends ModelTest
 
 }
 
-class TestModel extends \BaoPham\DynamoDb\DynamoDbModel
+class CompositeTestModel extends \BaoPham\DynamoDb\DynamoDbModel
 {
     protected $fillable = ['name', 'description', 'count'];
 
-    protected $table = 'test_model';
+    protected $table = 'composite_test_model';
+
+    protected $compositeKey = ['id', 'id2'];
 
     protected $dynamoDbIndexKeys = [
         'count' => 'count_index',

@@ -7,7 +7,6 @@ use Aws\DynamoDb\Marshaler;
 
 class DynamoDbClientService implements DynamoDbClientInterface
 {
-
     /**
      * @var \Aws\DynamoDb\DynamoDbClient
      */
@@ -17,7 +16,6 @@ class DynamoDbClientService implements DynamoDbClientInterface
      * @var \Aws\DynamoDb\Marshaler
      */
     protected $marshaler;
-
 
     /**
      * @var \BaoPham\DynamoDb\EmptyAttributeFilter
@@ -54,5 +52,4 @@ class DynamoDbClientService implements DynamoDbClientInterface
     {
         return $this->attributeFilter;
     }
-
 }

@@ -1,15 +1,12 @@
 laravel-dynamodb
 ================
-Only supports hash primary key type
+Supports all key types - primary hash key and composite keys.
 
 Install
 ------
 
-```json
-// composer.json
-"require": {
-    "baopham/dynamodb": "dev-master"
-}
+```bash
+composer require baopham/dynamodb:dev-master
 ```
 
 Install service provider:
@@ -80,6 +77,23 @@ $model->save();
     ...
 ```
 
+Composite Keys
+--------------
+To use composite keys with your model:
+
+* Set `$compositeKey` to an array of the attributes names comprising the key, e.g.
+
+```php
+protected $primaryKey = ['customer_id'];
+protected $compositeKey = ['customer_id', 'agent_id'];
+```
+
+* To find a record with a composite key
+
+```php
+$model->find(['id1' => 'value1', 'id2' => 'value2']);
+```
+
 Test
 ----
 Run:
@@ -89,72 +103,25 @@ $ java -Djava.library.path=./DynamoDBLocal_lib -jar dynamodb_local/DynamoDBLocal
 $ ./vendor/bin/phpunit
 ```
 
-This is the [test table created for DynamoDb local by the DynamoDb local shell](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.Shell.html)
-
-```javascript
-var params = {
-    TableName: 'test_model',
-    KeySchema: [ // The type of of schema.  Must start with a HASH type, with an optional second RANGE.
-        { // Required HASH type attribute
-            AttributeName: 'id',
-            KeyType: 'HASH',
-        }
-    ],
-    AttributeDefinitions: [ // The names and types of all primary and index key attributes only
-        {
-            AttributeName: 'id',
-            AttributeType: 'S', // (S | N | B) for string, number, binary
-        },
-        {
-            AttributeName: 'count',
-            AttributeType: 'N', // (S | N | B) for string, number, binary
-        }
-    ],
-    ProvisionedThroughput: { // required provisioned throughput for the table
-        ReadCapacityUnits: 1, 
-        WriteCapacityUnits: 1, 
-    },
-    GlobalSecondaryIndexes: [ // optional (list of GlobalSecondaryIndex)
-        { 
-            IndexName: 'count_index', 
-            KeySchema: [
-                { // Required HASH type attribute
-                    AttributeName: 'count',
-                    KeyType: 'HASH',
-                }
-            ],
-            Projection: { // attributes to project into the index
-                ProjectionType: 'ALL', // (ALL | KEYS_ONLY | INCLUDE)
-            },
-            ProvisionedThroughput: { // throughput to provision to the index
-                ReadCapacityUnits: 1,
-                WriteCapacityUnits: 1,
-            },
-        },
-        // ... more global secondary indexes ...
-    ]
-};
-dynamodb.createTable(params, function(err, data) {
-    if (err) print(err); // an error occurred
-    else print(data); // successful response
-});
-```
-
 * DynamoDb local version: 2015-07-16_1.0
+
+* DynamoDb local schema for tests created by the [DynamoDb local shell](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.Shell.html) is located [here](dynamodb_local_schema.js)
+
 
 TODO
 ----
-* Upgrade a few legacy attributes: `AttributesToGet`, `ScanFilter`, ...
+- [ ] Upgrade a few legacy attributes: `AttributesToGet`, `ScanFilter`, ...
 
 
 Requirements:
 -------------
-Laravel 5.1
+Laravel ^5.1
 
 License:
 --------
 MIT
 
-Author:
+Author and contributors
 -------
-Bao Pham
+* Bao Pham
+* [warrick-loyaltycorp](https://github.com/warrick-loyaltycorp)
