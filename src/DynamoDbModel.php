@@ -327,7 +327,7 @@ abstract class DynamoDbModel extends Model
         return false;
     }
 
-    protected static function getDynamoDbKey(DynamoDbModel $model, $id)
+    protected static function getDynamoDbPrimaryKey(DynamoDbModel $model, $id)
     {
         return static::getSpecificDynamoDbKey($model, $model->getKeyName(), $id);
     }
@@ -348,7 +348,7 @@ abstract class DynamoDbModel extends Model
     /**
      * Get the key for this model whether composite or simple.
      */
-    protected static function getModelKey($id, $model)
+    protected static function getModelKey($id, DynamoDbModel $model)
     {
         if (is_array($id)) {
             $key = [];
@@ -358,18 +358,20 @@ abstract class DynamoDbModel extends Model
                     $key[$key_name] = $key_value;
                 }
             }
-        } else {
-            $key = static::getDynamoDbKey($model, $id);
+
+            return $key;
         }
-        return $key;
+
+        return static::getDynamoDbPrimaryKey($model, $id);
     }
 
     protected function getKeyAsArray()
     {
-        $result = array();
-        if (isset($this->compositeKey) && !empty($this->compositeKey)) {
-            foreach ($this->compositeKey as $var) {
-                $result[$var] = $this->$var;
+        $result = [];
+
+        if (!empty($this->compositeKey)) {
+            foreach ($this->compositeKey as $key) {
+                $result[$key] = $this->{$key};
             }
         } else {
             $result[$this->getKeyName()] = $this->getKey();
