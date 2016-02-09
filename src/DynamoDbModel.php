@@ -73,7 +73,7 @@ abstract class DynamoDbModel extends Model
 
         $this->setupDynamoDb();
 
-        $this->setDateFormat('Y-m-d H:m:s');
+        $this->setDateFormat('Y-m-d H:i:s');
     }
 
     protected static function getInstance()
@@ -194,9 +194,10 @@ abstract class DynamoDbModel extends Model
 
         $item = $model->unmarshalItem($item);
 
-
+        Log::debug(print_r($item, true));
         $model->fill($item);
 
+        Log::debug(print_r($model->toArray(), true));
         if (is_array($id)) {
             if (isset($model->compositeKey) && !empty($model->compositeKey)) {
                 foreach ($model->compositeKey as $var) {
@@ -335,6 +336,54 @@ abstract class DynamoDbModel extends Model
         }
 
         return new Collection($results);
+    }
+
+    public function getFillable()
+    {
+        $result = parent::getFillable();
+        if ($this->optimisticLocking) {
+            $result[] = "version";
+        }
+        if ($this->timestamps) {
+            $result[] = static::CREATED_AT;
+            $result[] = static::UPDATED_AT;
+        }
+        return $result;
+    }
+
+    public function isFillable($key)
+    {
+        if ($this->optimisticLocking && $key === 'version') {
+            return true;
+        }
+        if ($this->timestamps && ($key === static::CREATED_AT || $key === static::UPDATED_AT)) {
+            return true;
+        }
+        return parent::isFillable($key);
+    }
+
+    protected function fillableFromArray(array $attributes)
+    {
+        $result = parent::fillableFromArray($attributes);
+        if (array_key_exists("version", $attributes)) {
+            $result["version"] = $this->version;
+        }
+        if (array_key_exists(static::CREATED_AT, $attributes)) {
+            $result[static::CREATED_AT] = $this->{static::CREATED_AT};
+        }
+
+        return $result;
+    }
+
+    protected function updateTimestamps()
+    {
+        $time = $this->freshTimestamp();
+
+        $this->setUpdatedAt($time);
+
+        if (is_null($this->{static::CREATED_AT})) {
+            $this->setCreatedAt($time);
+        }
     }
 
     protected function conditionsContainIndexKey()
