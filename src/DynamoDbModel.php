@@ -120,7 +120,7 @@ abstract class DynamoDbModel extends Model
             if ($this->optimisticLocking && $this->version > 1) {
                 $query["ConditionExpression"] = "version = :version";
                 $query["ExpressionAttributeValues"] = [
-                    ":version" => ["N" => $this->version - 1]
+                    ":version" => ["N" => (string)($this->version - 1)]
                 ];
             }
             $this->client->putItem($query);
