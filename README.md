@@ -6,7 +6,7 @@ Install
 ------
 
 ```bash
-composer require baopham/dynamodb:dev-master
+composer require baopham/dynamodb:0.2.0
 ```
 
 Install service provider:
