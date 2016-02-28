@@ -7,7 +7,7 @@ php:
   - hhvm
 
 before_script:
-  - nohup bash -c "java -Djava.library.path=./DynamoDBLocal_lib -jar dynamodb_local/DynamoDBLocal.jar --port 3000" && sleep 2
+  - java -Djava.library.path=./DynamoDBLocal_lib -jar dynamodb_local/DynamoDBLocal.jar --port 3000 &
   - travis_retry composer self-update
   - travis_retry composer install --no-interaction
 
