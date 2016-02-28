@@ -7,4 +7,4 @@ php:
   - hhvm
 
 before_script:
-  - java -Djava.library.path=./DynamoDBLocal_lib -jar dynamodb_local/DynamoDBLocal.jar --port 3000
+  - nohup bash -c "java -Djava.library.path=./DynamoDBLocal_lib -jar dynamodb_local/DynamoDBLocal.jar --port 3000" && sleep 2
