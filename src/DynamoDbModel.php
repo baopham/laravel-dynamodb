@@ -65,6 +65,8 @@ abstract class DynamoDbModel extends Model
 
         $this->syncOriginal();
 
+        $this->setDateFormat('Y-m-d H:i:s');
+
         $this->fill($attributes);
 
         if (is_null(static::$dynamoDb)) {
@@ -72,8 +74,6 @@ abstract class DynamoDbModel extends Model
         }
 
         $this->setupDynamoDb();
-
-        $this->setDateFormat('Y-m-d H:i:s');
     }
 
     protected static function getInstance()
@@ -194,10 +194,8 @@ abstract class DynamoDbModel extends Model
 
         $item = $model->unmarshalItem($item);
 
-        Log::debug(print_r($item, true));
         $model->fill($item);
 
-        Log::debug(print_r($model->toArray(), true));
         if (is_array($id)) {
             if (isset($model->compositeKey) && !empty($model->compositeKey)) {
                 foreach ($model->compositeKey as $var) {
@@ -365,12 +363,6 @@ abstract class DynamoDbModel extends Model
     protected function fillableFromArray(array $attributes)
     {
         $result = parent::fillableFromArray($attributes);
-        if (array_key_exists("version", $attributes)) {
-            $result["version"] = $this->version;
-        }
-        if (array_key_exists(static::CREATED_AT, $attributes)) {
-            $result[static::CREATED_AT] = $this->{static::CREATED_AT};
-        }
 
         return $result;
     }

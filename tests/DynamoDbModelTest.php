@@ -77,6 +77,8 @@ class DynamoDbModelTest extends TestCase
 
         $this->assertArrayHasKey('Item', $record);
         $this->assertEquals($this->testModel->id, $record['Item']['id']['S']);
+        $this->assertEquals("1", $record['Item']['version']['N']);
+        $this->assertEquals($record['Item']['created_at']['S'], $record['Item']['updated_at']['S']);
     }
 
     public function testFindRecord()
@@ -109,6 +111,11 @@ class DynamoDbModelTest extends TestCase
 
         $newName = 'New Name';
         $this->testModel = $this->testModel->find($seedId);
+
+        //Introduce a 1 second delay to confirm updated_at time is set correctly
+        //updated_at must be 1 second later than created_at
+        sleep(1);
+
         $updated = $this->testModel->update(['name' => $newName]);
 
         $this->assertTrue($updated);
@@ -123,6 +130,8 @@ class DynamoDbModelTest extends TestCase
         $record = $this->dynamoDbClient->getItem($query)->toArray();
 
         $this->assertEquals($newName, array_get($record, 'Item.name.S'));
+        $this->assertEquals("2", array_get($record, 'Item.version.N'));
+        $this->assertNotEquals(array_get($record, 'Item.created_at.S'), array_get($record, 'Item.updated_at.S'));
     }
 
     public function testSaveRecord()
@@ -242,6 +251,28 @@ class DynamoDbModelTest extends TestCase
         $this->assertEquals(array_get($firstItem, 'id.S'), $items->id);
     }
 
+    public function testOptimisticLocking()
+    {
+        $firstItem = $this->seed();
+        $item1 = $this->testModel->first();
+        $item2 = $this->testModel->first();
+
+        $updated = $item1->update([name => 'Updated First']);
+        $this->assertTrue($updated);
+
+        try {
+            $updated = $item2->update([name => 'Updated Second']);
+            $this->fail('Conflicting update has succeeded but it should fail.');
+        } catch (Exception $e) {
+            //This is correct, an exception is expected because the second update is conflicting
+        }
+
+        $item2 = $this->testModel->first();
+        $updated = $item2->update([name => 'Updated Second']);
+        $this->assertTrue($updated);
+
+    }
+
     protected function seed($attributes = [])
     {
         $item = [
@@ -249,6 +280,9 @@ class DynamoDbModelTest extends TestCase
             'name' => ['S' => str_random(36)],
             'description' => ['S' => str_random(256)],
             'count' => ['N' => rand()],
+            'version' => ['N' => '1'],
+            'created_at' => ['S' => date("Y-m-d H:i:s")],
+            'updated_at' => ['S' => date("Y-m-d H:i:s")],
         ];
 
         $item = array_merge($item, $attributes);
