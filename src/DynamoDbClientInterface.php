@@ -7,9 +7,9 @@ interface DynamoDbClientInterface
     /**
      * @param string @name
      */
-    function getClient($name = null);
+    public function getClient($name = null);
 
-    function getMarshaler();
+    public function getMarshaler();
 
-    function getAttributeFilter();
+    public function getAttributeFilter();
 }
