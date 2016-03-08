@@ -25,8 +25,8 @@ class DynamoDbServiceProvider extends ServiceProvider
                 $region = App::environment() == 'testing' ? 'test' : 'stub';
                 $config = [
                     'credentials' => [
-                    'key' => 'dynamodb_local',
-                    'secret' => 'secret',
+                        'key' => 'dynamodb_local',
+                        'secret' => 'secret',
                     ],
                     'region' => $region,
                     'version' => '2012-08-10',

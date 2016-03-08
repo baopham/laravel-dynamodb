@@ -3,8 +3,7 @@
 namespace BaoPham\DynamoDb;
 
 /**
- * Class DynamoDbOperator
- * @package BaoPham\DynamoDb
+ * Class DynamoDbOperator.
  */
 class ComparisonOperator
 {

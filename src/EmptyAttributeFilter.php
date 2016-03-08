@@ -4,7 +4,6 @@ namespace BaoPham\DynamoDb;
 
 class EmptyAttributeFilter
 {
-
     public function __construct()
     {
         //

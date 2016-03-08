@@ -3,8 +3,7 @@
 namespace BaoPham\DynamoDb;
 
 /**
- * Class ModelObserver
- * @package BaoPham\DynamoDb
+ * Class ModelObserver.
  */
 class ModelObserver
 {

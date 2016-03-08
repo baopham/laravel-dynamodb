@@ -8,5 +8,4 @@ namespace BaoPham\DynamoDb;
  */
 class NotSupportedException extends \Exception
 {
-
 }
