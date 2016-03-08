@@ -11,7 +11,7 @@ class DynamoDbClientService implements DynamoDbClientInterface
     /**
      * @var \Aws\DynamoDb\DynamoDbClient
      */
-    protected $client = array();
+    protected $client = [];
 
     /**
      * @var \Aws\DynamoDb\Marshaler
@@ -28,7 +28,7 @@ class DynamoDbClientService implements DynamoDbClientInterface
     {
         if (array_key_exists('region', $config)) {
             $config = array(
-                null => $config,
+                '__default__' => $config,
             );
         }
         foreach ($config as $name => $named_config) {
@@ -42,7 +42,7 @@ class DynamoDbClientService implements DynamoDbClientInterface
      * @param string $name
      * @return \Aws\DynamoDb\DynamoDbClient
      */
-    public function getClient($name = null)
+    public function getClient($name = '__default__')
     {
         if (!array_key_exists($name, $this->client)) {
             $name = array_keys($this->client)[0];
