@@ -322,15 +322,17 @@ abstract class DynamoDbModel extends Model
             $query['ScanFilter'] = $this->where;
         }
 
-        $iterator = $this->client->getIterator($op, $query);
+        $paginator = $this->client->getPaginator($op, $query);
 
         $results = [];
-        foreach ($iterator as $item) {
-            $item = $this->unmarshalItem($item);
-            $model = new static($item, static::$dynamoDb);
-            $model->setUnfillableAttributes($item);
-            $model->fill($item);
-            $results[] = $model;
+        foreach ($paginator as $page) {
+            foreach ($page['Items'] as $item) {
+                $item = $this->unmarshalItem($item);
+                $model = new static($item, static::$dynamoDb);
+                $model->setUnfillableAttributes($item);
+                $model->fill($item);
+                $results[] = $model;
+            }
         }
 
         return new Collection($results);
