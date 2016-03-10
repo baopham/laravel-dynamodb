@@ -202,10 +202,10 @@ abstract class DynamoDbModel extends Model
                     $model->$var = $id[$var];
                 }
             } else {
-                $model->id = $id[$model->primaryKey];
+                $model->{$model->primaryKey} = $id[$model->primaryKey];
             }
         } else {
-            $model->id = $id;
+            $model->{$model->primaryKey} = $id;
         }
 
         return $model;
