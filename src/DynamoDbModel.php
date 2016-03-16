@@ -288,7 +288,7 @@ abstract class DynamoDbModel extends Model
         return $this->getAll($columns);
     }
 
-    protected function getAll($columns = [], $limit = -1)
+    public function getAll($columns = [], $limit = -1, $offset = -1)
     {
         $query = [
             'TableName' => $this->getTable(),
@@ -297,7 +297,7 @@ abstract class DynamoDbModel extends Model
         $op = 'Scan';
 
         if ($limit > -1) {
-            $query['limit'] = $limit;
+            $query['Limit'] = $limit;
         }
 
         if (!empty($columns)) {
@@ -322,16 +322,28 @@ abstract class DynamoDbModel extends Model
             $query['ScanFilter'] = $this->where;
         }
 
-        $paginator = $this->client->getPaginator($op, $query);
+        $iterator = $this->client->getIterator($op, $query);
 
         $results = [];
-        foreach ($paginator as $page) {
-            foreach ($page['Items'] as $item) {
+        $pageNum = 0;
+        $itemNum = 0;
+        foreach ($iterator as $item) {
+            if ($offset == -1 || ($offset >= 0 && $offset == $pageNum) && ($limit == -1 || $itemNum <= $limit)) {
                 $item = $this->unmarshalItem($item);
                 $model = new static($item, static::$dynamoDb);
                 $model->setUnfillableAttributes($item);
                 $model->fill($item);
                 $results[] = $model;
+            }
+
+            $itemNum += 1;
+            if ($limit >= 0 && $itemNum == $limit) {
+                if ($offset >= 0 && $offset == $pageNum) {
+                    break;
+                }
+
+                $pageNum += 1;
+                $itemNum = 0;
             }
         }
 
