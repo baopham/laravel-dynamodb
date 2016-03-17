@@ -7,15 +7,17 @@ use Aws\DynamoDb\Marshaler;
 
 class DynamoDbClientService implements DynamoDbClientInterface
 {
+
     /**
      * @var \Aws\DynamoDb\DynamoDbClient
      */
-    protected $client;
+    protected $client = [];
 
     /**
      * @var \Aws\DynamoDb\Marshaler
      */
     protected $marshaler;
+
 
     /**
      * @var \BaoPham\DynamoDb\EmptyAttributeFilter
@@ -24,17 +26,28 @@ class DynamoDbClientService implements DynamoDbClientInterface
 
     public function __construct($config, Marshaler $marshaler, EmptyAttributeFilter $filter)
     {
-        $this->client = new DynamoDbClient($config);
-        $this->marshaler = $marshaler;
-        $this->attributeFilter = $filter;
+        if (array_key_exists('region', $config)) {
+            $config = array(
+                '__default__' => $config,
+            );
+        }
+        foreach ($config as $name => $named_config) {
+            $this->client[$name] = new DynamoDbClient($named_config);
+            $this->marshaler = $marshaler;
+            $this->attributeFilter = $filter;
+        }
     }
 
     /**
+     * @param string $name
      * @return \Aws\DynamoDb\DynamoDbClient
      */
-    public function getClient()
+    public function getClient($name = '__default__')
     {
-        return $this->client;
+        if (!array_key_exists($name, $this->client)) {
+            $name = array_keys($this->client)[0];
+        }
+        return $this->client[$name];
     }
 
     /**
@@ -52,4 +65,5 @@ class DynamoDbClientService implements DynamoDbClientInterface
     {
         return $this->attributeFilter;
     }
+
 }

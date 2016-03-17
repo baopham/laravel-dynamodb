@@ -94,6 +94,22 @@ protected $compositeKey = ['customer_id', 'agent_id'];
 $model->find(['id1' => 'value1', 'id2' => 'value2']);
 ```
 
+Optimistic Locking
+------------------
+Optimistic locking protects records against conflicting concurrent updates.
+
+Where an item is retrieved from the database by 2 or more processes and then updated by those processes the first updated should not be lost to any subsequent
+updates. Optmistic locking protects against this by adding a version number attribute to each record. When an update is attempted the version number of the
+current database record is checked against the version number of the updated record. If they do not match the update fails with an exception.
+
+Optimistic locking is enabled by default. To disable it set $optimticLocking = false;
+
+Timestamps
+----------
+By default the created_at and updated_at timestamps are enabled for each record.
+
+To disable timestamps set $timestamps = false;
+
 Test
 ----
 Run:

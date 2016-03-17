@@ -42,4 +42,5 @@ class ModelObserver
             Log::info($e);
         }
     }
+
 }

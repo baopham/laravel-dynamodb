@@ -3,7 +3,8 @@
 namespace BaoPham\DynamoDb;
 
 /**
- * Class NotSupportedException.
+ * Class NotSupportedException
+ * @package BaoPham\DynamoDb
  */
 class NotSupportedException extends \Exception
 {

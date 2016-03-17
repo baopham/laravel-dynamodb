@@ -57,11 +57,15 @@ abstract class DynamoDbModel extends Model
 
     protected $compositeKey = [];
 
+    protected $optimisticLocking = true;
+
     public function __construct(array $attributes = [], DynamoDbClientService $dynamoDb = null)
     {
         $this->bootIfNotBooted();
 
         $this->syncOriginal();
+
+        $this->setDateFormat('Y-m-d H:i:s');
 
         $this->fill($attributes);
 
@@ -83,6 +87,7 @@ abstract class DynamoDbModel extends Model
             static::$dynamoDb = App::make('BaoPham\DynamoDb\DynamoDbClientInterface');
         }
 
+        //$this->client = static::$dynamoDb->getClient($this->connection);
         $this->client = static::$dynamoDb->getClient();
         $this->marshaler = static::$dynamoDb->getMarshaler();
         $this->attributeFilter = static::$dynamoDb->getAttributeFilter();
@@ -92,15 +97,33 @@ abstract class DynamoDbModel extends Model
     {
         if (!$this->getKey()) {
             $this->fireModelEvent('creating');
+            if ($this->optimisticLocking) {
+                $this->version = 0;
+            }
         }
 
         // $this->attributeFilter->filter($this->attributes);
 
         try {
-            $this->client->putItem([
+            if ($this->timestamps) {
+                $this->updateTimestamps();
+            }
+
+            if ($this->optimisticLocking) {
+                $this->version += 1;
+            }
+
+            $query = [
                 'TableName' => $this->getTable(),
                 'Item' => $this->marshalItem($this->attributes),
-            ]);
+            ];
+            if ($this->optimisticLocking && $this->version > 1) {
+                $query["ConditionExpression"] = "version = :version";
+                $query["ExpressionAttributeValues"] = [
+                    ":version" => ["N" => (string)($this->version - 1)]
+                ];
+            }
+            $this->client->putItem($query);
 
             return true;
         } catch (Exception $e) {
@@ -179,10 +202,10 @@ abstract class DynamoDbModel extends Model
                     $model->$var = $id[$var];
                 }
             } else {
-                $model->id = $id[$model->primaryKey];
+                $model->{$model->primaryKey} = $id[$model->primaryKey];
             }
         } else {
-            $model->id = $id;
+            $model->{$model->primaryKey} = $id;
         }
 
         return $model;
@@ -195,10 +218,10 @@ abstract class DynamoDbModel extends Model
         return $model->getAll($columns, $limit);
     }
 
-    public static function first($columns = [])
+    public function first($columns = [])
     {
-        $model = static::getInstance();
-        $item = $model->getAll($columns, 1);
+        //$model = static::getInstance();
+        $item = $this->getAll($columns, 1);
 
         return $item->first();
     }
@@ -265,7 +288,7 @@ abstract class DynamoDbModel extends Model
         return $this->getAll($columns);
     }
 
-    protected function getAll($columns = [], $limit = -1)
+    public function getAll($columns = [], $limit = -1, $offset = -1)
     {
         $query = [
             'TableName' => $this->getTable(),
@@ -274,7 +297,7 @@ abstract class DynamoDbModel extends Model
         $op = 'Scan';
 
         if ($limit > -1) {
-            $query['limit'] = $limit;
+            $query['Limit'] = intval($limit);
         }
 
         if (!empty($columns)) {
@@ -302,14 +325,71 @@ abstract class DynamoDbModel extends Model
         $iterator = $this->client->getIterator($op, $query);
 
         $results = [];
+        $pageNum = 0;
+        $itemNum = 0;
         foreach ($iterator as $item) {
-            $item = $this->unmarshalItem($item);
-            $model = new static($item, static::$dynamoDb);
-            $model->setUnfillableAttributes($item);
-            $results[] = $model;
+            if ($offset == -1 || ($offset >= 0 && $offset == $pageNum) && ($limit == -1 || $itemNum <= $limit)) {
+                $item = $this->unmarshalItem($item);
+                $model = new static($item, static::$dynamoDb);
+                $model->setUnfillableAttributes($item);
+                $model->fill($item);
+                $results[] = $model;
+            }
+
+            $itemNum += 1;
+            if ($limit >= 0 && $itemNum == $limit) {
+                if ($offset >= 0 && $offset == $pageNum) {
+                    break;
+                }
+
+                $pageNum += 1;
+                $itemNum = 0;
+            }
         }
 
         return new Collection($results);
+    }
+
+    public function getFillable()
+    {
+        $result = parent::getFillable();
+        if ($this->optimisticLocking) {
+            $result[] = "version";
+        }
+        if ($this->timestamps) {
+            $result[] = static::CREATED_AT;
+            $result[] = static::UPDATED_AT;
+        }
+        return $result;
+    }
+
+    public function isFillable($key)
+    {
+        if ($this->optimisticLocking && $key === 'version') {
+            return true;
+        }
+        if ($this->timestamps && ($key === static::CREATED_AT || $key === static::UPDATED_AT)) {
+            return true;
+        }
+        return parent::isFillable($key);
+    }
+
+    protected function fillableFromArray(array $attributes)
+    {
+        $result = parent::fillableFromArray($attributes);
+
+        return $result;
+    }
+
+    protected function updateTimestamps()
+    {
+        $time = $this->freshTimestamp();
+
+        $this->setUpdatedAt($time);
+
+        if (is_null($this->{static::CREATED_AT})) {
+            $this->setCreatedAt($time);
+        }
     }
 
     protected function conditionsContainIndexKey()

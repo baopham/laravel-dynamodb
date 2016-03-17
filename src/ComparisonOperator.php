@@ -7,6 +7,7 @@ namespace BaoPham\DynamoDb;
  */
 class ComparisonOperator
 {
+
     public static function getOperatorMapping()
     {
         return [
@@ -16,7 +17,7 @@ class ComparisonOperator
             '<' => 'LT',
             '<=' => 'LE',
             'in' => 'IN',
-            '!=' => 'NE',
+            '!=' => 'NE'
         ];
     }
 
@@ -57,4 +58,5 @@ class ComparisonOperator
     {
         return in_array($dynamoDbOperator, static::getQuerySupportedOperators());
     }
+
 }

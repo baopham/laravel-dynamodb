@@ -8,8 +8,11 @@ use Illuminate\Support\ServiceProvider;
 
 class DynamoDbServiceProvider extends ServiceProvider
 {
+
     /**
      * Register the service provider.
+     *
+     * @return void
      */
     public function register()
     {
@@ -20,7 +23,6 @@ class DynamoDbServiceProvider extends ServiceProvider
         if (App::environment() == 'testing' || config('services.dynamodb.local')) {
             $this->app->singleton('BaoPham\DynamoDb\DynamoDbClientInterface', function ($app) use ($marshalerOptions) {
                 $region = App::environment() == 'testing' ? 'test' : 'stub';
-
                 $config = [
                     'credentials' => [
                         'key' => 'dynamodb_local',
@@ -28,24 +30,22 @@ class DynamoDbServiceProvider extends ServiceProvider
                     ],
                     'region' => $region,
                     'version' => '2012-08-10',
-                    'endpoint' => config('services.dynamodb.local_endpoint'),
-                ];
-                $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter());
-
+                    'endpoint' => config('services.dynamodb.local_endpoint')
+                    ];
+                $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter);
                 return $client;
             });
         } else {
             $this->app->singleton('BaoPham\DynamoDb\DynamoDbClientInterface', function ($app) use ($marshalerOptions) {
                 $config = [
                     'credentials' => [
-                        'key' => config('services.dynamodb.key'),
+                    'key' => config('services.dynamodb.key'),
                         'secret' => config('services.dynamodb.secret'),
-                    ],
-                    'region' => config('services.dynamodb.region'),
-                    'version' => '2012-08-10',
-                ];
-                $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter());
-
+                        ],
+                        'region' => config('services.dynamodb.region'),
+                        'version' => '2012-08-10',
+                        ];
+                $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter);
                 return $client;
             });
         }
