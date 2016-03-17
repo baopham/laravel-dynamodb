@@ -297,7 +297,7 @@ abstract class DynamoDbModel extends Model
         $op = 'Scan';
 
         if ($limit > -1) {
-            $query['Limit'] = $limit;
+            $query['Limit'] = intval($limit);
         }
 
         if (!empty($columns)) {
