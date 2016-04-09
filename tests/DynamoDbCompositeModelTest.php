@@ -1,6 +1,6 @@
 <?php
 
-class DynamoDbCompositeModelTest extends ModelTest
+class DynamoDbCompositeModelTest extends DynamoDbModelTest
 {
     protected function getTestModel()
     {
@@ -43,16 +43,6 @@ class DynamoDbCompositeModelTest extends ModelTest
         $this->assertEquals($seedId, $item->id);
         $this->assertEquals($seedId2, $item->id2);
         $this->assertEquals($seedName, $item->name);
-    }
-
-    public function testGetAllRecords()
-    {
-        $this->seed();
-        $this->seed();
-
-        $items = $this->testModel->all()->toArray();
-
-        $this->assertEquals(2, count($items));
     }
 
     public function testUpdateRecord()
@@ -124,81 +114,6 @@ class DynamoDbCompositeModelTest extends ModelTest
         $record = $this->dynamoDbClient->getItem($query)->toArray();
 
         $this->assertArrayNotHasKey('Item', $record);
-    }
-
-    public function testGetAllRecordsWithEqualCondition()
-    {
-        $this->seed(['count' => ['N' => 10]]);
-        $this->seed(['count' => ['N' => 10]]);
-        $this->seed(['count' => ['N' => 10]]);
-
-        $items = $this->testModel->where('count', 10)->get()->toArray();
-
-        $this->assertEquals(3, count($items));
-    }
-
-    public function testGetAllRecordsWithNonEqualCondition()
-    {
-        $this->seed(['count' => ['N' => 10]]);
-        $this->seed(['count' => ['N' => 11]]);
-        $this->seed(['count' => ['N' => 11]]);
-
-        $items = $this->testModel->where('count', '!=', 10)->get()->toArray();
-
-        $this->assertEquals(2, count($items));
-    }
-
-    public function testGetAllRecordsWithGTCondition()
-    {
-        $this->seed(['count' => ['N' => 10]]);
-        $this->seed(['count' => ['N' => 11]]);
-        $this->seed(['count' => ['N' => 11]]);
-
-        $items = $this->testModel->where('count', '>', 10)->get()->toArray();
-
-        $this->assertEquals(2, count($items));
-    }
-
-    public function testGetAllRecordsWithLTCondition()
-    {
-        $this->seed(['count' => ['N' => 10]]);
-        $this->seed(['count' => ['N' => 9]]);
-        $this->seed(['count' => ['N' => 11]]);
-
-        $items = $this->testModel->where('count', '<', 10)->get()->toArray();
-
-        $this->assertEquals(1, count($items));
-    }
-
-    public function testGetAllRecordsWithGECondition()
-    {
-        $this->seed(['count' => ['N' => 10]]);
-        $this->seed(['count' => ['N' => 9]]);
-        $this->seed(['count' => ['N' => 11]]);
-
-        $items = $this->testModel->where('count', '>=', 10)->get()->toArray();
-
-        $this->assertEquals(2, count($items));
-    }
-
-    public function testGetAllRecordsWithLECondition()
-    {
-        $this->seed(['count' => ['N' => 10]]);
-        $this->seed(['count' => ['N' => 9]]);
-        $this->seed(['count' => ['N' => 11]]);
-
-        $items = $this->testModel->where('count', '<=', 10)->get()->toArray();
-
-        $this->assertEquals(2, count($items));
-    }
-
-    public function testGetFirstRecord()
-    {
-        $firstItem = $this->seed();
-
-        $items = $this->testModel->first();
-
-        $this->assertEquals(array_get($firstItem, 'id.S'), $items->id);
     }
 
     protected function seed($attributes = [])

@@ -57,6 +57,11 @@ abstract class DynamoDbModel extends Model
 
     protected $compositeKey = [];
 
+    /**
+     * @var DynamoDbModel
+     */
+    protected static $instance;
+
     public function __construct(array $attributes = [], DynamoDbClientService $dynamoDb = null)
     {
         $this->bootIfNotBooted();
@@ -70,11 +75,17 @@ abstract class DynamoDbModel extends Model
         }
 
         $this->setupDynamoDb();
+
+        static::$instance = $this;
     }
 
     protected static function getInstance()
     {
-        return new static();
+        if (is_null(static::$instance)) {
+            static::$instance = new static;
+        }
+        
+        return static::$instance;
     }
 
     protected function setupDynamoDb()

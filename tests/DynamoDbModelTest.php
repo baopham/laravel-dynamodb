@@ -191,6 +191,37 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals(array_get($firstItem, 'id.S'), $items->id);
     }
 
+    public function testChainedMethods()
+    {
+        $firstItem = $this->seed([
+            'name' => ['S' => 'Same Name'],
+            'description' => ['S' => 'First Description'],
+        ]);
+
+        $secondItem = $this->seed([
+            'name' => ['S' => 'Same Name'],
+            'description' => ['S' => 'Second Description'],
+        ]);
+
+        $foundItems = $this->testModel
+            ->where('name', $firstItem['name']['S'])
+            ->where('description', $firstItem['description']['S'])
+            ->all();
+
+        $this->assertEquals(1, $foundItems->count());
+
+        $this->assertEquals($this->testModel->unmarshalItem($firstItem), $foundItems->first()->toArray());
+
+        $foundItems = $this->testModel
+            ->where('name', $secondItem['name']['S'])
+            ->where('description', $secondItem['description']['S'])
+            ->all();
+
+        $this->assertEquals(1, $foundItems->count());
+
+        $this->assertEquals($this->testModel->unmarshalItem($secondItem), $foundItems->first()->toArray());
+    }
+
     protected function seed($attributes = [])
     {
         $item = [
@@ -198,6 +229,7 @@ class DynamoDbModelTest extends ModelTest
             'name' => ['S' => str_random(36)],
             'description' => ['S' => str_random(256)],
             'count' => ['N' => rand()],
+            'author' => ['S' => str_random()],
         ];
 
         $item = array_merge($item, $attributes);

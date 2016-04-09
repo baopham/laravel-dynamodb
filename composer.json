@@ -27,7 +27,8 @@
     "autoload-dev": {
         "classmap": [
             "tests/TestCase.php",
-            "tests/ModelTest.php"
+            "tests/ModelTest.php",
+            "tests/DynamoDbModelTest.php"
         ]
     }
 }
