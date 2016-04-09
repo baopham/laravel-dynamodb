@@ -55,6 +55,13 @@ abstract class DynamoDbModel extends Model
      */
     protected $dynamoDbIndexKeys = [];
 
+
+    /**
+     * Array of your composite key.
+     * ['hash', 'range']
+     *
+     * @var array
+     */
     protected $compositeKey = [];
 
     /**
@@ -105,8 +112,6 @@ abstract class DynamoDbModel extends Model
             $this->fireModelEvent('creating');
         }
 
-        // $this->attributeFilter->filter($this->attributes);
-
         try {
             $this->client->putItem([
                 'TableName' => $this->getTable(),
@@ -140,7 +145,7 @@ abstract class DynamoDbModel extends Model
      */
     public function delete()
     {
-        $key = $this->getModelKey($this->getKeyAsArray(), $this);
+        $key = $this->getDynamoDbKey($this);
 
         $query = [
             'TableName' => $this->getTable(),
@@ -153,14 +158,13 @@ abstract class DynamoDbModel extends Model
         return $status == 200;
     }
 
-    /**
-     * Support composite keys here.
-     */
     public static function find($id, array $columns = [])
     {
         $model = static::getInstance();
 
-        $key = static::getModelKey($id, $model);
+        $model->setId($id);
+
+        $key = static::getDynamoDbKey($model);
 
         $query = [
             'ConsistentRead' => true,
@@ -184,17 +188,7 @@ abstract class DynamoDbModel extends Model
 
         $model->fill($item);
 
-        if (is_array($id)) {
-            if (isset($model->compositeKey) && !empty($model->compositeKey)) {
-                foreach ($model->compositeKey as $var) {
-                    $model->$var = $id[$var];
-                }
-            } else {
-                $model->id = $id[$model->primaryKey];
-            }
-        } else {
-            $model->id = $id;
-        }
+        $model->setUnfillableAttributes($item);
 
         return $model;
     }
@@ -338,9 +332,24 @@ abstract class DynamoDbModel extends Model
         return false;
     }
 
-    protected static function getDynamoDbPrimaryKey(DynamoDbModel $model, $id)
+    protected static function getDynamoDbKey(DynamoDbModel $model)
     {
-        return static::getSpecificDynamoDbKey($model, $model->getKeyName(), $id);
+        if (!$model->hasCompositeKey()) {
+            return static::getDynamoDbPrimaryKey($model);
+        }
+
+        $keys = [];
+
+        foreach ($model->compositeKey as $key) {
+            $keys = array_merge($keys, static::getSpecificDynamoDbKey($model, $key, $model->getAttribute($key)));
+        }
+
+        return $keys;
+    }
+
+    protected static function getDynamoDbPrimaryKey(DynamoDbModel $model)
+    {
+        return static::getSpecificDynamoDbKey($model, $model->getKeyName(), $model->getKey());
     }
 
     protected static function getSpecificDynamoDbKey(DynamoDbModel $model, $keyName, $value)
@@ -356,40 +365,6 @@ abstract class DynamoDbModel extends Model
         return $key;
     }
 
-    /**
-     * Get the key for this model whether composite or simple.
-     */
-    protected static function getModelKey($id, DynamoDbModel $model)
-    {
-        if (is_array($id)) {
-            $key = [];
-            foreach ($id as $name => $value) {
-                $specificKey = static::getSpecificDynamoDbKey($model, $name, $value);
-
-                foreach ($specificKey as $key_name => $key_value) {
-                    $key[$key_name] = $key_value;
-                }
-            }
-
-            return $key;
-        }
-
-        return static::getDynamoDbPrimaryKey($model, $id);
-    }
-
-    protected function getKeyAsArray()
-    {
-        $result = [];
-
-        $keys = !empty($this->compositeKey) ? $this->compositeKey : [$this->getKeyName()];
-
-        foreach ($keys as $key) {
-            $result[$key] = $this->{$key};
-        }
-
-        return $result;
-    }
-
     protected function setUnfillableAttributes($attributes)
     {
         $keysToFill = array_diff(array_keys($attributes), $this->fillable);
@@ -397,6 +372,11 @@ abstract class DynamoDbModel extends Model
         foreach ($keysToFill as $key) {
             $this->setAttribute($key, $attributes[$key]);
         }
+    }
+
+    protected function hasCompositeKey()
+    {
+        return !empty($this->compositeKey);
     }
 
     public function marshalItem($item)
@@ -407,5 +387,20 @@ abstract class DynamoDbModel extends Model
     public function unmarshalItem($item)
     {
         return $this->marshaler->unmarshalItem($item);
+    }
+
+    protected function setId($id)
+    {
+        if (!is_array($id)) {
+            $this->setAttribute($this->getKeyName(), $id);
+
+            return $this;
+        }
+
+        foreach ($id as $keyName => $value) {
+            $this->setAttribute($keyName, $value);
+        }
+
+        return $this;
     }
 }
