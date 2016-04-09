@@ -2,8 +2,17 @@ laravel-dynamodb
 ================
 Supports all key types - primary hash key and composite keys.
 
-Install
-------
+  * [Install](#install)
+  * [Usage](#usage)
+  * [Composite Keys](#composite-keys)
+  * [Test](#test)
+  * [TODO](#todo)
+  * [Requirements:](#requirements:)
+  * [License:](#license:)
+  * [Author and contributors](#author-and-contributors)
+
+
+## Install
 
 ```bash
 composer require baopham/dynamodb:0.2.2
@@ -21,8 +30,7 @@ Install service provider:
 ];
 ```
 
-Usage
------
+## Usage
 * Extends your model with `BaoPham\DynamoDb\DynamoDbModel`, then you can use Eloquent methods that are supported. The idea here is that you can switch back to Eloquent without changing your queries.  
 
 Supported methods:
@@ -77,8 +85,7 @@ $model->save();
     ...
 ```
 
-Composite Keys
---------------
+## Composite Keys
 To use composite keys with your model:
 
 * Set `$compositeKey` to an array of the attributes names comprising the key, e.g.
@@ -94,8 +101,7 @@ protected $compositeKey = ['customer_id', 'agent_id'];
 $model->find(['id1' => 'value1', 'id2' => 'value2']);
 ```
 
-Test
-----
+## Test
 Run:
 
 ```bash
@@ -108,20 +114,16 @@ $ ./vendor/bin/phpunit
 * DynamoDb local schema for tests created by the [DynamoDb local shell](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.Shell.html) is located [here](dynamodb_local_schema.js)
 
 
-TODO
-----
+## TODO
 - [ ] Upgrade a few legacy attributes: `AttributesToGet`, `ScanFilter`, ...
 
 
-Requirements:
--------------
+## Requirements:
 Laravel ^5.1
 
-License:
---------
+## License:
 MIT
 
-Author and contributors
--------
+## Author and contributors
 * Bao Pham
 * [warrick-loyaltycorp](https://github.com/warrick-loyaltycorp)
