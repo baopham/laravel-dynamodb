@@ -222,6 +222,19 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals($this->testModel->unmarshalItem($secondItem), $foundItems->first()->toArray());
     }
 
+    public function testLookingUpByKey()
+    {
+        $this->seed();
+
+        $item = $this->seed();
+
+        $foundItems = $this->testModel->where('id', $item['id']['S'])->get();
+
+        $this->assertEquals(1, $foundItems->count());
+
+        $this->assertEquals($this->testModel->unmarshalItem($item), $foundItems->first()->toArray());
+    }
+
     protected function seed($attributes = [])
     {
         $item = [

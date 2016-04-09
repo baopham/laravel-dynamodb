@@ -91,7 +91,7 @@ abstract class DynamoDbModel extends Model
         if (is_null(static::$instance)) {
             static::$instance = new static;
         }
-        
+
         return static::$instance;
     }
 
@@ -272,6 +272,12 @@ abstract class DynamoDbModel extends Model
 
     protected function getAll($columns = [], $limit = -1)
     {
+        if ($conditionValue = $this->conditionsContainKey()) {
+            $item = $this->find($conditionValue, $columns);
+
+            return new Collection([$item]);
+        }
+
         $query = [
             'TableName' => $this->getTable(),
         ];
@@ -289,7 +295,7 @@ abstract class DynamoDbModel extends Model
         // If the $where is not empty, we run getIterator.
         if (!empty($this->where)) {
 
-            // Primary key or index key condition exists, then use Query instead of Scan.
+            // Index key condition exists, then use Query instead of Scan.
             // However, Query only supports a few conditions.
             if ($key = $this->conditionsContainIndexKey()) {
                 $condition = array_get($this->where, "$key.ComparisonOperator");
@@ -315,6 +321,41 @@ abstract class DynamoDbModel extends Model
         }
 
         return new Collection($results);
+    }
+
+    /**
+     * Check if conditions "where" contain primary key or composite key.
+     * For composite key, it will return false if the conditions don't have all composite key.
+     *
+     * @return array|bool the condition value
+     */
+    protected function conditionsContainKey()
+    {
+        if (empty($this->where)) {
+            return false;
+        }
+
+        $conditionKeys = array_keys($this->where);
+
+        $keys = $this->hasCompositeKey() ? $this->compositeKey : [$this->getKeyName()];
+
+        $conditionsContainKey = count(array_intersect($conditionKeys, $keys)) === count($keys);
+
+        if (!$conditionsContainKey) {
+            return false;
+        }
+
+        $conditionValue = [];
+
+        foreach ($keys as $key) {
+            $condition = $this->where[$key];
+
+            $value = $this->unmarshalItem(array_get($condition, 'AttributeValueList'))[0];
+
+            $conditionValue[$key] = $value;
+        }
+
+        return $conditionValue;
     }
 
     protected function conditionsContainIndexKey()
