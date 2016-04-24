@@ -2,6 +2,15 @@ laravel-dynamodb
 ================
 Supports all key types - primary hash key and composite keys.
 
+* [Install](#install)
+* [Usage](#usage)
+* [Composite Keys](#composite-keys)
+* [Test](#test)
+* [TODO](#todo)
+* [Requirements](#requirements)
+* [License](#license)
+* [Author and Contributors](#author-and-contributors)
+
 Install
 ------
 
@@ -113,15 +122,15 @@ TODO
 - [ ] Upgrade a few legacy attributes: `AttributesToGet`, `ScanFilter`, ...
 
 
-Requirements:
+Requirements
 -------------
 Laravel ^5.1
 
-License:
+License
 --------
 MIT
 
-Author and contributors
+Author and Contributors
 -------
 * Bao Pham
 * [warrick-loyaltycorp](https://github.com/warrick-loyaltycorp)
