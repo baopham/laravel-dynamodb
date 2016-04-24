@@ -14,9 +14,10 @@ Supports all key types - primary hash key and composite keys.
 Install
 ------
 
-```bash
-composer require baopham/dynamodb:0.2.2
-```
+* Composer install
+    ```bash
+    composer require baopham/dynamodb:0.2.2
+    ```
 
 * Install service provider:
 
