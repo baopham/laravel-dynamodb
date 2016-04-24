@@ -18,17 +18,32 @@ Install
 composer require baopham/dynamodb:0.2.2
 ```
 
-Install service provider:
+* Install service provider:
 
-```php
-// config/app.php
+    ```php
+    // config/app.php
+    
+    'providers' => [
+        ...
+        BaoPham\DynamoDb\DynamoDbServiceProvider::class,
+        ...
+    ];
+    ```
 
-'providers' => [
-    ...
-    BaoPham\DynamoDb\DynamoDbServiceProvider::class,
-    ...
-];
-```
+* Put DynamoDb config in `config/services.php`:
+
+    ```php
+    // config/services.php
+        ...
+        'dynamodb' => [
+            'key' => env('DYNAMODB_KEY'),
+            'secret' => env('DYNAMODB_SECRET'),
+            'region' => env('DYNAMODB_REGION'),
+            'local_endpoint' => env('DYNAMODB_LOCAL_ENDPOINT') // see http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html
+            'local' => env('DYNAMODB_LOCAL') // true or false? should use dynamodb_local or not?
+        ],
+        ...
+    ```
 
 Usage
 -----
@@ -71,20 +86,6 @@ $model->save();
 
 * Or if you want to sync your DB table with a DynamoDb table, use trait `BaoPham\DynamoDb\ModelTrait`, it will call a `PutItem` after the model is saved.
 
-* Put DynamoDb config in `config/services.php`:
-
-```php
-// config/services.php
-    ...
-    'dynamodb' => [
-        'key' => env('DYNAMODB_KEY'),
-        'secret' => env('DYNAMODB_SECRET'),
-        'region' => env('DYNAMODB_REGION'),
-        'local_endpoint' => env('DYNAMODB_LOCAL_ENDPOINT') // see http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html
-        'local' => env('DYNAMODB_LOCAL') // true or false? should use dynamodb_local or not?
-    ],
-    ...
-```
 
 Composite Keys
 --------------
