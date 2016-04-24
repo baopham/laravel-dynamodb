@@ -6,8 +6,8 @@ Supports all key types - primary hash key and composite keys.
 * [Usage](#usage)
 * [Composite Keys](#composite-keys)
 * [Test](#test)
-* [TODO](#todo)
 * [Requirements](#requirements)
+* [Todo](#todo)
 * [License](#license)
 * [Author and Contributors](#author-and-contributors)
 
@@ -81,7 +81,7 @@ $model->save();
         'secret' => env('DYNAMODB_SECRET'),
         'region' => env('DYNAMODB_REGION'),
         'local_endpoint' => env('DYNAMODB_LOCAL_ENDPOINT') // see http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html
-        'local' => env('DYNAMODB_LOCAL')
+        'local' => env('DYNAMODB_LOCAL') // true or false? should use dynamodb_local or not?
     ],
     ...
 ```
@@ -117,18 +117,19 @@ $ ./vendor/bin/phpunit
 * DynamoDb local schema for tests created by the [DynamoDb local shell](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.Shell.html) is located [here](dynamodb_local_schema.js)
 
 
-TODO
-----
-- [ ] Upgrade a few legacy attributes: `AttributesToGet`, `ScanFilter`, ...
-
-
 Requirements
 -------------
 Laravel ^5.1
 
+
+TODO
+----
+- [ ] Upgrade a few legacy attributes: `AttributesToGet`, `ScanFilter`, ...
+
 License
 --------
 MIT
+
 
 Author and Contributors
 -------
