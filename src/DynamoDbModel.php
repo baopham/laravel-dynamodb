@@ -59,6 +59,8 @@ abstract class DynamoDbModel extends Model
 
     protected $optimisticLocking = true;
 
+    protected static $instance = null;
+
     public function __construct(array $attributes = [], DynamoDbClientService $dynamoDb = null)
     {
         $this->bootIfNotBooted();
@@ -74,11 +76,18 @@ abstract class DynamoDbModel extends Model
         }
 
         $this->setupDynamoDb();
+
+        static::$instance = $this;
     }
 
     protected static function getInstance()
     {
-        return new static();
+        if (is_null(static::$instance) || (get_called_class() != get_class(static::$instance))) {
+            static::$instance = new static;
+        }
+
+        //return new static();
+        return static::$instance;
     }
 
     protected function setupDynamoDb()
@@ -183,7 +192,6 @@ abstract class DynamoDbModel extends Model
         if (!empty($columns)) {
             $query['AttributesToGet'] = $columns;
         }
-
         $item = $model->client->getItem($query);
 
         $item = array_get($item->toArray(), 'Item');
@@ -321,31 +329,44 @@ abstract class DynamoDbModel extends Model
 
             $query['ScanFilter'] = $this->where;
         }
-
         $iterator = $this->client->getIterator($op, $query);
 
-        $results = [];
-        $pageNum = 0;
-        $itemNum = 0;
-        foreach ($iterator as $item) {
-            if ($offset == -1 || ($offset >= 0 && $offset == $pageNum) && ($limit == -1 || $itemNum <= $limit)) {
-                $item = $this->unmarshalItem($item);
-                $model = new static($item, static::$dynamoDb);
-                $model->setUnfillableAttributes($item);
-                $model->fill($item);
-                $results[] = $model;
-            }
+        $maxRetries = 4;
+        $currentRetry = 0;
 
-            $itemNum += 1;
-            if ($limit >= 0 && $itemNum == $limit) {
-                if ($offset >= 0 && $offset == $pageNum) {
-                    break;
-                }
-
-                $pageNum += 1;
+        do {
+            try {
+                $retry = false;
+                $results = [];
+                $pageNum = 0;
                 $itemNum = 0;
+                foreach ($iterator as $item) {
+                    if ($offset == -1 || ($offset >= 0 && $offset == $pageNum) && ($limit == -1 || $itemNum <= $limit)) {
+                        $item = $this->unmarshalItem($item);
+                        $model = new static($item, static::$dynamoDb);
+                        $model->setUnfillableAttributes($item);
+                        $model->fill($item);
+                        $results[] = $model;
+                    }
+
+                    $itemNum += 1;
+                    if ($limit >= 0 && $itemNum == $limit) {
+                        if ($offset >= 0 && $offset == $pageNum) {
+                            break;
+                        }
+
+                        $pageNum += 1;
+                        $itemNum = 0;
+                    }
+                }
+            } catch (Exception $ex) {
+                $retry = $ex->getAwsErrorCode() == "ProvisionedThroughputExceededException";
+                if ($retry) {
+                    usleep(pow(2, $currentRetry) * 50000);
+                }
             }
-        }
+            $currentRetry += 1;
+        } while ($currentRetry < $maxRetries && $retry);
 
         return new Collection($results);
     }
