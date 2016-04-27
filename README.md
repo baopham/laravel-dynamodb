@@ -40,8 +40,8 @@ Install
             'key' => env('DYNAMODB_KEY'),
             'secret' => env('DYNAMODB_SECRET'),
             'region' => env('DYNAMODB_REGION'),
-            'local_endpoint' => env('DYNAMODB_LOCAL_ENDPOINT') // see http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html
-            'local' => env('DYNAMODB_LOCAL') // true or false? should use dynamodb_local or not?
+            'local_endpoint' => env('DYNAMODB_LOCAL_ENDPOINT'), // see http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html
+            'local' => env('DYNAMODB_LOCAL'), // true or false? should use dynamodb_local or not?
         ],
         ...
     ```
