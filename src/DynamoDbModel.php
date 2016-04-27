@@ -247,8 +247,9 @@ abstract class DynamoDbModel extends Model
         // received when the method was called and pass it into the nested where.
         if (is_array($column)) {
             foreach ($column as $key => $value) {
-                return $model->where($key, '=', $value);
+                $model = $model->where($key, '=', $value);
             }
+            return $model;
         }
 
         // Here we will make some assumptions about the operator. If only 2 values are
