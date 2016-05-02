@@ -235,6 +235,50 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals($this->testModel->unmarshalItem($item), $foundItems->first()->toArray());
     }
 
+    public function testCount()
+    {
+        $this->seed();
+        $this->seed(['name' => ['S' => 'Foo']]);
+        $this->seed(['name' => ['S' => 'Foo']]);
+
+        $this->assertEquals(3, $this->testModel->count());
+        $this->assertEquals(2, $this->testModel->where('name', 'Foo')->count());
+    }
+
+    public function testDifferentQueries()
+    {
+        $expectedFoo = $this->seed([
+            'name' => ['S' => 'Foo'],
+        ]);
+
+        $expectedBar = $this->seed([
+            'name' => ['S' => 'Bar'],
+        ]);
+
+        $fooQuery = $this->testModel->where('name', 'Foo');
+        $barQuery = $this->testModel->where('name', 'Bar');
+
+        $this->assertEquals(1, $fooQuery->count());
+        $this->assertEquals(1, $fooQuery->count());
+        $this->assertEquals($this->testModel->unmarshalItem($expectedFoo), $fooQuery->first()->toArray());
+        $this->assertEquals($this->testModel->unmarshalItem($expectedBar), $barQuery->first()->toArray());
+    }
+
+    public function testStaticMethods()
+    {
+        $item = $this->seed(['name' => ['S' => 'Foo'], 'description' => ['S' => 'Bar']]);
+
+        $item = $this->testModel->unmarshalItem($item);
+
+        $this->assertEquals([$item], TestModel::all()->toArray());
+
+        $this->assertEquals(1, TestModel::where('name', 'Foo')->where('description', 'Bar')->get()->count());
+
+        $this->assertEquals($item, TestModel::first()->toArray());
+
+        $this->assertEquals($item, TestModel::find($item['id'])->toArray());
+    }
+
     protected function seed($attributes = [])
     {
         $item = [

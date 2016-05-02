@@ -132,6 +132,24 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $this->assertEquals($this->testModel->unmarshalItem($item), $foundItems->first()->toArray());
     }
 
+    public function testStaticMethods()
+    {
+        $item = $this->seed(['name' => ['S' => 'Foo'], 'description' => ['S' => 'Bar']]);
+
+        $item = $this->testModel->unmarshalItem($item);
+
+        $this->assertEquals([$item], CompositeTestModel::all()->toArray());
+
+        $this->assertEquals(1, CompositeTestModel::where('name', 'Foo')->where('description', 'Bar')->get()->count());
+
+        $this->assertEquals($item, CompositeTestModel::first()->toArray());
+
+        $this->assertEquals($item, CompositeTestModel::find([
+            'id' => $item['id'],
+            'id2' => $item['id2']
+        ])->toArray());
+    }
+
     protected function seed($attributes = [])
     {
         $item = [
