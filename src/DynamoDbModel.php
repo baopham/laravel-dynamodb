@@ -90,14 +90,7 @@ abstract class DynamoDbModel extends Model
             $this->fireModelEvent('creating');
         }
 
-        try {
-            return $this->newQuery()->save();
-
-        } catch (Exception $e) {
-            Log::info($e);
-
-            return false;
-        }
+        return $this->newQuery()->save();
     }
 
     public function update(array $attributes = [], array $options = [])
