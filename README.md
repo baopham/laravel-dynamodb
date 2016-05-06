@@ -16,7 +16,7 @@ Install
 
 * Composer install
     ```bash
-    composer require baopham/dynamodb:0.2.2
+    composer require baopham/dynamodb:0.2.3
     ```
 
 * Install service provider:
