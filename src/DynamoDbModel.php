@@ -362,6 +362,7 @@ abstract class DynamoDbModel extends Model
                 }
             } catch (Exception $ex) {
                 $retry = $ex->getAwsErrorCode() == "ProvisionedThroughputExceededException";
+                $this->adjustCapacity();
                 if ($retry) {
                     usleep(pow(2, $currentRetry) * 50000);
                 }
@@ -497,5 +498,56 @@ abstract class DynamoDbModel extends Model
     public function unmarshalItem($item)
     {
         return $this->marshaler->unmarshalItem($item);
+    }
+
+    private function adjustCapacity()
+    {
+            Log::info("Adjusting capacity $this->getTable()");
+        $query = [
+            'TableName' => $this->getTable(),
+        ];
+        $tableDescription = $dynamoDb->describeTable($query);
+
+        $currentReadCapacity = $tableDescription["Table"]["ProvisionedThroughput"]["ReadCapacityUnits"];
+        $readCapacity = $currentReadCapacity * 2;
+        
+        $currentWriteCapacity = $tableDescription["Table"]["ProvisionedThroughput"]["WriteCapacityUnits"];
+        $writeCapacity = $currentWriteCapacity * 2;
+
+        if (empty($this->option('index'))) {
+            $query = [
+                'TableName' => $table,
+                'ProvisionedThroughput'    => [
+                    'ReadCapacityUnits'    => (int)$readCapacity,        
+                    'WriteCapacityUnits' => (int)$writeCapacity         
+                ]
+            ];
+        } else {
+            $query = [
+                'TableName' => $table,
+                'GlobalSecondaryIndexUpdates' => [
+                    [
+                        'Update' => [
+                            'IndexName' => $this->option('index'),
+                            'ProvisionedThroughput'    => [
+                                'ReadCapacityUnits'    => (int)$readCapacity,        
+                                'WriteCapacityUnits' => (int)$writeCapacity         
+                            ]
+                        ]
+                    ]
+                ]
+            ];
+        }
+        $result = $dynamoDb->updateTable($query);
+
+        if (!$this->option('nowait')) {
+            $dynamoDb->waitUntil('TableExists', [
+                'TableName' => $table,
+                '@waiter' => [
+                    'delay'       => 5,
+                    'maxAttempts' => 20
+                ]
+            ]);
+        }
     }
 }
