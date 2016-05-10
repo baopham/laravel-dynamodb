@@ -182,6 +182,59 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals(2, count($items));
     }
 
+    public function testGetAllRecordsWithBeginsWithOperator()
+    {
+        $this->seed(['description' => ['S' => 'Foo_1']]);
+        $this->seed(['description' => ['S' => 'Foo_2']]);
+        $this->seed(['description' => ['S' => 'Bar_Foo']]);
+
+        $items = $this->testModel->where('description', 'BEGINS_WITH', 'Foo')->get()->toArray();
+
+        $this->assertEquals(2, count($items));
+    }
+
+    public function testGetAllRecordsWithContainsOperator()
+    {
+        $this->seed(['description' => ['L' => [['S' => 'foo'], ['S' => 'bar']]]]);
+        $this->seed(['description' => ['L' => [['S' => 'foo'], ['S' => 'bar2']]]]);
+
+        $items = $this->testModel->where('description', 'CONTAINS', 'foo')->get()->toArray();
+
+        $this->assertEquals(2, count($items));
+
+        $items = $this->testModel->where('description', 'CONTAINS', 'bar2')->get()->toArray();
+
+        $this->assertEquals(1, count($items));
+    }
+
+    public function testGetAllRecordsWithNotContainsOperator()
+    {
+        $this->seed(['description' => ['L' => [['S' => 'foo'], ['S' => 'bar']]]]);
+        $this->seed(['description' => ['L' => [['S' => 'foo'], ['S' => 'bar2']]]]);
+
+        $items = $this->testModel->where('description', 'NOT_CONTAINS', 'foo')->get()->toArray();
+
+        $this->assertEquals(0, count($items));
+
+        $items = $this->testModel->where('description', 'NOT_CONTAINS', 'foobar')->get()->toArray();
+
+        $this->assertEquals(2, count($items));
+    }
+
+    public function testGetAllRecordsWithBetweenOperator()
+    {
+        $this->seed(['description' => ['N' => 10]]);
+        $this->seed(['description' => ['N' => 11]]);
+
+        $items = $this->testModel->where('description', 'BETWEEN', [1, 11])->get()->toArray();
+
+        $this->assertEquals(2, count($items));
+
+        $items = $this->testModel->where('description', 'BETWEEN', [100, 110])->get()->toArray();
+
+        $this->assertEquals(0, count($items));
+    }
+
     public function testGetFirstRecord()
     {
         $firstItem = $this->seed();

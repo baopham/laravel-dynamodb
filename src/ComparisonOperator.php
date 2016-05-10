@@ -17,6 +17,10 @@ class ComparisonOperator
             '<=' => 'LE',
             'in' => 'IN',
             '!=' => 'NE',
+            'begins_with' => 'BEGINS_WITH',
+            'between' => 'BETWEEN',
+            'not_contains' => 'NOT_CONTAINS',
+            'contains' => 'CONTAINS',
         ];
     }
 
@@ -37,6 +41,8 @@ class ComparisonOperator
     public static function getDynamoDbOperator($operator)
     {
         $mapping = static::getOperatorMapping();
+
+        $operator = strtolower($operator);
 
         return $mapping[$operator];
     }

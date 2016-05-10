@@ -73,8 +73,14 @@ class DynamoDbQueryBuilder
             'AttributeValueList' => $value,
         ]);
 
+        $valueList = [$attributeValueList['AttributeValueList']];
+
+        if (strtolower($operator) === 'between') {
+            $valueList = head($valueList)['L'];
+        }
+
         $this->where[$column] = [
-            'AttributeValueList' => [$attributeValueList['AttributeValueList']],
+            'AttributeValueList' => $valueList,
             'ComparisonOperator' => ComparisonOperator::getDynamoDbOperator($operator),
         ];
 
