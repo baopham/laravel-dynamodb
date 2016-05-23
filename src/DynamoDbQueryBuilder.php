@@ -229,7 +229,6 @@ class DynamoDbQueryBuilder
 
         if (!empty($this->lastEvaluatedKey)) {
             $query['ExclusiveStartKey'] = $this->lastEvaluatedKey;
-            $this->lastEvaluatedKey = [];
         }
 
         // If the $where is not empty, we run getIterator.
@@ -259,10 +258,7 @@ class DynamoDbQueryBuilder
                 $res = $this->client->query($query);
             }
 
-            if (!empty($res['LastEvaluatedKey'])) {
-                $this->lastEvaluatedKey = $res['LastEvaluatedKey'];
-            }
-
+            $this->lastEvaluatedKey = array_get($res, 'LastEvaluatedKey');
             $iterator = $res['Items'];
         }
 
