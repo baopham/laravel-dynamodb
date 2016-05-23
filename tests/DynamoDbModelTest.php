@@ -317,6 +317,50 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals($this->testModel->unmarshalItem($expectedBar), $barQuery->first()->toArray());
     }
 
+    public function testChunkScan()
+    {
+        $this->seed(['name' => ['S' => 'Foo']]);
+        $this->seed(['name' => ['S' => 'Foo2']]);
+        $this->seed(['name' => ['S' => 'Foo3']]);
+
+        $iteration = 1;
+
+        $this->testModel->chunk(2, function ($results) use (&$iteration) {
+            if ($iteration == 1) {
+                $this->assertEquals(2, count($results));
+            } else if ($iteration == 2) {
+                $this->assertEquals(1, count($results));
+            } else {
+                $this->assertLessThan(3, $iteration);
+            }
+
+            $iteration++;
+        });
+    }
+
+    public function testChunkScanCondition()
+    {
+        $this->seed(['name' => ['S' => 'Foo'], 'skey' => ['S' => 'test']]);
+        $this->seed(['name' => ['S' => 'Foo1'], 'skey' => ['S' => 'test']]);
+        $this->seed(['name' => ['S' => 'Foo2'], 'skey' => ['S' => 'test']]);
+        $this->seed(['name' => ['S' => 'Foo3'], 'skey' => ['S' => 'test2']]);
+        $this->seed(['name' => ['S' => 'Foo4'], 'skey' => ['S' => 'test2']]);
+
+        $total_results = 0;
+
+        // Because of how Scan works with conditions you can't guarantee each chunk size will === 2
+        $this->testModel->where('skey', 'test')->chunk(2, function ($results) use (&$total_results) {
+            $this->assertLessThanOrEqual(2, count($results));
+
+            foreach ($results as $res) {
+                $this->assertEquals('test', $res['skey']);
+                $total_results++;
+            }
+        });
+
+        $this->assertEquals(3, $total_results);
+    }
+
     public function testStaticMethods()
     {
         $item = $this->seed(['name' => ['S' => 'Foo'], 'description' => ['S' => 'Bar']]);
