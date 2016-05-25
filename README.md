@@ -16,7 +16,7 @@ Install
 
 * Composer install
     ```bash
-    composer require baopham/dynamodb:0.2.3
+    composer require baopham/dynamodb:0.3.0
     ```
 
 * Install service provider:
@@ -83,6 +83,13 @@ $model->fillableAttr2 = 'foo';
 // DynamoDb doesn't support incremented Id, so you need to use UUID for the primary key.
 $model->id = 'de305d54-75b4-431b-adb2-eb6b9e546014'
 $model->save();
+
+// chunk
+$model->chunk(10, function ($records) {
+    foreach ($records as $record) {
+
+    }
+});
 ```
 
 * Or if you want to sync your DB table with a DynamoDb table, use trait `BaoPham\DynamoDb\ModelTrait`, it will call a `PutItem` after the model is saved.
@@ -114,7 +121,7 @@ $ java -Djava.library.path=./DynamoDBLocal_lib -jar dynamodb_local/DynamoDBLocal
 $ ./vendor/bin/phpunit
 ```
 
-* DynamoDb local version: 2015-07-16_1.0
+* DynamoDb local version: 2016-01-07_1.0
 
 * DynamoDb local schema for tests created by the [DynamoDb local shell](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.Shell.html) is located [here](dynamodb_local_schema.js)
 
@@ -137,3 +144,4 @@ Author and Contributors
 -------
 * Bao Pham
 * [warrick-loyaltycorp](https://github.com/warrick-loyaltycorp)
+* [cthos](https://github.com/cthos)
