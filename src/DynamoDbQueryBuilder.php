@@ -24,6 +24,15 @@ class DynamoDbQueryBuilder
      */
     protected $client;
 
+    /**
+     * When not using the iterator, you can store the lastEvaluatedKey to
+     * paginate through the results. The getAll method will take this into account
+     * when used with $use_iterator = false.
+     *
+     * @var mixed
+     */
+    protected $lastEvaluatedKey;
+
     public function where($column, $operator = null, $value = null, $boolean = 'and')
     {
         if ($boolean != 'and') {
@@ -85,6 +94,25 @@ class DynamoDbQueryBuilder
         ];
 
         return $this;
+    }
+
+    /**
+     * Implements the Query Chunk method
+     *
+     * @param int $chunk_size
+     * @param callable $callback
+     */
+    public function chunk($chunk_size, callable $callback)
+    {
+        while (true) {
+            $results = $this->getAll([], $chunk_size, false);
+
+            call_user_func($callback, $results);
+
+            if (empty($this->lastEvaluatedKey)) {
+                break;
+            }
+        }
     }
 
     public function find($id, array $columns = [])
@@ -177,7 +205,7 @@ class DynamoDbQueryBuilder
         return $this->getAll([$this->model->getKeyName()])->count();
     }
 
-    protected function getAll($columns = [], $limit = -1)
+    protected function getAll($columns = [], $limit = -1, $use_iterator = true)
     {
         if ($conditionValue = $this->conditionsContainKey()) {
             $item = $this->find($conditionValue, $columns);
@@ -192,11 +220,15 @@ class DynamoDbQueryBuilder
         $op = 'Scan';
 
         if ($limit > -1) {
-            $query['limit'] = $limit;
+            $query['Limit'] = $limit;
         }
 
         if (!empty($columns)) {
             $query['AttributesToGet'] = $columns;
+        }
+
+        if (!empty($this->lastEvaluatedKey)) {
+            $query['ExclusiveStartKey'] = $this->lastEvaluatedKey;
         }
 
         // If the $where is not empty, we run getIterator.
@@ -217,7 +249,18 @@ class DynamoDbQueryBuilder
             $query['ScanFilter'] = $this->where;
         }
 
-        $iterator = $this->client->getIterator($op, $query);
+        if ($use_iterator) {
+            $iterator = $this->client->getIterator($op, $query);
+        } else {
+            if ($op == 'Scan') {
+                $res = $this->client->scan($query);
+            } else {
+                $res = $this->client->query($query);
+            }
+
+            $this->lastEvaluatedKey = array_get($res, 'LastEvaluatedKey');
+            $iterator = $res['Items'];
+        }
 
         $results = [];
 
