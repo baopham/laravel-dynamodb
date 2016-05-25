@@ -330,12 +330,12 @@ class DynamoDbModelTest extends ModelTest
                 $this->assertEquals(2, count($results));
             } else if ($iteration == 2) {
                 $this->assertEquals(1, count($results));
-            } else {
-                $this->assertLessThan(3, $iteration);
             }
 
             $iteration++;
         });
+
+        $this->assertEquals(3, $iteration);
     }
 
     public function testChunkScanCondition()
