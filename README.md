@@ -10,7 +10,7 @@ Supports all key types - primary hash key and composite keys.
 
 * [Install](#install)
 * [Usage](#usage)
-* [Index Keys](#index-keys)
+* [Indexes](#indexes)
 * [Composite Keys](#composite-keys)
 * [Test](#test)
 * [Requirements](#requirements)
@@ -101,7 +101,7 @@ $model->chunk(10, function ($records) {
 
 * Or if you want to sync your DB table with a DynamoDb table, use trait `BaoPham\DynamoDb\ModelTrait`, it will call a `PutItem` after the model is saved.
 
-Index Keys
+Indexes
 -----------
 If your table has indexes, make sure to declare them in your model class like so
 
