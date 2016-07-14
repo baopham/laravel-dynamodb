@@ -103,7 +103,7 @@ $model->chunk(10, function ($records) {
 
 Index Keys
 -----------
-If your table has indexes, make sure to declare it in your model class like so
+If your table has indexes, make sure to declare them in your model class like so
 
 ```php
    /**
