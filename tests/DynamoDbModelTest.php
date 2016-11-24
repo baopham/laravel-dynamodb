@@ -376,6 +376,29 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals($item, TestModel::find($item['id'])->toArray());
     }
 
+    public function testConditionContainingIndexKeyAndNonIndexKey()
+    {
+        $fooItem = $this->seed([
+            'name' => ['S' => 'Foo'],
+            'count' => ['N' => 10],
+        ]);
+
+        $barItem = $this->seed([
+            'name' => ['S' => 'Bar'],
+            'count' => ['N' => 11],
+        ]);
+
+        $expectedItem = $this->testModel->unmarshalItem($fooItem);
+
+        $foundItems = $this->testModel
+            ->where('count', 10)
+            ->where('name', 'Foo')
+            ->get();
+
+        $this->assertEquals(1, $foundItems->count());
+        $this->assertEquals($expectedItem, $foundItems->first()->toArray());
+    }
+
     protected function seed($attributes = [])
     {
         $item = [
