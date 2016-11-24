@@ -242,7 +242,11 @@ class DynamoDbQueryBuilder
                 if (ComparisonOperator::isValidQueryDynamoDbOperator($condition)) {
                     $op = 'Query';
                     $query['IndexName'] = $this->model->getDynamoDbIndexKeys()[$key];
-                    $query['KeyConditions'] = $this->where;
+                    $query['KeyConditions'][$key] = array_get($this->where, $key);
+                    $nonKeyConditions = array_except($this->where, $key);
+                    if (!empty($nonKeyConditions)) {
+                        $query['QueryFilter'] = $nonKeyConditions;
+                    }
                 }
             }
 
