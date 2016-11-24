@@ -8,6 +8,8 @@ laravel-dynamodb
 
 Supports all key types - primary hash key and composite keys.
 
+> For advanced users only. If you're not familiar with Laravel, Laravel Eloquent and DynamoDB, then I suggest that you get familiar with those first. 
+
 * [Install](#install)
 * [Usage](#usage)
 * [Indexes](#indexes)
