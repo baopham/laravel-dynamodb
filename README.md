@@ -118,7 +118,7 @@ If your table has indexes, make sure to declare them in your model class like so
      * @var array
      */
     protected $dynamoDbIndexKeys = [
-        'count_index' => 'count',
+        'count' => 'count_index',
     ];
 ```
 
