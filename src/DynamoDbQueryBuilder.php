@@ -431,7 +431,8 @@ class DynamoDbQueryBuilder
      * @param string|array $key index key or array of composite key
      * @return string IndexName
      */
-    protected function getIndexName($key) {
+    protected function getIndexName($key)
+    {
         if (is_array($key)) {
             $key = implode(self::COMPOSITE_KEY_SEPARATOR, $key);
         }
