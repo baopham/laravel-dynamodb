@@ -47,20 +47,20 @@ class ComparisonOperator
         return $mapping[$operator];
     }
 
-    public static function getQuerySupportedOperators()
+    public static function getQuerySupportedOperators($isSortKey = false)
     {
-        return ['EQ'];
+        return $isSortKey ? ['EQ', 'LE', 'LT', 'GE', 'GT', 'BEGINS_WITH', 'BETWEEN'] : ['EQ'];
     }
 
-    public static function isValidQueryOperator($operator)
+    public static function isValidQueryOperator($operator, $isSortKey = false)
     {
         $dynamoDbOperator = static::getDynamoDbOperator($operator);
 
-        return static::isValidQueryDynamoDbOperator($dynamoDbOperator);
+        return static::isValidQueryDynamoDbOperator($dynamoDbOperator, $isSortKey);
     }
 
-    public static function isValidQueryDynamoDbOperator($dynamoDbOperator)
+    public static function isValidQueryDynamoDbOperator($dynamoDbOperator, $isSortKey = false)
     {
-        return in_array($dynamoDbOperator, static::getQuerySupportedOperators());
+        return in_array($dynamoDbOperator, static::getQuerySupportedOperators($isSortKey));
     }
 }
