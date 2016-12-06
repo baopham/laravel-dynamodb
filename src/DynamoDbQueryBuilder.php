@@ -239,19 +239,26 @@ class DynamoDbQueryBuilder
             // Index key condition exists, then use Query instead of Scan.
             // However, Query only supports a few conditions.
             if ($keys = $this->conditionsContainIndexKey()) {
-                $conditions[0]                = array_get($this->where, "$keys[0].ComparisonOperator");
-                $isValidQueryDynamoDbOperator = ComparisonOperator::isValidQueryDynamoDbOperator($conditions[0]);
-                if ($isValidQueryDynamoDbOperator && isset($keys[1])) {
-                    $conditions[1]                = array_get($this->where, "$keys[1].ComparisonOperator");
-                    $isValidQueryDynamoDbOperator = ComparisonOperator::isValidQueryDynamoDbOperator($conditions[1], true);
+                // Array indexes of composite key
+                // composite key: ['hash_key', 'range_key']
+                $hashIndex = 0;
+                $rangeIndex = 1;
+
+                $isCompositeKey = isset($keys[$rangeIndex]);
+
+                $conditions[$hashIndex] = array_get($this->where, "$keys[$hashIndex].ComparisonOperator");
+                $isValidQueryDynamoDbOperator = ComparisonOperator::isValidQueryDynamoDbOperator($conditions[$hashIndex]);
+                if ($isValidQueryDynamoDbOperator && $isCompositeKey) {
+                    $conditions[$rangeIndex] = array_get($this->where, "$keys[$rangeIndex].ComparisonOperator");
+                    $isValidQueryDynamoDbOperator = ComparisonOperator::isValidQueryDynamoDbOperator($conditions[$rangeIndex], true);
                 }
 
                 if ($isValidQueryDynamoDbOperator) {
                     $op = 'Query';
-                    $query['IndexName']               = $this->getIndexName($keys);
-                    $query['KeyConditions'][$keys[0]] = array_get($this->where, $keys[0]);
-                    if (isset($keys[1])) {
-                        $query['KeyConditions'][$keys[1]] = array_get($this->where, $keys[1]);
+                    $query['IndexName'] = $this->getIndexName($keys);
+                    $query['KeyConditions'][$keys[$hashIndex]] = array_get($this->where, $keys[$hashIndex]);
+                    if ($isCompositeKey) {
+                        $query['KeyConditions'][$keys[$rangeIndex]] = array_get($this->where, $keys[$rangeIndex]);
                     }
                     $nonKeyConditions = array_except($this->where, $keys);
                     if (!empty($nonKeyConditions)) {

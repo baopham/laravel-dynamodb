@@ -111,7 +111,7 @@ If your table has indexes, make sure to declare them in your model class like so
    /**
      * Indexes.
      * [
-     *     'index_key'                      => 'simple_index_name',
+     *     'index_key' => 'simple_index_name',
      *     'index_hash_key,index_range_key' => 'composite_index_name',
      * ].
      *
