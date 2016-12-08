@@ -111,16 +111,59 @@ If your table has indexes, make sure to declare them in your model class like so
    /**
      * Indexes.
      * [
-     *     'index_key' => 'simple_index_name',
-     *     'index_hash_key,index_range_key' => 'composite_index_name',
+     *     'simple_index_name' => [
+     *          'hash' => 'index_key'
+     *     ],
+     *     'composite_index_name' => [
+     *          'hash' => 'index_hash_key',
+     *          'range' => 'index_range_key'
+     *     ],
      * ].
      *
      * @var array
      */
     protected $dynamoDbIndexKeys = [
-        'count_index' => 'count',
+        'count_index' => [
+            'hash' => 'count'
+        ],
     ];
 ```
+
+Note that order of index matters when a key exists in multiple indexes.  
+For example, we have this
+
+    ```php
+    $this->where('user_id', 123)->where('count', '>', 10)->get();
+    ```
+with
+
+    ```php
+    protected $dynamoDbIndexKeys = [
+        'count_index' => [
+            'hash' => 'user_id',
+            'range' => 'count'
+        ],
+        'user_index' => [
+            'hash' => 'user_id',
+        ],
+    ];
+    ```
+
+will use `count_index`.
+
+    ```php
+    protected $dynamoDbIndexKeys = [
+        'user_index' => [
+            'hash' => 'user_id',
+        ],
+        'count_index' => [
+            'hash' => 'user_id',
+            'range' => 'count'
+        ]
+    ];
+    ```
+
+will use `user_index`.
 
 
 Composite Keys

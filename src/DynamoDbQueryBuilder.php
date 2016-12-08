@@ -33,8 +33,6 @@ class DynamoDbQueryBuilder
      */
     protected $lastEvaluatedKey;
 
-    const COMPOSITE_KEY_SEPARATOR = ',';
-
     public function where($column, $operator = null, $value = null, $boolean = 'and')
     {
         if ($boolean != 'and') {
@@ -238,36 +236,33 @@ class DynamoDbQueryBuilder
 
             // Index key condition exists, then use Query instead of Scan.
             // However, Query only supports a few conditions.
-            if ($keys = $this->conditionsContainIndexKey()) {
-                // Array indexes of composite key
-                // composite key: ['hash_key', 'range_key']
-                $hashIndex = 0;
-                $rangeIndex = 1;
-
-                $isCompositeKey = isset($keys[$rangeIndex]);
-
-                $conditions[$hashIndex] = array_get($this->where, "$keys[$hashIndex].ComparisonOperator");
-                $isValidQueryDynamoDbOperator = ComparisonOperator::isValidQueryDynamoDbOperator($conditions[$hashIndex]);
+            if ($index = $this->conditionsContainIndexKey()) {
+                $keyArr = $index['keys'];
+                $conditions['hash'] = array_get($this->where, $keyArr['hash'] . '.ComparisonOperator');
+                $isCompositeKey = isset($keyArr['range']);
+                $isValidQueryDynamoDbOperator = ComparisonOperator::isValidQueryDynamoDbOperator($conditions['hash']);
                 if ($isValidQueryDynamoDbOperator && $isCompositeKey) {
-                    $conditions[$rangeIndex] = array_get($this->where, "$keys[$rangeIndex].ComparisonOperator");
-                    $isValidQueryDynamoDbOperator = ComparisonOperator::isValidQueryDynamoDbOperator($conditions[$rangeIndex], true);
+                    $conditions['range'] = array_get($this->where, $keyArr['range'] . '.ComparisonOperator');
+                    $isValidQueryDynamoDbOperator = ComparisonOperator::isValidQueryDynamoDbOperator($conditions['range'], true);
                 }
 
                 if ($isValidQueryDynamoDbOperator) {
                     $op = 'Query';
-                    $query['IndexName'] = $this->getIndexName($keys);
-                    $query['KeyConditions'][$keys[$hashIndex]] = array_get($this->where, $keys[$hashIndex]);
+                    $query['IndexName'] = $index['name'];
+                    $query['KeyConditions'][$keyArr['hash']] = array_get($this->where, $keyArr['hash']);
                     if ($isCompositeKey) {
-                        $query['KeyConditions'][$keys[$rangeIndex]] = array_get($this->where, $keys[$rangeIndex]);
+                        $query['KeyConditions'][$keyArr['range']] = array_get($this->where, $keyArr['range']);
                     }
-                    $nonKeyConditions = array_except($this->where, $keys);
+                    $nonKeyConditions = array_except($this->where, array_values($keyArr));
                     if (!empty($nonKeyConditions)) {
                         $query['QueryFilter'] = $nonKeyConditions;
                     }
                 }
             }
 
-            $query['ScanFilter'] = $this->where;
+            if ($op === 'Scan') {
+                $query['ScanFilter'] = $this->where;
+            }
         }
 
         if ($use_iterator) {
@@ -336,7 +331,7 @@ class DynamoDbQueryBuilder
      * Check if conditions "where" contain index key
      * For composite index key, it will return false if the conditions don't have all composite key.
      *
-     * @return array|bool false or array of keys
+     * @return array|bool false or array ['name' => 'index_name', 'keys' => ['hash' => 'hash_key', 'range' => 'range_key']]
      */
     protected function conditionsContainIndexKey()
     {
@@ -344,11 +339,14 @@ class DynamoDbQueryBuilder
             return false;
         }
 
-        foreach ($this->model->getDynamoDbIndexKeys() as $key => $name) {
-            $keys          = $this->explodedIndexKeys($key);
+        foreach ($this->model->getDynamoDbIndexKeys() as $name => $keyArr) {
             $conditionKeys = array_keys($this->where);
+            $keys = array_values($keyArr);
             if (count(array_intersect($conditionKeys, $keys)) === count($keys)) {
-                return $keys;
+                return [
+                    'name' => $name,
+                    'keys' => $keyArr
+                ];
             }
         }
 
@@ -418,31 +416,5 @@ class DynamoDbQueryBuilder
     public function setClient($client)
     {
         $this->client = $client;
-    }
-
-    /**
-     * Explode composite index key
-     *
-     * @param string $key composite index key (ex: key1,key2)
-     * @return array
-     */
-    protected function explodedIndexKeys($key)
-    {
-        $key = preg_replace('/\s+/', '', $key);
-        return explode(self::COMPOSITE_KEY_SEPARATOR, $key);
-    }
-
-    /**
-     * Get IndexName from key or array of composite key
-     *
-     * @param string|array $key index key or array of composite key
-     * @return string IndexName
-     */
-    protected function getIndexName($key)
-    {
-        if (is_array($key)) {
-            $key = implode(self::COMPOSITE_KEY_SEPARATOR, $key);
-        }
-        return $this->model->getDynamoDbIndexKeys()[$key];
     }
 }
