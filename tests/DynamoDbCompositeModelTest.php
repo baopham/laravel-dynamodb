@@ -181,6 +181,8 @@ class CompositeTestModel extends \BaoPham\DynamoDb\DynamoDbModel
     protected $compositeKey = ['id', 'id2'];
 
     protected $dynamoDbIndexKeys = [
-        'count' => 'count_index',
+        'count_index' => [
+            'hash' => 'count',
+        ],
     ];
 }
