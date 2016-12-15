@@ -150,6 +150,37 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         ])->toArray());
     }
 
+    public function testConditionContainingCompositeIndexKey() {
+        $fooItem = $this->seed([
+            'id' => ['S' => 'id1'],
+            'name' => ['S' => 'Foo'],
+            'count' => ['N' => 11],
+        ]);
+
+        $barItem = $this->seed([
+            'id' => ['S' => 'id1'],
+            'name' => ['S' => 'Bar'],
+            'count' => ['N' => 9],
+        ]);
+
+        $bazItem = $this->seed([
+            'id' => ['S' => 'id1'],
+            'name' => ['S' => 'Baz'],
+            'count' => ['N' => 10],
+        ]);
+
+        $foundItems = $this->testModel
+            ->where('id', 'id1')
+            ->where('count', '>=', 10) // Test range key support comparison operator other than EQ
+            ->get();
+
+        // If id_count_index is used, $bazItem must be the first found item
+        $expectedItem = $this->testModel->unmarshalItem($bazItem);
+
+        $this->assertEquals(2, $foundItems->count());
+        $this->assertEquals($expectedItem, $foundItems->first()->toArray());
+    }
+
     protected function seed($attributes = [])
     {
         $item = [
@@ -181,6 +212,10 @@ class CompositeTestModel extends \BaoPham\DynamoDb\DynamoDbModel
     protected $compositeKey = ['id', 'id2'];
 
     protected $dynamoDbIndexKeys = [
+        'id_count_index' => [
+            'hash' => 'id',
+            'range' => 'count',
+        ],
         'count_index' => [
             'hash' => 'count',
         ],
