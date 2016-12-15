@@ -150,7 +150,8 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         ])->toArray());
     }
 
-    public function testConditionContainingCompositeIndexKey() {
+    public function testConditionContainingCompositeIndexKey()
+    {
         $fooItem = $this->seed([
             'id' => ['S' => 'id1'],
             'name' => ['S' => 'Foo'],
