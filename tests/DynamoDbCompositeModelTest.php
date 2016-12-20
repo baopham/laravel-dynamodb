@@ -154,29 +154,76 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
     {
         $fooItem = $this->seed([
             'id' => ['S' => 'id1'],
+            'id2' => ['S' => '2'],
             'name' => ['S' => 'Foo'],
             'count' => ['N' => 11],
         ]);
 
         $barItem = $this->seed([
             'id' => ['S' => 'id1'],
+            'id2' => ['S' => '1'],
             'name' => ['S' => 'Bar'],
             'count' => ['N' => 9],
         ]);
 
         $bazItem = $this->seed([
             'id' => ['S' => 'id1'],
+            'id2' => ['S' => '3'],
             'name' => ['S' => 'Baz'],
             'count' => ['N' => 10],
         ]);
 
+        // Test condition contains all composite keys with valid operator
         $foundItems = $this->testModel
             ->where('id', 'id1')
             ->where('count', '>=', 10) // Test range key support comparison operator other than EQ
             ->get();
-
+//        $foundItems->each(function ($item, $key) {
+//            var_dump($item->toArray());
+//        });
         // If id_count_index is used, $bazItem must be the first found item
         $expectedItem = $this->testModel->unmarshalItem($bazItem);
+
+        $this->assertEquals(2, $foundItems->count());
+        $this->assertEquals($expectedItem, $foundItems->first()->toArray());
+
+        // Test condition contains all composite keys with invalid operator
+        $foundItems = $this->testModel
+            ->where('id', 'begins_with', 'id') // Invalid operator for hash key
+            ->where('count', '>', 0)
+            ->get();
+
+        // id_count_index is not used because of invalid operator for hash key
+        // A normal Scan operation is used, results are sorted by id2
+        $expectedItem = $this->testModel->unmarshalItem($barItem);
+
+        $this->assertEquals(3, $foundItems->count());
+        $this->assertEquals($expectedItem, $foundItems->first()->toArray());
+    }
+
+    public function testConditionsDoNotContainAllCompositeKeys()
+    {
+        $fooItem = $this->seed([
+            'id' => ['S' => 'id1'],
+            'id2' => ['S' => '2'],
+            'name' => ['S' => 'Foo'],
+            'count' => ['N' => 1],
+        ]);
+
+        $barItem = $this->seed([
+            'id' => ['S' => 'id1'],
+            'id2' => ['S' => '1'],
+            'name' => ['S' => 'Bar'],
+            'count' => ['N' => 2],
+        ]);
+
+        $foundItems = $this->testModel
+            ->where('count', '>', 0)
+            ->get();
+
+        // id_count_index is not used because conditions don't have all composite keys
+        // A normal Scan operation is used, results are sorted by id2
+        $expectedItem = $this->testModel->unmarshalItem($barItem);
 
         $this->assertEquals(2, $foundItems->count());
         $this->assertEquals($expectedItem, $foundItems->first()->toArray());
@@ -216,9 +263,6 @@ class CompositeTestModel extends \BaoPham\DynamoDb\DynamoDbModel
         'id_count_index' => [
             'hash' => 'id',
             'range' => 'count',
-        ],
-        'count_index' => [
-            'hash' => 'count',
         ],
     ];
 }
