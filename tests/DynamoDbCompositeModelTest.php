@@ -178,9 +178,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
             ->where('id', 'id1')
             ->where('count', '>=', 10) // Test range key support comparison operator other than EQ
             ->get();
-//        $foundItems->each(function ($item, $key) {
-//            var_dump($item->toArray());
-//        });
+
         // If id_count_index is used, $bazItem must be the first found item
         $expectedItem = $this->testModel->unmarshalItem($bazItem);
 
