@@ -216,6 +216,7 @@ MIT
 
 Author and Contributors
 -------
-* Bao Pham
+* [Bao Pham](https://github.com/baopham/laravel-dynamodb)
 * [warrick-loyaltycorp](https://github.com/warrick-loyaltycorp)
-* [cthos](https://github.com/cthos)
+* [Alexander Ward](https://github.com/cthos)
+* [Quang Ngo](https://github.com/vanquang9387)
