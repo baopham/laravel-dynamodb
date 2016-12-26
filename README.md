@@ -46,15 +46,15 @@ Install
 
     ```php
     // config/services.php
-        ...
-        'dynamodb' => [
-            'key' => env('DYNAMODB_KEY'),
-            'secret' => env('DYNAMODB_SECRET'),
-            'region' => env('DYNAMODB_REGION'),
-            'local_endpoint' => env('DYNAMODB_LOCAL_ENDPOINT'), // see http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html
-            'local' => env('DYNAMODB_LOCAL'), // true or false? should use dynamodb_local or not?
-        ],
-        ...
+    ...
+    'dynamodb' => [
+        'key' => env('DYNAMODB_KEY'),
+        'secret' => env('DYNAMODB_SECRET'),
+        'region' => env('DYNAMODB_REGION'),
+        'local_endpoint' => env('DYNAMODB_LOCAL_ENDPOINT'), // see http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html
+        'local' => env('DYNAMODB_LOCAL'), // true or false? should use dynamodb_local or not?
+    ],
+    ...
     ```
 
 Usage
@@ -110,60 +110,61 @@ Indexes
 If your table has indexes, make sure to declare them in your model class like so
 
 ```php
-   /**
-     * Indexes.
-     * [
-     *     'simple_index_name' => [
-     *          'hash' => 'index_key'
-     *     ],
-     *     'composite_index_name' => [
-     *          'hash' => 'index_hash_key',
-     *          'range' => 'index_range_key'
-     *     ],
-     * ].
-     *
-     * @var array
-     */
-    protected $dynamoDbIndexKeys = [
-        'count_index' => [
-            'hash' => 'count'
-        ],
-    ];
+/**
+ * Indexes.
+ * [
+ *     'simple_index_name' => [
+ *          'hash' => 'index_key'
+ *     ],
+ *     'composite_index_name' => [
+ *          'hash' => 'index_hash_key',
+ *          'range' => 'index_range_key'
+ *     ],
+ * ].
+ *
+ * @var array
+ */
+protected $dynamoDbIndexKeys = [
+    'count_index' => [
+        'hash' => 'count'
+    ],
+];
 ```
 
 Note that order of index matters when a key exists in multiple indexes.  
 For example, we have this
 
-    ```php
-    $this->where('user_id', 123)->where('count', '>', 10)->get();
-    ```
+```php
+$this->where('user_id', 123)->where('count', '>', 10)->get();
+```
+
 with
 
-    ```php
-    protected $dynamoDbIndexKeys = [
-        'count_index' => [
-            'hash' => 'user_id',
-            'range' => 'count'
-        ],
-        'user_index' => [
-            'hash' => 'user_id',
-        ],
-    ];
-    ```
+```php
+protected $dynamoDbIndexKeys = [
+    'count_index' => [
+        'hash' => 'user_id',
+        'range' => 'count'
+    ],
+    'user_index' => [
+        'hash' => 'user_id',
+    ],
+];
+```
 
 will use `count_index`.
 
-    ```php
-    protected $dynamoDbIndexKeys = [
-        'user_index' => [
-            'hash' => 'user_id',
-        ],
-        'count_index' => [
-            'hash' => 'user_id',
-            'range' => 'count'
-        ]
-    ];
-    ```
+```php
+protected $dynamoDbIndexKeys = [
+    'user_index' => [
+        'hash' => 'user_id',
+    ],
+    'count_index' => [
+        'hash' => 'user_id',
+        'range' => 'count'
+    ]
+];
+```
 
 will use `user_index`.
 
