@@ -236,21 +236,33 @@ class DynamoDbQueryBuilder
 
             // Index key condition exists, then use Query instead of Scan.
             // However, Query only supports a few conditions.
-            if ($key = $this->conditionsContainIndexKey()) {
-                $condition = array_get($this->where, "$key.ComparisonOperator");
+            if ($index = $this->conditionsContainIndexKey()) {
+                $keysInfo = $index['keysInfo'];
+                $isCompositeKey = isset($keysInfo['range']);
+                $hashKeyOperator = array_get($this->where, $keysInfo['hash'] . '.ComparisonOperator');
+                $isValidQueryDynamoDbOperator = ComparisonOperator::isValidQueryDynamoDbOperator($hashKeyOperator);
+                if ($isValidQueryDynamoDbOperator && $isCompositeKey) {
+                    $rangeKeyOperator = array_get($this->where, $keysInfo['range'] . '.ComparisonOperator');
+                    $isValidQueryDynamoDbOperator = ComparisonOperator::isValidQueryDynamoDbOperator($rangeKeyOperator, true);
+                }
 
-                if (ComparisonOperator::isValidQueryDynamoDbOperator($condition)) {
+                if ($isValidQueryDynamoDbOperator) {
                     $op = 'Query';
-                    $query['IndexName'] = $this->model->getDynamoDbIndexKeys()[$key];
-                    $query['KeyConditions'][$key] = array_get($this->where, $key);
-                    $nonKeyConditions = array_except($this->where, $key);
+                    $query['IndexName'] = $index['name'];
+                    $query['KeyConditions'][$keysInfo['hash']] = array_get($this->where, $keysInfo['hash']);
+                    if ($isCompositeKey) {
+                        $query['KeyConditions'][$keysInfo['range']] = array_get($this->where, $keysInfo['range']);
+                    }
+                    $nonKeyConditions = array_except($this->where, array_values($keysInfo));
                     if (!empty($nonKeyConditions)) {
                         $query['QueryFilter'] = $nonKeyConditions;
                     }
                 }
             }
 
-            $query['ScanFilter'] = $this->where;
+            if ($op === 'Scan') {
+                $query['ScanFilter'] = $this->where;
+            }
         }
 
         if ($use_iterator) {
@@ -315,15 +327,26 @@ class DynamoDbQueryBuilder
         return $conditionValue;
     }
 
+    /**
+     * Check if conditions "where" contain index key
+     * For composite index key, it will return false if the conditions don't have all composite key.
+     *
+     * @return array|bool false or array ['name' => 'index_name', 'keysInfo' => ['hash' => 'hash_key', 'range' => 'range_key']]
+     */
     protected function conditionsContainIndexKey()
     {
         if (empty($this->where)) {
             return false;
         }
 
-        foreach ($this->model->getDynamoDbIndexKeys() as $key => $name) {
-            if (isset($this->where[$key])) {
-                return $key;
+        foreach ($this->model->getDynamoDbIndexKeys() as $name => $keysInfo) {
+            $conditionKeys = array_keys($this->where);
+            $keys = array_values($keysInfo);
+            if (count(array_intersect($conditionKeys, $keys)) === count($keys)) {
+                return [
+                    'name' => $name,
+                    'keysInfo' => $keysInfo
+                ];
             }
         }
 

@@ -48,7 +48,7 @@ abstract class ModelTest extends TestCase
             'version' => '2012-08-10',
             'endpoint' => 'http://localhost:3000',
         ];
-        
+
         $this->dynamoDb = new DynamoDbClientService($config, new Marshaler($marshalerOptions),
             new EmptyAttributeFilter);
 

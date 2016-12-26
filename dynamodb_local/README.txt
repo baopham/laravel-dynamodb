@@ -8,12 +8,9 @@ For an overview of DynamoDB Local please refer to the documentation at http://do
 Release Notes
 -----------------------------
 
-2016-01-07_1.0
+2016-05-17_1.0
 
-  * Bug Fixes for Online Index Item Violation
-
-  * Process Exit on SocketException
-
+  * Bug fix for Query validation preventing primary key attributes in query filter expressions 
 
 Running DynamoDB Local
 ---------------------------------------------------------------

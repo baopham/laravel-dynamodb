@@ -428,6 +428,8 @@ class TestModel extends \BaoPham\DynamoDb\DynamoDbModel
     protected $table = 'test_model';
 
     protected $dynamoDbIndexKeys = [
-        'count' => 'count_index',
+        'count_index' => [
+            'hash' => 'count',
+        ],
     ];
 }

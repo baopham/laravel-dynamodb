@@ -94,6 +94,26 @@ params = {
                 WriteCapacityUnits: 1,
             },
         },
+        {
+            IndexName: 'id_count_index',
+            KeySchema: [
+                { // Required HASH type attribute
+                    AttributeName: 'id',
+                    KeyType: 'HASH',
+                },
+                {
+                    AttributeName: 'count',
+                    KeyType: 'RANGE',
+                }
+            ],
+            Projection: { // attributes to project into the index
+                ProjectionType: 'ALL', // (ALL | KEYS_ONLY | INCLUDE)
+            },
+            ProvisionedThroughput: { // throughput to provision to the index
+                ReadCapacityUnits: 1,
+                WriteCapacityUnits: 1,
+            },
+        },
         // ... more global secondary indexes ...
     ]
 };
