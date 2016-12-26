@@ -10,7 +10,9 @@ Supports all key types - primary hash key and composite keys.
 
 > For advanced users only. If you're not familiar with Laravel, Laravel Eloquent and DynamoDB, then I suggest that you get familiar with those first. 
 
-> *Breaking Changes* for v0.4 - if you're using v0.3 and below, please see [here](./README.v0.3.md)
+> **Breaking Changes** for v0.4
+>  * If you're using v0.3 and below, please see [here](./README.v0.3.md)
+>  * To upgrade to v0.4, please see the [migration note]('./MIGRATION.md')
 
 * [Install](#install)
 * [Usage](#usage)
