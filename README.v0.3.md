@@ -10,8 +10,6 @@ Supports all key types - primary hash key and composite keys.
 
 > For advanced users only. If you're not familiar with Laravel, Laravel Eloquent and DynamoDB, then I suggest that you get familiar with those first. 
 
-> *Breaking Changes* for v0.4 - if you're using v0.3 and below, please see [here](./README.v0.3.md)
-
 * [Install](#install)
 * [Usage](#usage)
 * [Indexes](#indexes)
@@ -113,59 +111,16 @@ If your table has indexes, make sure to declare them in your model class like so
    /**
      * Indexes.
      * [
-     *     'simple_index_name' => [
-     *          'hash' => 'index_key'
-     *     ],
-     *     'composite_index_name' => [
-     *          'hash' => 'index_hash_key',
-     *          'range' => 'index_range_key'
-     *     ],
+     *     'global_index_key' => 'global_index_name',
+     *     'local_index_key' => 'local_index_name',
      * ].
      *
      * @var array
      */
     protected $dynamoDbIndexKeys = [
-        'count_index' => [
-            'hash' => 'count'
-        ],
+        'count_index' => 'count',
     ];
 ```
-
-Note that order of index matters when a key exists in multiple indexes.  
-For example, we have this
-
-    ```php
-    $this->where('user_id', 123)->where('count', '>', 10)->get();
-    ```
-with
-
-    ```php
-    protected $dynamoDbIndexKeys = [
-        'count_index' => [
-            'hash' => 'user_id',
-            'range' => 'count'
-        ],
-        'user_index' => [
-            'hash' => 'user_id',
-        ],
-    ];
-    ```
-
-will use `count_index`.
-
-    ```php
-    protected $dynamoDbIndexKeys = [
-        'user_index' => [
-            'hash' => 'user_id',
-        ],
-        'count_index' => [
-            'hash' => 'user_id',
-            'range' => 'count'
-        ]
-    ];
-    ```
-
-will use `user_index`.
 
 
 Composite Keys
