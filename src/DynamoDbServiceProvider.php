@@ -9,6 +9,16 @@ use Illuminate\Support\ServiceProvider;
 class DynamoDbServiceProvider extends ServiceProvider
 {
     /**
+     * Bootstrap the application events.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        DynamoDbModel::setDynamoDbClientService($this->app->make(DynamoDbClientInterface::class));
+    }
+
+    /**
      * Register the service provider.
      */
     public function register()

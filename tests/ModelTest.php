@@ -2,6 +2,7 @@
 
 use Aws\DynamoDb\Marshaler;
 use BaoPham\DynamoDb\DynamoDbClientService;
+use BaoPham\DynamoDb\DynamoDbModel;
 use BaoPham\DynamoDb\EmptyAttributeFilter;
 
 /**
@@ -51,6 +52,9 @@ abstract class ModelTest extends TestCase
 
         $this->dynamoDb = new DynamoDbClientService($config, new Marshaler($marshalerOptions),
             new EmptyAttributeFilter);
+
+        // Set the DynamoDbClient, this is handled by the SynamoDbServiceProvider boot in normal use.
+        DynamoDbModel::setDynamoDbClientService($this->dynamoDb);
 
         $this->testModel = $this->getTestModel();
 

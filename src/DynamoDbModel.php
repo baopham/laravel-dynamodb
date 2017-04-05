@@ -57,7 +57,7 @@ abstract class DynamoDbModel extends Model
      */
     protected $compositeKey = [];
 
-    public function __construct(array $attributes = [], DynamoDbClientService $dynamoDb = null)
+    public function __construct(array $attributes = [])
     {
         $this->bootIfNotBooted();
 
@@ -65,19 +65,23 @@ abstract class DynamoDbModel extends Model
 
         $this->fill($attributes);
 
-        if (is_null(static::$dynamoDb)) {
-            static::$dynamoDb = $dynamoDb;
-        }
-
         $this->setupDynamoDb();
+    }
+
+    /**
+     * Set the DynamoDbClient used by models.
+     *
+     * @param DynamoDbClientInterface $dynamoDb
+     *
+     * @return void
+     */
+    public static function setDynamoDbClientService(DynamoDbClientInterface $dynamoDb)
+    {
+        static::$dynamoDb = $dynamoDb;
     }
 
     protected function setupDynamoDb()
     {
-        if (is_null(static::$dynamoDb)) {
-            static::$dynamoDb = app(\BaoPham\DynamoDb\DynamoDbClientInterface::class);
-        }
-
         $this->client = static::$dynamoDb->getClient();
         $this->marshaler = static::$dynamoDb->getMarshaler();
         $this->attributeFilter = static::$dynamoDb->getAttributeFilter();
