@@ -69,6 +69,16 @@ abstract class DynamoDbModel extends Model
     }
 
     /**
+     * Get the DynamoDbClient service that is being used by the models.
+     *
+     * @return DynamoDbClientInterface
+     */
+    public static function getDynamoDbClientService()
+    {
+        return static::$dynamoDb;
+    }
+
+    /**
      * Set the DynamoDbClient used by models.
      *
      * @param DynamoDbClientInterface $dynamoDb
@@ -78,6 +88,16 @@ abstract class DynamoDbModel extends Model
     public static function setDynamoDbClientService(DynamoDbClientInterface $dynamoDb)
     {
         static::$dynamoDb = $dynamoDb;
+    }
+
+    /**
+     * Unset the DynamoDbClient service for models.
+     *
+     * @return void
+     */
+    public static function unsetDynamoDbClientService()
+    {
+        static::$dynamoDb = null;
     }
 
     protected function setupDynamoDb()
