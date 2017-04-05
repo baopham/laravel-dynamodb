@@ -4,7 +4,6 @@ namespace BaoPham\DynamoDb;
 
 use Exception;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Class DynamoDbModel.
