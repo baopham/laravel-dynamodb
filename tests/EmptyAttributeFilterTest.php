@@ -1,8 +1,11 @@
 <?php
 
+namespace BaoPham\DynamoDb\Tests;
 
 /**
  * Class EmptyAttributeFilterTest
+ *
+ * @package BaoPham\DynamoDb\Tests
  */
 class EmptyAttributeFilterTest extends TestCase
 {
