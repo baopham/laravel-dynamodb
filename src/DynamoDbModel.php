@@ -4,7 +4,6 @@ namespace BaoPham\DynamoDb;
 
 use Exception;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Class DynamoDbModel.
@@ -58,7 +57,7 @@ abstract class DynamoDbModel extends Model
      */
     protected $compositeKey = [];
 
-    public function __construct(array $attributes = [], DynamoDbClientService $dynamoDb = null)
+    public function __construct(array $attributes = [])
     {
         $this->bootIfNotBooted();
 
@@ -66,19 +65,43 @@ abstract class DynamoDbModel extends Model
 
         $this->fill($attributes);
 
-        if (is_null(static::$dynamoDb)) {
-            static::$dynamoDb = $dynamoDb;
-        }
-
         $this->setupDynamoDb();
+    }
+
+    /**
+     * Get the DynamoDbClient service that is being used by the models.
+     *
+     * @return DynamoDbClientInterface
+     */
+    public static function getDynamoDbClientService()
+    {
+        return static::$dynamoDb;
+    }
+
+    /**
+     * Set the DynamoDbClient used by models.
+     *
+     * @param DynamoDbClientInterface $dynamoDb
+     *
+     * @return void
+     */
+    public static function setDynamoDbClientService(DynamoDbClientInterface $dynamoDb)
+    {
+        static::$dynamoDb = $dynamoDb;
+    }
+
+    /**
+     * Unset the DynamoDbClient service for models.
+     *
+     * @return void
+     */
+    public static function unsetDynamoDbClientService()
+    {
+        static::$dynamoDb = null;
     }
 
     protected function setupDynamoDb()
     {
-        if (is_null(static::$dynamoDb)) {
-            static::$dynamoDb = app(\BaoPham\DynamoDb\DynamoDbClientInterface::class);
-        }
-
         $this->client = static::$dynamoDb->getClient();
         $this->marshaler = static::$dynamoDb->getMarshaler();
         $this->attributeFilter = static::$dynamoDb->getAttributeFilter();

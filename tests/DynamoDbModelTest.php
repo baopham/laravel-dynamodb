@@ -5,7 +5,7 @@ class DynamoDbModelTest extends ModelTest
 {
     protected function getTestModel()
     {
-        return new TestModel([], $this->dynamoDb);
+        return new TestModel([]);
     }
 
     public function testCreateRecord()
