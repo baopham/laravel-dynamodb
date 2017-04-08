@@ -24,10 +24,8 @@
         "phpunit/phpunit": "^5.0@dev"
     },
     "autoload-dev": {
-        "classmap": [
-            "tests/TestCase.php",
-            "tests/ModelTest.php",
-            "tests/DynamoDbModelTest.php"
-        ]
+        "psr-4": {
+            "BaoPham\\DynamoDb\\Tests\\": "tests/"
+        }
     }
 }

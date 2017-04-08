@@ -1,7 +1,11 @@
 <?php
 
+namespace BaoPham\DynamoDb\Tests;
+
 /**
  * Class DynamoDbClientServiceTest
+ *
+ * @package BaoPham\DynamoDb\Tests
  */
 class DynamoDbClientServiceTest extends TestCase
 {

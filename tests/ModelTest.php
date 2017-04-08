@@ -1,5 +1,7 @@
 <?php
 
+namespace BaoPham\DynamoDb\Tests;
+
 use Aws\DynamoDb\Marshaler;
 use BaoPham\DynamoDb\DynamoDbClientService;
 use BaoPham\DynamoDb\DynamoDbModel;
@@ -7,6 +9,8 @@ use BaoPham\DynamoDb\EmptyAttributeFilter;
 
 /**
  * Class ModelTest
+ *
+ * @package BaoPham\DynamoDb\Tests
  */
 abstract class ModelTest extends TestCase
 {

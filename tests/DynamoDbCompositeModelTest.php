@@ -1,5 +1,12 @@
 <?php
 
+namespace BaoPham\DynamoDb\Tests;
+
+/**
+ * Class DynamoDbCompositeModelTest
+ *
+ * @package BaoPham\DynamoDb\Tests
+ */
 class DynamoDbCompositeModelTest extends DynamoDbModelTest
 {
     protected function getTestModel()
