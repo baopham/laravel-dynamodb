@@ -27,7 +27,7 @@ class DynamoDbServiceProvider extends ServiceProvider
             'nullify_invalid' => true,
         ];
 
-        if ($this->app->environment() == 'testing' || config('services.dynamodb.local')) {
+        if ($this->app->environment() == 'testing' && config('services.dynamodb.local')) {
             return $this->bindForTesting($marshalerOptions);
         }
 
