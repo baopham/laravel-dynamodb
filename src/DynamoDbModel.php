@@ -88,16 +88,16 @@ abstract class DynamoDbModel extends Model
     {
         $create = !$this->exists;
         if ($create) {
-            if($this->fireModelEvent('creating')  === false) return false;
+            if ($this->fireModelEvent('creating')  === false) return false;
         } else {
-            if($this->fireModelEvent('updating') === false) return false;
+            if ($this->fireModelEvent('updating') === false) return false;
         }
 
-        if($this->fireModelEvent('saving') === false) return false;
+        if ($this->fireModelEvent('saving') === false) return false;
 
         $saved = $this->newQuery()->save();
 
-        if($saved) {
+        if ($saved) {
             if ($create) {
                 $this->fireModelEvent('created');
             } else {
