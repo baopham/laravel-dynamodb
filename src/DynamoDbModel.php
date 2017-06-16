@@ -101,10 +101,16 @@ abstract class DynamoDbModel extends Model
             return false;
         }
 
+        if ($this->usesTimestamps()) {
+            $this->updateTimestamps();
+        }
+
         $saved = $this->newQuery()->save();
 
         if ($saved) {
             if ($create) {
+                $this->exists = true;
+                $this->wasRecentlyCreated = true;
                 $this->fireModelEvent('created');
             } else {
                 $this->fireModelEvent('updated');
