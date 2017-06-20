@@ -87,14 +87,11 @@ abstract class DynamoDbModel extends Model
     public function save(array $options = [])
     {
         $create = !$this->exists;
-        if ($create) {
-            if ($this->fireModelEvent('creating')  === false) {
-                return false;
-            }
-        } else {
-            if ($this->fireModelEvent('updating') === false) {
-                return false;
-            }
+        if ($create)  && $this->fireModelEvent('creating')  === false) {
+            return false;
+        }
+        if (!$create && $this->fireModelEvent('updating') === false) {
+            return false;
         }
 
         if ($this->fireModelEvent('saving') === false) {
@@ -107,16 +104,18 @@ abstract class DynamoDbModel extends Model
 
         $saved = $this->newQuery()->save();
 
-        if ($saved) {
-            if ($create) {
-                $this->exists = true;
-                $this->wasRecentlyCreated = true;
-                $this->fireModelEvent('created');
-            } else {
-                $this->fireModelEvent('updated');
-            }
-            $this->finishSave($options);
+        if (!$saved) {
+            return saved;
         }
+
+        $this->exists = true;
+        if ($create) {
+            $this->wasRecentlyCreated = true;
+            $this->fireModelEvent('created');
+        } else {
+            $this->fireModelEvent('updated');
+        }
+        $this->finishSave($options);
         return $saved;
     }
 
