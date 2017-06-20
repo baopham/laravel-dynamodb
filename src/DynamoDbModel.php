@@ -87,7 +87,7 @@ abstract class DynamoDbModel extends Model
     public function save(array $options = [])
     {
         $create = !$this->exists;
-        if ($create)  && $this->fireModelEvent('creating')  === false) {
+        if ($create && $this->fireModelEvent('creating')  === false) {
             return false;
         }
         if (!$create && $this->fireModelEvent('updating') === false) {
