@@ -105,7 +105,7 @@ abstract class DynamoDbModel extends Model
         $saved = $this->newQuery()->save();
 
         if (!$saved) {
-            return saved;
+            return $saved;
         }
 
         $this->exists = true;
