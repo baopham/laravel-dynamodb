@@ -109,11 +109,37 @@ abstract class DynamoDbModel extends Model
 
     public function save(array $options = [])
     {
-        if (!$this->getKey()) {
-            $this->fireModelEvent('creating');
+        $create = !$this->exists;
+        if ($create && $this->fireModelEvent('creating')  === false) {
+            return false;
+        }
+        if (!$create && $this->fireModelEvent('updating') === false) {
+            return false;
         }
 
-        return $this->newQuery()->save();
+        if ($this->fireModelEvent('saving') === false) {
+            return false;
+        }
+
+        if ($this->usesTimestamps()) {
+            $this->updateTimestamps();
+        }
+
+        $saved = $this->newQuery()->save();
+
+        if (!$saved) {
+            return $saved;
+        }
+
+        $this->exists = true;
+        if ($create) {
+            $this->wasRecentlyCreated = true;
+            $this->fireModelEvent('created');
+        } else {
+            $this->fireModelEvent('updated');
+        }
+        $this->finishSave($options);
+        return $saved;
     }
 
     public function update(array $attributes = [], array $options = [])
