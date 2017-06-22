@@ -118,6 +118,7 @@ abstract class DynamoDbModel extends Model
         if ($create && $this->fireModelEvent('creating')  === false) {
             return false;
         }
+
         if (!$create && $this->fireModelEvent('updating') === false) {
             return false;
         }
