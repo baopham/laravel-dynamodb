@@ -123,6 +123,10 @@ abstract class DynamoDbModel extends Model
             return false;
         }
 
+        if ($this->usesTimestamps()) {
+            $this->updateTimestamps();
+        }
+
         $saved = $this->newQuery()->save();
 
         if (!$saved) {

@@ -147,6 +147,8 @@ class DynamoDbQueryBuilder
 
         $model->setUnfillableAttributes($item);
 
+        $model->syncOriginal();
+
         $model->exists = true;
 
         return $model;
@@ -284,6 +286,7 @@ class DynamoDbQueryBuilder
             $item = $this->model->unmarshalItem($item);
             $model = $this->model->newInstance($item, true);
             $model->setUnfillableAttributes($item);
+            $model->syncOriginal();
             $results[] = $model;
         }
 
