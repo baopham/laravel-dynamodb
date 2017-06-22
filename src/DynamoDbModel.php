@@ -107,7 +107,7 @@ abstract class DynamoDbModel extends Model
 
         $this->exists = true;
         $this->wasRecentlyCreated = $create;
-        $this->fireModelEvent($create ? 'created' : 'updated');
+        $this->fireModelEvent($create ? 'created' : 'updated', false);
 
         $this->finishSave($options);
 
