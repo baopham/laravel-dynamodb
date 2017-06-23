@@ -16,4 +16,4 @@ Running Tests
 
 or
 
-```composer run-script tests```
+```composer run-script test```
