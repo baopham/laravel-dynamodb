@@ -57,6 +57,13 @@ abstract class DynamoDbModel extends Model
      */
     protected $compositeKey = [];
 
+    /**
+     * Default Date format
+     * ISO 8601 Compliant
+     */
+    protected $dateFormat = 'o';
+
+
     public function __construct(array $attributes = [])
     {
         $this->bootIfNotBooted();

@@ -9,7 +9,7 @@ Starting DynamoDB Local
 
 or
 
-```composer run-script dynamodb_local```
+```composer --timeout=0 run dynamodb_local```
 
 Running Tests
 ```./vendor/bin/phpunit```
