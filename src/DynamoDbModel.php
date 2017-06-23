@@ -3,6 +3,7 @@
 namespace BaoPham\DynamoDb;
 
 use Exception;
+use DateTime;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -56,6 +57,13 @@ abstract class DynamoDbModel extends Model
      * @var array
      */
     protected $compositeKey = [];
+
+    /**
+     * Default Date format
+     * ISO 8601 Compliant
+     */
+    protected $dateFormat = DateTime::ISO8601;
+
 
     public function __construct(array $attributes = [])
     {
@@ -121,6 +129,10 @@ abstract class DynamoDbModel extends Model
 
         if (!$create && $this->fireModelEvent('updating') === false) {
             return false;
+        }
+
+        if ($this->usesTimestamps()) {
+            $this->updateTimestamps();
         }
 
         $saved = $this->newQuery()->save();
