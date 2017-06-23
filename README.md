@@ -188,20 +188,6 @@ protected $compositeKey = ['customer_id', 'agent_id'];
 $model->find(['id1' => 'value1', 'id2' => 'value2']);
 ```
 
-Test
-----
-Run:
-
-```bash
-$ java -Djava.library.path=./DynamoDBLocal_lib -jar dynamodb_local/DynamoDBLocal.jar --port 3000
-$ ./vendor/bin/phpunit
-```
-
-* DynamoDb local version: 2016-01-07_1.0
-
-* DynamoDb local schema for tests created by the [DynamoDb local shell](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.Shell.html) is located [here](dynamodb_local_schema.js)
-
-
 Requirements
 -------------
 Laravel ^5.1
