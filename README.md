@@ -195,7 +195,6 @@ Laravel ^5.1
 
 TODO
 ----
-- [ ] Support auto setting create/update timestamps
 - [ ] Upgrade a few legacy attributes: `AttributesToGet`, `ScanFilter`, ...
 
 License

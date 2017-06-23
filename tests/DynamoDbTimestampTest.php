@@ -5,7 +5,7 @@ namespace BaoPham\DynamoDb\Tests;
 use Carbon\Carbon;
 
 /**
- * Class DynamoDbModelTest
+ * Class DynamoDbTimestampTest
  *
  * @package BaoPham\DynamoDb\Tests
  */
