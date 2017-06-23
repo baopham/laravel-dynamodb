@@ -18,7 +18,6 @@ Supports all key types - primary hash key and composite keys.
 * [Usage](#usage)
 * [Indexes](#indexes)
 * [Composite Keys](#composite-keys)
-* [Test](#test)
 * [Requirements](#requirements)
 * [Todo](#todo)
 * [License](#license)
