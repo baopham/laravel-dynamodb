@@ -2,6 +2,8 @@
 
 namespace BaoPham\DynamoDb\Tests;
 
+use Carbon\Carbon;
+
 /**
  * Class DynamoDbModelTest
  *
@@ -16,8 +18,8 @@ class DynamoDbTimestampTest extends ModelTest
 
     public function testCreateRecord()
     {
-        \Carbon\Carbon::setTestNow(\Carbon\Carbon::create(2017, 06, 24, 5, 30, 0));
-        $now = new \Carbon\Carbon;
+        Carbon::setTestNow(Carbon::create(2017, 06, 24, 5, 30, 0));
+        $now = new Carbon;
         $this->testModel->id = str_random(36);
         $this->testModel->name = 'Test Create';
         $this->testModel->count = 1;
@@ -38,8 +40,8 @@ class DynamoDbTimestampTest extends ModelTest
 
     public function testUpdateRecord()
     {
-        \Carbon\Carbon::setTestNow(\Carbon\Carbon::create(2017, 03, 01, 8, 30, 0));
-        $now = new \Carbon\Carbon;
+        Carbon::setTestNow(Carbon::create(2017, 03, 01, 8, 30, 0));
+        $now = new Carbon;
         $seed = $this->seed();
         $seedId = array_get($seed, 'id.S');
 
