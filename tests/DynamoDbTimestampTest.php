@@ -80,7 +80,6 @@ class DynamoDbTimestampTest extends ModelTest
 
         return $item;
     }
-
 }
 
 class TimestampModel extends \BaoPham\DynamoDb\DynamoDbModel
@@ -97,4 +96,3 @@ class TimestampModel extends \BaoPham\DynamoDb\DynamoDbModel
         ],
     ];
 }
-
