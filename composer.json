@@ -23,6 +23,10 @@
     "require-dev": {
         "phpunit/phpunit": "^5.0@dev"
     },
+    "scripts": {
+        "test": "phpunit",
+        "dynamodb_local": "java -Djava.library.path=./DynamoDBLocal_lib -jar dynamodb_local/DynamoDBLocal.jar --port 3000"
+    },
     "autoload-dev": {
         "psr-4": {
             "BaoPham\\DynamoDb\\Tests\\": "tests/"
