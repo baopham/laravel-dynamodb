@@ -3,6 +3,7 @@
 namespace BaoPham\DynamoDb;
 
 use Exception;
+use DateTime;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -61,7 +62,7 @@ abstract class DynamoDbModel extends Model
      * Default Date format
      * ISO 8601 Compliant
      */
-    protected $dateFormat = 'o';
+    protected $dateFormat = DateTime::ISO8601;
 
 
     public function __construct(array $attributes = [])
