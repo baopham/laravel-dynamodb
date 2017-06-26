@@ -20,6 +20,7 @@ Supports all key types - primary hash key and composite keys.
 * [Composite Keys](#composite-keys)
 * [Requirements](#requirements)
 * [Todo](#todo)
+* [FAQ](#faq)
 * [License](#license)
 * [Author and Contributors](#author-and-contributors)
 
@@ -195,6 +196,11 @@ Laravel ^5.1
 TODO
 ----
 - [ ] Upgrade a few legacy attributes: `AttributesToGet`, `ScanFilter`, ...
+
+FAQ
+---
+Q: Cannot assign `id` property if its not in the fillable array  
+A: Try [this](https://github.com/baopham/laravel-dynamodb/issues/10)?  
 
 License
 --------
