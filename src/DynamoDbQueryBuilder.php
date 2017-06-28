@@ -158,17 +158,14 @@ class DynamoDbQueryBuilder
     public function findOrFail($id, array $columns = []) {
         $result = $this->find($id, $columns);
         
-        if (is_array($id)) {
-            if (count($result) == count(array_unique($id))) {
-                return $result;
-            }
+        if (is_array($id) && count($result) == count(array_unique($id))) 
+        {
+            return $result;
         } elseif (! is_null($result)) {
             return $result;
         }
 
-        throw (new ModelNotFoundException)->setModel(
-            get_class($this->model), $id
-        );
+        throw (new ModelNotFoundException)->setModel(get_class($this->model), $id);
     }
 
     public function first($columns = [])
@@ -179,7 +176,8 @@ class DynamoDbQueryBuilder
     }
 
     public function firstOrFail($columns = []) {
-        if (! is_null($model = $this->first($columns))) {
+        if (! is_null($model = $this->first($columns))) 
+        {
             return $model;
         }
         throw (new ModelNotFoundException)->setModel(get_class($this->model));
