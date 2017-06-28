@@ -5,6 +5,7 @@ namespace BaoPham\DynamoDb;
 use Aws\DynamoDb\DynamoDbClient;
 use Exception;
 use Illuminate\Database\Eloquent\Collection;
+use \Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
 
 class DynamoDbQueryBuilder
@@ -154,11 +155,34 @@ class DynamoDbQueryBuilder
         return $model;
     }
 
+    public function findOrFail($id, array $columns = []) {
+        $result = $this->find($id, $columns);
+        
+        if (is_array($id)) {
+            if (count($result) == count(array_unique($id))) {
+                return $result;
+            }
+        } elseif (! is_null($result)) {
+            return $result;
+        }
+
+        throw (new ModelNotFoundException)->setModel(
+            get_class($this->model), $id
+        );
+    }
+
     public function first($columns = [])
     {
         $item = $this->getAll($columns, 1);
 
         return $item->first();
+    }
+
+    public function firstOrFail($columns = []) {
+        if (! is_null($model = $this->first($columns))) {
+            return $model;
+        }
+        throw (new ModelNotFoundException)->setModel(get_class($this->model));
     }
 
     public function get($columns = [])
