@@ -155,12 +155,11 @@ class DynamoDbQueryBuilder
         return $model;
     }
 
-    public function findOrFail($id, array $columns = []) 
+    public function findOrFail($id, array $columns = [])
     {
         $result = $this->find($id, $columns);
         
-        if (is_array($id) && count($result) == count(array_unique($id))) 
-        {
+        if (is_array($id) && count($result) == count(array_unique($id))) {
             return $result;
         } elseif (! is_null($result)) {
             return $result;
@@ -176,10 +175,9 @@ class DynamoDbQueryBuilder
         return $item->first();
     }
 
-    public function firstOrFail($columns = []) 
+    public function firstOrFail($columns = [])
     {
-        if (! is_null($model = $this->first($columns))) 
-        {
+        if (! is_null($model = $this->first($columns))) {
             return $model;
         }
         throw (new ModelNotFoundException)->setModel(get_class($this->model));
