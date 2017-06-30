@@ -49,7 +49,7 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals($seedName, $item->name);
     }
 
-    public function testFindOrFailRecordPass() 
+    public function testFindOrFailRecordPass()
     {
         $seed = $this->seed();
         $seedId = array_get($seed, 'id.S');
@@ -70,13 +70,14 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals($seedName, $first->name);
     }
 
-    public function testFindOrFailRecordFail() 
+    public function testFindOrFailRecordFail()
     {
         $this->expectException(ModelNotFoundException::class);
         $item = $this->testModel->findOrFail('expected-to-fail');
     }
 
-    public function testFirstOrFailRecordFail() {
+    public function testFirstOrFailRecordFail()
+    {
         $this->expectException(ModelNotFoundException::class);
         $item = $this->testModel
             ->where('id', '=', 'expected-to-fail')
