@@ -2,6 +2,8 @@
 
 namespace BaoPham\DynamoDb\Tests;
 
+use \Illuminate\Database\Eloquent\ModelNotFoundException;
+
 /**
  * Class DynamoDbModelTest
  *
@@ -45,6 +47,40 @@ class DynamoDbModelTest extends ModelTest
         $this->assertNotEmpty($item);
         $this->assertEquals($seedId, $item->id);
         $this->assertEquals($seedName, $item->name);
+    }
+
+    public function testFindOrFailRecordPass() 
+    {
+        $seed = $this->seed();
+        $seedId = array_get($seed, 'id.S');
+        $seedName = array_get($seed, 'name.S');
+
+        $item = $this->testModel->findOrFail($seedId);
+
+        $this->assertNotEmpty($item);
+        $this->assertEquals($seedId, $item->id);
+        $this->assertEquals($seedName, $item->name);
+
+        $first = $this->testModel
+            ->where('id', '=', $seedId)
+            ->firstOrFail();
+
+        $this->assertNotEmpty($first);
+        $this->assertEquals($seedId, $first->id);
+        $this->assertEquals($seedName, $first->name);
+    }
+
+    public function testFindOrFailRecordFail() 
+    {
+        $this->expectException(ModelNotFoundException::class);
+        $item = $this->testModel->findOrFail('expected-to-fail');
+    }
+
+    public function testFirstOrFailRecordFail() {
+        $this->expectException(ModelNotFoundException::class);
+        $item = $this->testModel
+            ->where('id', '=', 'expected-to-fail')
+            ->firstOrFail();
     }
 
     public function testGetAllRecords()

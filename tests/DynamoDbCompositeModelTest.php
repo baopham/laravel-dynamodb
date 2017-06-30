@@ -2,6 +2,8 @@
 
 namespace BaoPham\DynamoDb\Tests;
 
+use \Illuminate\Database\Eloquent\ModelNotFoundException;
+
 /**
  * Class DynamoDbCompositeModelTest
  *
@@ -50,6 +52,46 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $this->assertEquals($seedId, $item->id);
         $this->assertEquals($seedId2, $item->id2);
         $this->assertEquals($seedName, $item->name);
+    }
+
+    public function testFindOrFailRecordPass() 
+    {
+        $seed = $this->seed();
+        $seedId = array_get($seed, 'id.S');
+        $seedId2 = array_get($seed, 'id2.S');
+        $seedName = array_get($seed, 'name.S');
+
+        $item = $this->testModel->findOrFail(['id' => $seedId, 'id2' => $seedId2]);
+
+        $this->assertNotEmpty($item);
+        $this->assertEquals($seedId, $item->id);
+        $this->assertEquals($seedId2, $item->id2);
+        $this->assertEquals($seedName, $item->name);
+
+        $first = $this->testModel
+            ->where('id', '=', $seedId)
+            ->where('id2', '=', $seedId2)
+            ->firstOrFail();
+
+        $this->assertNotEmpty($first);
+        $this->assertEquals($seedId, $first->id);
+        $this->assertEquals($seedId2, $first->id2);
+        $this->assertEquals($seedName, $first->name);
+    }
+
+    public function testFindOrFailRecordFail() 
+    {
+        $this->expectException(ModelNotFoundException::class);
+        $item = $this->testModel->findOrFail(['id' => 'failure-expected', 'id2' => 'expected-to-fail']);
+    }
+
+    public function testFirstOrFailRecordFail() 
+    {
+        $this->expectException(ModelNotFoundException::class);
+        $item = $this->testModel
+            ->where('id', '=', 'failure-expected')
+            ->where('id2', '=', 'expected-to-fail')
+            ->firstOrFail();
     }
 
     public function testUpdateRecord()

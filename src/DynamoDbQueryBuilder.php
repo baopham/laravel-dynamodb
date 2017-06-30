@@ -155,7 +155,7 @@ class DynamoDbQueryBuilder
         return $model;
     }
 
-    public function findOrFail($id, $columns = ['*'])
+    public function findOrFail($id, $columns = [])
     {
         $result = $this->find($id, $columns);
 
@@ -179,7 +179,7 @@ class DynamoDbQueryBuilder
         return $item->first();
     }
 
-    public function firstOrFail($columns = ['*'])
+    public function firstOrFail($columns = [])
     {
         if (! is_null($model = $this->first($columns))) {
             return $model;
