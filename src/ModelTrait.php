@@ -24,6 +24,6 @@ trait ModelTrait
 
     public function getDynamoDbTableName()
     {
-        return $this->getTableName();
+        return $this->getTable();
     }
 }
