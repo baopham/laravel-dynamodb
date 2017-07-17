@@ -162,7 +162,7 @@ class DynamoDbQueryBuilder
         $isMultiple = $this->model->hasCompositeKey() ? is_array(array_first($id)) : is_array($id);
 
         if ($isMultiple) {
-            if ( count($result) == count( array_unique($id) ) ) {
+            if (count($result) == count(array_unique($id))) {
                 return $result;
             }
         } elseif (! is_null($result) ) {
