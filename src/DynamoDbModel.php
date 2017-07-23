@@ -62,7 +62,7 @@ abstract class DynamoDbModel extends Model
      * Default Date format
      * ISO 8601 Compliant
      */
-    protected $dateFormat = DateTime::ATOM; // preferred format for ISO8601 compatibility
+    protected $dateFormat = DateTime::ATOM;
 
 
     public function __construct(array $attributes = [])

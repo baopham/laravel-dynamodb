@@ -67,6 +67,21 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $this->assertEquals($seedId, $item->id);
         $this->assertEquals($seedId2, $item->id2);
         $this->assertEquals($seedName, $item->name);
+    }
+
+    public function testFindOrFailMultiplePass()
+    {
+        $this->markTestIncomplete(
+            'This test has not been implemented yet.'
+        );
+    }
+
+    public function testFirstOrFailRecordPass()
+    {
+        $seed = $this->seed();
+        $seedId = array_get($seed, 'id.S');
+        $seedId2 = array_get($seed, 'id2.S');
+        $seedName = array_get($seed, 'name.S');
 
         $first = $this->testModel
             ->where('id', '=', $seedId)
@@ -82,13 +97,13 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
     public function testFindOrFailRecordFail()
     {
         $this->expectException(ModelNotFoundException::class);
-        $item = $this->testModel->findOrFail(['id' => 'failure-expected', 'id2' => 'expected-to-fail']);
+        $this->testModel->findOrFail(['id' => 'failure-expected', 'id2' => 'expected-to-fail']);
     }
 
     public function testFirstOrFailRecordFail()
     {
         $this->expectException(ModelNotFoundException::class);
-        $item = $this->testModel
+        $this->testModel
             ->where('id', '=', 'failure-expected')
             ->where('id2', '=', 'expected-to-fail')
             ->firstOrFail();
