@@ -123,7 +123,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $this->assertArrayNotHasKey('Item', $record);
     }
 
-    public function testLookingUpByKey()
+    public function testLookUpByKey()
     {
         $this->seed();
 
@@ -137,6 +137,32 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $this->assertEquals(1, $foundItems->count());
 
         $this->assertEquals($this->testModel->unmarshalItem($item), $foundItems->first()->toArray());
+    }
+
+    public function testSearchByHashAndSortKey()
+    {
+        $partitionKey = 'foo';
+        $item1 = $this->seed([
+            'id' => ['S' => $partitionKey],
+            'id2' => ['S' => 'bar_1']
+        ]);
+        $item2 = $this->seed([
+            'id' => ['S' => $partitionKey],
+            'id2' => ['S' => 'bar_2']
+        ]);
+        $this->seed([
+            'id' => ['S' => 'other'],
+            'id2' => ['S' => 'foo_1']
+        ]);
+
+        $foundItems = $this->testModel
+            ->where('id', $partitionKey)
+            ->where('id2', 'begins_with', 'bar')
+            ->get();
+
+        $this->assertEquals(2, $foundItems->count());
+        $this->assertEquals($this->testModel->unmarshalItem($item1), $foundItems->first()->toArray());
+        $this->assertEquals($this->testModel->unmarshalItem($item2), $foundItems->last()->toArray());
     }
 
     public function testStaticMethods()

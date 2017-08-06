@@ -210,9 +210,11 @@ class DynamoDbQueryBuilder
     protected function getAll($columns = [], $limit = -1, $use_iterator = true)
     {
         if ($conditionValue = $this->conditionsContainKey()) {
-            $item = $this->find($conditionValue, $columns);
+            if ($this->conditionsAreExactSearch()) {
+                $item = $this->find($conditionValue, $columns);
 
-            return new Collection([$item]);
+                return new Collection([$item]);
+            }
         }
 
         $query = [
@@ -260,6 +262,9 @@ class DynamoDbQueryBuilder
                         $query['QueryFilter'] = $nonKeyConditions;
                     }
                 }
+            } else if ($this->conditionsContainKey()) {
+                $op = 'Query';
+                $query['KeyConditions'] = $this->where;
             }
 
             if ($op === 'Scan') {
@@ -270,7 +275,7 @@ class DynamoDbQueryBuilder
         if ($use_iterator) {
             $iterator = $this->client->getIterator($op, $query);
         } else {
-            if ($op == 'Scan') {
+            if ($op === 'Scan') {
                 $res = $this->client->scan($query);
             } else {
                 $res = $this->client->query($query);
@@ -293,9 +298,30 @@ class DynamoDbQueryBuilder
         return new Collection($results);
     }
 
+    protected function conditionsAreExactSearch()
+    {
+        if (empty($this->where)) {
+            return false;
+        }
+
+        foreach ($this->where as $condition) {
+            if (array_get($condition, 'ComparisonOperator') !== ComparisonOperator::EQ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * Check if conditions "where" contain primary key or composite key.
      * For composite key, it will return false if the conditions don't have all composite key.
+     *
+     * For example:
+     *   Consider a composite key condition:
+     *     $model->where('partition_key', 'foo')->where('sort_key', 'bar')
+     *   We return ['partition_key' => 'foo', 'sort_key' => 'bar'] since the conditions
+     *   contain all the composite key.
      *
      * @return array|bool the condition value
      */

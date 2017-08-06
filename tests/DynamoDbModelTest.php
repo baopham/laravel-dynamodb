@@ -281,7 +281,7 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals($this->testModel->unmarshalItem($secondItem), $foundItems->first()->toArray());
     }
 
-    public function testLookingUpByKey()
+    public function testLookUpByKey()
     {
         $this->seed();
 

@@ -7,20 +7,32 @@ namespace BaoPham\DynamoDb;
  */
 class ComparisonOperator
 {
+    const EQ = 'EQ';
+    const GT = 'GT';
+    const GE = 'GE';
+    const LT = 'LT';
+    const LE = 'LE';
+    const IN = 'IN';
+    const NE = 'NE';
+    const BEGINS_WITH = 'BEGINS_WITH';
+    const BETWEEN = 'BETWEEN';
+    const NOT_CONTAINS = 'NOT_CONTAINS';
+    const CONTAINS = 'CONTAINS';
+
     public static function getOperatorMapping()
     {
         return [
-            '=' => 'EQ',
-            '>' => 'GT',
-            '>=' => 'GE',
-            '<' => 'LT',
-            '<=' => 'LE',
-            'in' => 'IN',
-            '!=' => 'NE',
-            'begins_with' => 'BEGINS_WITH',
-            'between' => 'BETWEEN',
-            'not_contains' => 'NOT_CONTAINS',
-            'contains' => 'CONTAINS',
+            '=' => static::EQ,
+            '>' => static::GT,
+            '>=' => static::GE,
+            '<' => static::LT,
+            '<=' => static::LE,
+            'in' => static::IN,
+            '!=' => static::NE,
+            'begins_with' => static::BEGINS_WITH,
+            'between' => static::BETWEEN,
+            'not_contains' => static::NOT_CONTAINS,
+            'contains' => static::CONTAINS,
         ];
     }
 
@@ -51,17 +63,17 @@ class ComparisonOperator
     {
         if ($isRangeKey) {
             return [
-                'EQ',
-                'LE',
-                'LT',
-                'GE',
-                'GT',
-                'BEGINS_WITH',
-                'BETWEEN',
+                static::EQ,
+                static::LE,
+                static::LT,
+                static::GE,
+                static::GT,
+                static::BEGINS_WITH,
+                static::BETWEEN,
             ];
         }
 
-        return ['EQ'];
+        return [static::EQ];
     }
 
     public static function isValidQueryOperator($operator, $isRangeKey = false)
