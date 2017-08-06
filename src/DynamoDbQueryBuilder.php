@@ -209,7 +209,7 @@ class DynamoDbQueryBuilder
 
     protected function getAll($columns = [], $limit = -1, $use_iterator = true)
     {
-        if ($conditionValue = $this->conditionsContainKey()) {
+        if ($conditionValue = $this->conditionsContainKeyAndAreExactSearch()) {
             $item = $this->find($conditionValue, $columns);
 
             return new Collection([$item]);
@@ -270,7 +270,7 @@ class DynamoDbQueryBuilder
         if ($use_iterator) {
             $iterator = $this->client->getIterator($op, $query);
         } else {
-            if ($op == 'Scan') {
+            if ($op === 'Scan') {
                 $res = $this->client->scan($query);
             } else {
                 $res = $this->client->query($query);
@@ -294,12 +294,22 @@ class DynamoDbQueryBuilder
     }
 
     /**
-     * Check if conditions "where" contain primary key or composite key.
+     * Check if conditions "where" contain primary key or composite key and are exact search.
      * For composite key, it will return false if the conditions don't have all composite key.
+     *
+     * For example:
+     *   Consider a composite key condition:
+     *     $model->where('partition_key', 'foo')->where('sort_key', 'bar')
+     *   We return ['partition_key' => 'foo', 'sort_key' => 'bar'] since the conditions
+     *   contain all the composite key and it is an exact search (i.e. EQ condition)
+     *
+     *   However, if we have the following query:
+     *     $model->where('partition_key', 'foo')->where('sort_key', 'begins_with', 'bar')
+     *   This will return false since it is not an exact search
      *
      * @return array|bool the condition value
      */
-    protected function conditionsContainKey()
+    protected function conditionsContainKeyAndAreExactSearch()
     {
         if (empty($this->where)) {
             return false;
@@ -321,6 +331,10 @@ class DynamoDbQueryBuilder
 
         foreach ($keys as $key) {
             $condition = $this->where[$key];
+
+            if (array_get($condition, 'ComparisonOperator') !== ComparisonOperator::EQ) {
+                return false;
+            }
 
             $value = $model->unmarshalItem(array_get($condition, 'AttributeValueList'))[0];
 
