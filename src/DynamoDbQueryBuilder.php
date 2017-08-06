@@ -209,10 +209,12 @@ class DynamoDbQueryBuilder
 
     protected function getAll($columns = [], $limit = -1, $use_iterator = true)
     {
-        if ($conditionValue = $this->conditionsContainKeyAndAreExactSearch()) {
-            $item = $this->find($conditionValue, $columns);
+        if ($conditionValue = $this->conditionsContainKey()) {
+            if ($this->conditionsAreExactSearch()) {
+                $item = $this->find($conditionValue, $columns);
 
-            return new Collection([$item]);
+                return new Collection([$item]);
+            }
         }
 
         $query = [
@@ -260,6 +262,9 @@ class DynamoDbQueryBuilder
                         $query['QueryFilter'] = $nonKeyConditions;
                     }
                 }
+            } else if ($this->conditionsContainKey()) {
+                $op = 'Query';
+                $query['KeyConditions'] = $this->where;
             }
 
             if ($op === 'Scan') {
@@ -293,23 +298,34 @@ class DynamoDbQueryBuilder
         return new Collection($results);
     }
 
+    protected function conditionsAreExactSearch()
+    {
+        if (empty($this->where)) {
+            return false;
+        }
+
+        foreach ($this->where as $condition) {
+            if (array_get($condition, 'ComparisonOperator') !== ComparisonOperator::EQ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
-     * Check if conditions "where" contain primary key or composite key and are exact search.
+     * Check if conditions "where" contain primary key or composite key.
      * For composite key, it will return false if the conditions don't have all composite key.
      *
      * For example:
      *   Consider a composite key condition:
      *     $model->where('partition_key', 'foo')->where('sort_key', 'bar')
      *   We return ['partition_key' => 'foo', 'sort_key' => 'bar'] since the conditions
-     *   contain all the composite key and it is an exact search (i.e. EQ condition)
-     *
-     *   However, if we have the following query:
-     *     $model->where('partition_key', 'foo')->where('sort_key', 'begins_with', 'bar')
-     *   This will return false since it is not an exact search
+     *   contain all the composite key.
      *
      * @return array|bool the condition value
      */
-    protected function conditionsContainKeyAndAreExactSearch()
+    protected function conditionsContainKey()
     {
         if (empty($this->where)) {
             return false;
@@ -331,10 +347,6 @@ class DynamoDbQueryBuilder
 
         foreach ($keys as $key) {
             $condition = $this->where[$key];
-
-            if (array_get($condition, 'ComparisonOperator') !== ComparisonOperator::EQ) {
-                return false;
-            }
 
             $value = $model->unmarshalItem(array_get($condition, 'AttributeValueList'))[0];
 
