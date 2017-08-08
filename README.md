@@ -55,7 +55,7 @@ Install
     ...
     ```
 
-* * If using from an assumed IAM role, you can also use the `token` parameter, your config in this case will look something like this:
+  * If using from an assumed IAM role, you can also use the `token` parameter, your config in this case will look something like this:
 
     ```php
     // config/services.php
