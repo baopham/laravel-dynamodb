@@ -41,10 +41,12 @@ class DynamoDbServiceProvider extends ServiceProvider
                 'credentials' => [
                     'key' => config('services.dynamodb.key'),
                     'secret' => config('services.dynamodb.secret'),
+                    'token' => config('services.dynamodb.token'),
                 ],
                 'region' => config('services.dynamodb.region'),
                 'version' => '2012-08-10',
             ];
+
             $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter());
 
             return $client;
