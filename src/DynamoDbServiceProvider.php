@@ -40,18 +40,13 @@ class DynamoDbServiceProvider extends ServiceProvider
             $config = [
                 'credentials' => [
                     'key' => config('services.dynamodb.key'),
-                    'secret' => config('services.dynamodb.secret')
+                    'secret' => config('services.dynamodb.secret'),
+                    'token' => config('services.dynamodb.token')
                 ],
                 'region' => config('services.dynamodb.region'),
                 'version' => '2012-08-10',
             ];
-
-            $token = config('services.dynamodb.token');
-
-            if (!is_null($token)) {
-                $config['credentials']['token'] = $token;
-            }
-
+            
             $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter());
 
             return $client;
