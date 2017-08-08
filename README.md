@@ -55,6 +55,22 @@ Install
     ...
     ```
 
+* * If using from an assumed IAM role, you can also use the `token` parameter, your config in this case will look something like this:
+
+    ```php
+    // config/services.php
+    ...
+    'dynamodb' => [
+        'key' => env('AWS_ACCESS_KEY_ID'),
+        'secret' => env('AWS_SECRET_ACCESS_KEY'),
+        'token' => env('AWS_SESSION_TOKEN'),
+        'region'=> env('DYNAMODB_REGION'),
+        'local_endpoint' => env('DYNAMODB_LOCAL_ENDPOINT'),
+        'local'=> env('DYNAMODB_LOCAL') // true or false? should use dynamodb_local or not?
+    ]
+    ...
+    ```
+
 Usage
 -----
 * Extends your model with `BaoPham\DynamoDb\DynamoDbModel`, then you can use Eloquent methods that are supported. The idea here is that you can switch back to Eloquent without changing your queries.  
