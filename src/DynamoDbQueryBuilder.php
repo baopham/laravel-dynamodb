@@ -4,6 +4,7 @@ namespace BaoPham\DynamoDb;
 
 use Aws\DynamoDb\DynamoDbClient;
 use Exception;
+use Closure;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 
@@ -555,7 +556,7 @@ class DynamoDbQueryBuilder
             return $this;
         }
 
-        $builder = clone $this;
+        $builder = $this;
 
         foreach ($this->scopes as $identifier => $scope) {
             if (! isset($builder->scopes[$identifier])) {
