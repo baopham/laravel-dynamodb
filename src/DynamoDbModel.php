@@ -64,6 +64,12 @@ abstract class DynamoDbModel extends Model
      */
     protected $dateFormat = DateTime::ISO8601;
 
+    /**
+     * The array of global scopes on the model.
+     *
+     * @var array
+     */
+    protected static $globalScopes = [];
 
     public function __construct(array $attributes = [])
     {
@@ -204,6 +210,10 @@ abstract class DynamoDbModel extends Model
         $builder->setModel($this);
 
         $builder->setClient($this->client);
+
+        foreach ($this->getGlobalScopes() as $identifier => $scope) {
+            $builder->withGlobalScope($identifier, $scope);
+        }
 
         return $builder;
     }

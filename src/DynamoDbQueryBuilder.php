@@ -25,6 +25,35 @@ class DynamoDbQueryBuilder
     protected $client;
 
     /**
+     * @var int
+     */
+    protected $limit = -1;
+
+    /**
+     * The methods that should be returned from query builder.
+     *
+     * @var array
+     */
+    protected $passthru = [
+        'insert', 'insertGetId', 'getBindings', 'toSql',
+        'exists', 'count', 'min', 'max', 'avg', 'sum', 'getConnection',
+    ];
+
+    /**
+     * Applied global scopes.
+     *
+     * @var array
+     */
+    protected $scopes = [];
+
+    /**
+     * Removed global scopes.
+     *
+     * @var array
+     */
+    protected $removedScopes = [];
+
+    /**
      * When not using the iterator, you can store the lastEvaluatedKey to
      * paginate through the results. The getAll method will take this into account
      * when used with $use_iterator = false.
@@ -234,6 +263,8 @@ class DynamoDbQueryBuilder
         if (!empty($this->lastEvaluatedKey)) {
             $query['ExclusiveStartKey'] = $this->lastEvaluatedKey;
         }
+
+        $this->applyScopes();
 
         // If the $where is not empty, we run getIterator.
         if (!empty($this->where)) {
@@ -445,5 +476,139 @@ class DynamoDbQueryBuilder
     public function setClient($client)
     {
         $this->client = $client;
+    }
+
+    /**
+     * Register a new global scope.
+     *
+     * @param  string  $identifier
+     * @param  \Illuminate\Database\Eloquent\Scope|\Closure  $scope
+     * @return $this
+     */
+    public function withGlobalScope($identifier, $scope)
+    {
+        $this->scopes[$identifier] = $scope;
+
+        if (method_exists($scope, 'extend')) {
+            $scope->extend($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Remove a registered global scope.
+     *
+     * @param  \Illuminate\Database\Eloquent\Scope|string  $scope
+     * @return $this
+     */
+    public function withoutGlobalScope($scope)
+    {
+        if (! is_string($scope)) {
+            $scope = get_class($scope);
+        }
+
+        unset($this->scopes[$scope]);
+
+        $this->removedScopes[] = $scope;
+
+        return $this;
+    }
+
+    /**
+     * Remove all or passed registered global scopes.
+     *
+     * @param  array|null  $scopes
+     * @return $this
+     */
+    public function withoutGlobalScopes(array $scopes = null)
+    {
+        if (is_array($scopes)) {
+            foreach ($scopes as $scope) {
+                $this->withoutGlobalScope($scope);
+            }
+        } else {
+            $this->scopes = [];
+        }
+
+        return $this;
+    }
+
+    /**
+     * Get an array of global scopes that were removed from the query.
+     *
+     * @return array
+     */
+    public function removedScopes()
+    {
+        return $this->removedScopes;
+    }
+
+    /**
+     * Apply the scopes to the Eloquent builder instance and return it.
+     *
+     * @return \Illuminate\Database\Eloquent\Builder|static
+     */
+    public function applyScopes()
+    {
+        if (! $this->scopes) {
+            return $this;
+        }
+
+        $builder = clone $this;
+
+        foreach ($this->scopes as $identifier => $scope) {
+            if (! isset($builder->scopes[$identifier])) {
+                continue;
+            }
+
+            $builder->callScope(function (DynamoDbQueryBuilder $builder) use ($scope) {
+                // If the scope is a Closure we will just go ahead and call the scope with the
+                // builder instance. The "callScope" method will properly group the clauses
+                // that are added to this query so "where" clauses maintain proper logic.
+                if ($scope instanceof Closure) {
+                    $scope($builder);
+                }
+
+                // If the scope is a scope object, we will call the apply method on this scope
+                // passing in the builder and the model instance. After we run all of these
+                // scopes we will return back the builder instance to the outside caller.
+                if ($scope instanceof Scope) {
+                    $scope->apply($builder, $this->getModel());
+                }
+            });
+        }
+
+        return $builder;
+    }
+
+    /**
+     * Apply the given scope on the current builder instance.
+     *
+     * @param  callable  $scope
+     * @param  array  $parameters
+     * @return mixed
+     */
+    protected function callScope(callable $scope, $parameters = [])
+    {
+        array_unshift($parameters, $this);
+
+        // $query = $this->getQuery();
+
+        // // We will keep track of how many wheres are on the query before running the
+        // // scope so that we can properly group the added scope constraints in the
+        // // query as their own isolated nested where statement and avoid issues.
+        // $originalWhereCount = is_null($query->wheres)
+        //             ? 0 : count($query->wheres);
+
+        // var_dump($scope);
+
+        $result = $scope(...array_values($parameters)) ?: $this;
+
+        // if (count((array) $query->wheres) > $originalWhereCount) {
+        //     $this->addNewWheresWithinGroup($query, $originalWhereCount);
+        // }
+
+        return $result;
     }
 }
