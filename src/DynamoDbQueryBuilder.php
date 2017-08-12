@@ -5,6 +5,7 @@ namespace BaoPham\DynamoDb;
 use Aws\DynamoDb\DynamoDbClient;
 use Exception;
 use Illuminate\Database\Eloquent\Collection;
+use \Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
 
 class DynamoDbQueryBuilder
@@ -148,6 +149,10 @@ class DynamoDbQueryBuilder
 
     public function find($id, array $columns = [])
     {
+        if ($this->isMultipleIds($id)) {
+            return $this->findMany($id, $columns);
+        }
+
         $model = $this->model;
 
         $model->setId($id);
@@ -185,11 +190,42 @@ class DynamoDbQueryBuilder
         return $model;
     }
 
+    public function findMany($ids, array $columns = [])
+    {
+        throw new NotSupportedException('Finding by multiple ids is not supported');
+    }
+
+    public function findOrFail($id, $columns = [])
+    {
+        $result = $this->find($id, $columns);
+
+        if ($this->isMultipleIds($id)) {
+            if (count($result) == count(array_unique($id))) {
+                return $result;
+            }
+        } elseif (! is_null($result)) {
+            return $result;
+        }
+
+        throw (new ModelNotFoundException)->setModel(
+            get_class($this->model), $id
+        );
+    }
+
     public function first($columns = [])
     {
         $item = $this->getAll($columns, 1);
 
         return $item->first();
+    }
+
+    public function firstOrFail($columns = [])
+    {
+        if (! is_null($model = $this->first($columns))) {
+            return $model;
+        }
+
+        throw (new ModelNotFoundException)->setModel(get_class($this->model));
     }
 
     public function get($columns = [])
@@ -455,6 +491,24 @@ class DynamoDbQueryBuilder
         ];
 
         return $key;
+    }
+
+    protected function isMultipleIds($id)
+    {
+        $hasCompositeKey = $this->model->hasCompositeKey();
+
+        if (!$hasCompositeKey && isset($id[$this->model->getKeyName()])) {
+            return false;
+        }
+
+        if ($hasCompositeKey) {
+            $compositeKey = $this->model->getCompositeKey();
+            if (isset($id[$compositeKey[0]]) && isset($id[$compositeKey[1]])) {
+                return false;
+            }
+        }
+
+        return $hasCompositeKey ? is_array(array_first($id)) : is_array($id);
     }
 
     /**
