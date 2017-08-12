@@ -112,6 +112,11 @@ $model->chunk(10, function ($records) {
 
     }
 });
+
+// limit
+// Use this with caution unless your limit is small.
+// DynamoDB has a limit of 1MB so if your limit is very big, the results will not be expected.
+$model->where('name', 'foo')->take(3)->get();
 ```
 
 * Or if you want to sync your DB table with a DynamoDb table, use trait `BaoPham\DynamoDb\ModelTrait`, it will call a `PutItem` after the model is saved.
