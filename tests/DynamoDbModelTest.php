@@ -380,6 +380,22 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals($this->testModel->unmarshalItem($expectedBar), $barQuery->first()->toArray());
     }
 
+    public function testWhereIn()
+    {
+        $this->seed(['name' => ['S' => 'foo']]);
+        $this->seed(['name' => ['S' => 'foo']]);
+        $this->seed(['name' => ['S' => 'bar']]);
+        $this->seed(['name' => ['S' => 'foobar']]);
+
+        $items = $this->testModel->whereIn('name', ['foo', 'bar'])->get();
+
+        $this->assertCount(3, $items->toArray());
+
+        foreach ($items as $item) {
+            $this->assertContains($item->name, ['foo', 'bar']);
+        }
+    }
+
     public function testChunkScan()
     {
         $this->seed(['name' => ['S' => 'Foo']]);
