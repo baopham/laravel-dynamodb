@@ -49,7 +49,6 @@ abstract class DynamoDbModel extends Model
      */
     protected $dynamoDbIndexKeys = [];
 
-
     /**
      * Array of your composite key.
      * ['hash', 'range']

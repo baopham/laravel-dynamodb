@@ -3,7 +3,9 @@
 namespace BaoPham\DynamoDb;
 
 use Aws\DynamoDb\DynamoDbClient;
+use Closure;
 use Exception;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Collection;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
@@ -116,7 +118,10 @@ class DynamoDbQueryBuilder
 
         $valueList = [$attributeValueList['AttributeValueList']];
 
-        if (strtolower($operator) === 'between') {
+        if (
+            ComparisonOperator::is($operator, ComparisonOperator::BETWEEN) ||
+            ComparisonOperator::is($operator, ComparisonOperator::IN)
+        ) {
             $valueList = head($valueList)['L'];
         }
 
@@ -126,6 +131,43 @@ class DynamoDbQueryBuilder
         ];
 
         return $this;
+    }
+
+    /**
+     * Add a "where in" clause to the query.
+     *
+     * @param  string  $column
+     * @param  mixed   $values
+     * @param  string  $boolean
+     * @param  bool    $not
+     * @return $this
+     */
+    public function whereIn($column, $values, $boolean = 'and', $not = false)
+    {
+        if ($boolean != 'and') {
+            throw new NotSupportedException('Only support "and" in whereIn clause');
+        }
+
+        if ($not) {
+            throw new NotSupportedException('"not in" is not a valid DynamoDB comparison operator');
+        }
+
+        // If the value is a query builder instance, not supported
+        if ($values instanceof static) {
+            throw new NotSupportedException('Value is a query builder instance');
+        }
+
+        // If the value of the where in clause is actually a Closure, not supported
+        if ($values instanceof Closure) {
+            throw new NotSupportedException('Value is a Closure');
+        }
+
+        // Next, if the value is Arrayable we need to cast it to its raw array form
+        if ($values instanceof Arrayable) {
+            $values = $values->toArray();
+        }
+
+        return $this->where($column, ComparisonOperator::IN, $values);
     }
 
     /**

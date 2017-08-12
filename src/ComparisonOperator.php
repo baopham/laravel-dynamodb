@@ -87,4 +87,10 @@ class ComparisonOperator
     {
         return in_array($dynamoDbOperator, static::getQuerySupportedOperators($isRangeKey));
     }
+
+    public static function is($op, $opToCompare)
+    {
+        $mapping = static::getOperatorMapping();
+        return $mapping[strtolower($op)] === $opToCompare;
+    }
 }
