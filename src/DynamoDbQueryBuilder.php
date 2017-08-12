@@ -10,6 +10,13 @@ use Illuminate\Support\Facades\Log;
 class DynamoDbQueryBuilder
 {
     /**
+     * The maximum number of records to return.
+     *
+     * @var int
+     */
+    public $limit;
+
+    /**
      * @var array
      */
     protected $where = [];
@@ -32,6 +39,30 @@ class DynamoDbQueryBuilder
      * @var mixed
      */
     protected $lastEvaluatedKey;
+
+    /**
+     * Alias to set the "limit" value of the query.
+     *
+     * @param  int  $value
+     * @return DynamoDbQueryBuilder\static
+     */
+    public function take($value)
+    {
+        return $this->limit($value);
+    }
+
+    /**
+     * Set the "limit" value of the query.
+     *
+     * @param  int  $value
+     * @return $this
+     */
+    public function limit($value)
+    {
+        $this->limit = $value;
+
+        return $this;
+    }
 
     public function where($column, $operator = null, $value = null, $boolean = 'and')
     {
@@ -209,6 +240,10 @@ class DynamoDbQueryBuilder
 
     protected function getAll($columns = [], $limit = -1, $use_iterator = true)
     {
+        if ($limit === -1 && isset($this->limit)) {
+            $limit = $this->limit;
+        }
+
         if ($conditionValue = $this->conditionsContainKey()) {
             if ($this->conditionsAreExactSearch()) {
                 $item = $this->find($conditionValue, $columns);
@@ -237,7 +272,6 @@ class DynamoDbQueryBuilder
 
         // If the $where is not empty, we run getIterator.
         if (!empty($this->where)) {
-
             // Index key condition exists, then use Query instead of Scan.
             // However, Query only supports a few conditions.
             if ($index = $this->conditionsContainIndexKey()) {
@@ -245,6 +279,7 @@ class DynamoDbQueryBuilder
                 $isCompositeKey = isset($keysInfo['range']);
                 $hashKeyOperator = array_get($this->where, $keysInfo['hash'] . '.ComparisonOperator');
                 $isValidQueryDynamoDbOperator = ComparisonOperator::isValidQueryDynamoDbOperator($hashKeyOperator);
+
                 if ($isValidQueryDynamoDbOperator && $isCompositeKey) {
                     $rangeKeyOperator = array_get($this->where, $keysInfo['range'] . '.ComparisonOperator');
                     $isValidQueryDynamoDbOperator = ComparisonOperator::isValidQueryDynamoDbOperator($rangeKeyOperator, true);
@@ -254,10 +289,13 @@ class DynamoDbQueryBuilder
                     $op = 'Query';
                     $query['IndexName'] = $index['name'];
                     $query['KeyConditions'][$keysInfo['hash']] = array_get($this->where, $keysInfo['hash']);
+
                     if ($isCompositeKey) {
                         $query['KeyConditions'][$keysInfo['range']] = array_get($this->where, $keysInfo['range']);
                     }
+
                     $nonKeyConditions = array_except($this->where, array_values($keysInfo));
+
                     if (!empty($nonKeyConditions)) {
                         $query['QueryFilter'] = $nonKeyConditions;
                     }
@@ -274,6 +312,10 @@ class DynamoDbQueryBuilder
 
         if ($use_iterator) {
             $iterator = $this->client->getIterator($op, $query);
+
+            if (isset($query['Limit'])) {
+                $iterator = new \LimitIterator($iterator, 0, $query['Limit']);
+            }
         } else {
             if ($op === 'Scan') {
                 $res = $this->client->scan($query);

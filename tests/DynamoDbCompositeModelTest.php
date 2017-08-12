@@ -185,7 +185,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
 
     public function testConditionContainingCompositeIndexKey()
     {
-        $fooItem = $this->seed([
+        $this->seed([
             'id' => ['S' => 'id1'],
             'id2' => ['S' => '2'],
             'name' => ['S' => 'Foo'],
@@ -234,7 +234,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
 
     public function testConditionsDoNotContainAllCompositeKeys()
     {
-        $fooItem = $this->seed([
+        $this->seed([
             'id' => ['S' => 'id1'],
             'id2' => ['S' => '2'],
             'name' => ['S' => 'Foo'],

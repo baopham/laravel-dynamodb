@@ -318,7 +318,7 @@ class DynamoDbModelTest extends ModelTest
         $barQuery = $this->testModel->where('name', 'Bar');
 
         $this->assertEquals(1, $fooQuery->count());
-        $this->assertEquals(1, $fooQuery->count());
+        $this->assertEquals(1, $barQuery->count());
         $this->assertEquals($this->testModel->unmarshalItem($expectedFoo), $fooQuery->first()->toArray());
         $this->assertEquals($this->testModel->unmarshalItem($expectedBar), $barQuery->first()->toArray());
     }
@@ -332,9 +332,9 @@ class DynamoDbModelTest extends ModelTest
         $iteration = 1;
 
         $this->testModel->chunk(2, function ($results) use (&$iteration) {
-            if ($iteration == 1) {
+            if ($iteration === 1) {
                 $this->assertEquals(2, count($results));
-            } else if ($iteration == 2) {
+            } else if ($iteration === 2) {
                 $this->assertEquals(1, count($results));
             }
 
@@ -413,6 +413,27 @@ class DynamoDbModelTest extends ModelTest
 
         $this->assertEquals([$item], $unserializedItems->toArray());
         $this->assertInstanceOf(get_class($this->testModel), $unserializedItems->first());
+    }
+
+    public function testLimit()
+    {
+        $count = 10;
+        for ($i = 0; $i < $count; $i++) {
+            $this->seed(['name' => ['S' => 'foo']]);
+        }
+
+        $items = $this->testModel->take(3)->get();
+        $this->assertCount(3, $items->toArray());
+
+        $items = $this->testModel->limit(3)->get();
+        $this->assertCount(3, $items->toArray());
+
+        // Ensure "limit" is reset in new queries
+        $items = $this->testModel->get();
+        $this->assertCount($count, $items->toArray());
+
+        $items = $this->testModel->where('name', 'foo')->take(4)->get();
+        $this->assertCount(4, $items->toArray());
     }
 
     protected function seed($attributes = [])
