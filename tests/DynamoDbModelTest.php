@@ -2,6 +2,7 @@
 
 namespace BaoPham\DynamoDb\Tests;
 
+use BaoPham\DynamoDb\NotSupportedException;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
@@ -49,6 +50,12 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals($seedName, $item->name);
     }
 
+    public function testFindMultiple()
+    {
+        $this->expectException(NotSupportedException::class);
+        $this->testModel->find(['bar', 'foo']);
+    }
+
     public function testFindOrFailRecordPass()
     {
         $seed = $this->seed();
@@ -62,11 +69,10 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals($seedName, $item->name);
     }
 
-    public function testFindOrFailMultiplePass()
+    public function testFindOrFailMultiple()
     {
-        $this->markTestIncomplete(
-            'This test has not been implemented yet.'
-        );
+        $this->expectException(NotSupportedException::class);
+        $this->testModel->findOrFail(['bar', 'foo']);
     }
 
     public function testFirstOrFailRecordPass()
@@ -76,7 +82,7 @@ class DynamoDbModelTest extends ModelTest
         $seedName = array_get($seed, 'name.S');
 
         $first = $this->testModel
-            ->where('id', '=', $seedId)
+            ->where('id', $seedId)
             ->firstOrFail();
 
         $this->assertNotEmpty($first);
@@ -94,7 +100,7 @@ class DynamoDbModelTest extends ModelTest
     {
         $this->expectException(ModelNotFoundException::class);
         $this->testModel
-            ->where('id', '=', 'expected-to-fail')
+            ->where('id', 'expected-to-fail')
             ->firstOrFail();
     }
 

@@ -149,6 +149,10 @@ class DynamoDbQueryBuilder
 
     public function find($id, array $columns = [])
     {
+        if ($this->isMultipleIds($id)) {
+            return $this->findMany($id, $columns);
+        }
+
         $model = $this->model;
 
         $model->setId($id);
@@ -186,13 +190,16 @@ class DynamoDbQueryBuilder
         return $model;
     }
 
+    public function findMany($ids, array $columns = [])
+    {
+        throw new NotSupportedException('Finding by multiple ids is not supported');
+    }
+
     public function findOrFail($id, $columns = [])
     {
         $result = $this->find($id, $columns);
 
-        $isMultiple = $this->model->hasCompositeKey() ? is_array(array_first($id)) : is_array($id);
-
-        if ($isMultiple) {
+        if ($this->isMultipleIds($id)) {
             if (count($result) == count(array_unique($id))) {
                 return $result;
             }
@@ -484,6 +491,24 @@ class DynamoDbQueryBuilder
         ];
 
         return $key;
+    }
+
+    protected function isMultipleIds($id)
+    {
+        $hasCompositeKey = $this->model->hasCompositeKey();
+
+        if (!$hasCompositeKey && isset($id[$this->model->getKeyName()])) {
+            return false;
+        }
+
+        if ($hasCompositeKey) {
+            $compositeKey = $this->model->getCompositeKey();
+            if (isset($id[$compositeKey[0]]) && isset($id[$compositeKey[1]])) {
+                return false;
+            }
+        }
+
+        return $this->model->hasCompositeKey() ? is_array(array_first($id)) : is_array($id);
     }
 
     /**
