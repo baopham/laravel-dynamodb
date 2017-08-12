@@ -508,7 +508,7 @@ class DynamoDbQueryBuilder
             }
         }
 
-        return $this->model->hasCompositeKey() ? is_array(array_first($id)) : is_array($id);
+        return $hasCompositeKey ? is_array(array_first($id)) : is_array($id);
     }
 
     /**
