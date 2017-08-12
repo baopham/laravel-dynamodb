@@ -51,6 +51,7 @@ Install
         'region' => env('DYNAMODB_REGION'),
         'local_endpoint' => env('DYNAMODB_LOCAL_ENDPOINT'), // see http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html
         'local' => env('DYNAMODB_LOCAL'), // true or false? should use dynamodb_local or not?
+        'debug' => true, // if true, it will use Laravel Log. For advanced options, see http://docs.aws.amazon.com/aws-sdk-php/v3/guide/guide/configuration.html
     ],
     ...
     ```
@@ -61,12 +62,8 @@ Install
     // config/services.php
     ...
     'dynamodb' => [
-        'key' => env('AWS_ACCESS_KEY_ID'),
-        'secret' => env('AWS_SECRET_ACCESS_KEY'),
+        ...
         'token' => env('AWS_SESSION_TOKEN'),
-        'region'=> env('DYNAMODB_REGION'),
-        'local_endpoint' => env('DYNAMODB_LOCAL_ENDPOINT'),
-        'local'=> env('DYNAMODB_LOCAL') // true or false? should use dynamodb_local or not?
     ]
     ...
     ```
