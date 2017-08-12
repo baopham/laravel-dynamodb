@@ -2,6 +2,8 @@
 
 namespace BaoPham\DynamoDb\Tests;
 
+use Illuminate\Support\Facades\Cache;
+
 /**
  * Class DynamoDbModelTest
  *
@@ -384,17 +386,17 @@ class DynamoDbModelTest extends ModelTest
 
     public function testConditionContainingIndexKeyAndNonIndexKey()
     {
-        $fooItem = $this->seed([
-            'name' => ['S' => 'Foo'],
-            'count' => ['N' => 10],
-        ]);
-
-        $barItem = $this->seed([
+        $this->seed([
             'name' => ['S' => 'Bar'],
             'count' => ['N' => 11],
         ]);
 
-        $expectedItem = $this->testModel->unmarshalItem($fooItem);
+        $item = $this->seed([
+            'name' => ['S' => 'Foo'],
+            'count' => ['N' => 10],
+        ]);
+
+        $expectedItem = $this->testModel->unmarshalItem($item);
 
         $foundItems = $this->testModel
             ->where('count', 10)
@@ -403,6 +405,16 @@ class DynamoDbModelTest extends ModelTest
 
         $this->assertEquals(1, $foundItems->count());
         $this->assertEquals($expectedItem, $foundItems->first()->toArray());
+    }
+
+    public function testSerialize()
+    {
+        $item = $this->testModel->unmarshalItem($this->seed());
+        $serializedItems = serialize($this->testModel->all());
+        $unserializedItems = unserialize($serializedItems);
+
+        $this->assertEquals([$item], $unserializedItems->toArray());
+        $this->assertInstanceOf(get_class($this->testModel), $unserializedItems->first());
     }
 
     protected function seed($attributes = [])
