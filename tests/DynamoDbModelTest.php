@@ -2,8 +2,6 @@
 
 namespace BaoPham\DynamoDb\Tests;
 
-use Illuminate\Support\Facades\Cache;
-
 /**
  * Class DynamoDbModelTest
  *
