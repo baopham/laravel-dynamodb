@@ -295,4 +295,26 @@ abstract class DynamoDbModel extends Model
         $this->dynamoDbIndexKeys = $dynamoDbIndexKeys;
     }
 
+    /**
+     * Remove non-serializable properties when serializing.
+     *
+     * @return array
+     */
+    public function __sleep()
+    {
+        return array_keys(
+            array_except(get_object_vars($this), ['client', 'marshaler', 'attributeFilter'])
+        );
+    }
+
+    /**
+     * When a model is being unserialized, check if it needs to be booted and setup DynamoDB.
+     *
+     * @return void
+     */
+    public function __wakeup()
+    {
+        parent::__wakeup();
+        $this->setupDynamoDb();
+    }
 }

@@ -4,23 +4,20 @@ laravel-dynamodb
 [![Latest Stable Version](https://poser.pugx.org/baopham/dynamodb/v/stable)](https://packagist.org/packages/baopham/dynamodb)
 [![Total Downloads](https://poser.pugx.org/baopham/dynamodb/downloads)](https://packagist.org/packages/baopham/dynamodb)
 [![Latest Unstable Version](https://poser.pugx.org/baopham/dynamodb/v/unstable)](https://packagist.org/packages/baopham/dynamodb)
+[![Build Status](https://travis-ci.org/baopham/laravel-dynamodb.svg?branch=master)](https://travis-ci.org/baopham/laravel-dynamodb)
 [![License](https://poser.pugx.org/baopham/dynamodb/license)](https://packagist.org/packages/baopham/dynamodb)
 
 Supports all key types - primary hash key and composite keys.
 
 > For advanced users only. If you're not familiar with Laravel, Laravel Eloquent and DynamoDB, then I suggest that you get familiar with those first. 
 
-> **Breaking Changes** for v0.4
->  * If you're using v0.3 and below, please see [here](./README.v0.3.md)
->  * To upgrade to v0.4, please see the [migration note](./MIGRATION.md)
-
 * [Install](#install)
 * [Usage](#usage)
 * [Indexes](#indexes)
 * [Composite Keys](#composite-keys)
-* [Test](#test)
 * [Requirements](#requirements)
 * [Todo](#todo)
+* [FAQ](#faq)
 * [License](#license)
 * [Author and Contributors](#author-and-contributors)
 
@@ -55,7 +52,20 @@ Install
         'region' => env('DYNAMODB_REGION'),
         'local_endpoint' => env('DYNAMODB_LOCAL_ENDPOINT'), // see http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html
         'local' => env('DYNAMODB_LOCAL'), // true or false? should use dynamodb_local or not?
+        'debug' => true, // if true, it will use Laravel Log. For advanced options, see http://docs.aws.amazon.com/aws-sdk-php/v3/guide/guide/configuration.html
     ],
+    ...
+    ```
+
+  * If using from an assumed IAM role, you can also use the `token` parameter, your config in this case will look something like this:
+
+    ```php
+    // config/services.php
+    ...
+    'dynamodb' => [
+        ...
+        'token' => env('AWS_SESSION_TOKEN'),
+    ]
     ...
     ```
 
@@ -103,6 +113,11 @@ $model->chunk(10, function ($records) {
 
     }
 });
+
+// limit
+// Use this with caution unless your limit is small.
+// DynamoDB has a limit of 1MB so if your limit is very big, the results will not be expected.
+$model->where('name', 'foo')->take(3)->get();
 ```
 
 * Or if you want to sync your DB table with a DynamoDb table, use trait `BaoPham\DynamoDb\ModelTrait`, it will call a `PutItem` after the model is saved.
@@ -196,6 +211,11 @@ Laravel ^5.1
 TODO
 ----
 - [ ] Upgrade a few legacy attributes: `AttributesToGet`, `ScanFilter`, ...
+
+FAQ
+---
+Q: Cannot assign `id` property if its not in the fillable array  
+A: Try [this](https://github.com/baopham/laravel-dynamodb/issues/10)?  
 
 License
 --------

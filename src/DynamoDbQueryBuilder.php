@@ -11,6 +11,13 @@ use Illuminate\Support\Facades\Log;
 class DynamoDbQueryBuilder
 {
     /**
+     * The maximum number of records to return.
+     *
+     * @var int
+     */
+    public $limit;
+
+    /**
      * @var array
      */
     protected $where = [];
@@ -33,6 +40,30 @@ class DynamoDbQueryBuilder
      * @var mixed
      */
     protected $lastEvaluatedKey;
+
+    /**
+     * Alias to set the "limit" value of the query.
+     *
+     * @param  int  $value
+     * @return DynamoDbQueryBuilder\static
+     */
+    public function take($value)
+    {
+        return $this->limit($value);
+    }
+
+    /**
+     * Set the "limit" value of the query.
+     *
+     * @param  int  $value
+     * @return $this
+     */
+    public function limit($value)
+    {
+        $this->limit = $value;
+
+        return $this;
+    }
 
     public function where($column, $operator = null, $value = null, $boolean = 'and')
     {
@@ -238,10 +269,16 @@ class DynamoDbQueryBuilder
 
     protected function getAll($columns = [], $limit = -1, $use_iterator = true)
     {
-        if ($conditionValue = $this->conditionsContainKey()) {
-            $item = $this->find($conditionValue, $columns);
+        if ($limit === -1 && isset($this->limit)) {
+            $limit = $this->limit;
+        }
 
-            return new Collection([$item]);
+        if ($conditionValue = $this->conditionsContainKey()) {
+            if ($this->conditionsAreExactSearch()) {
+                $item = $this->find($conditionValue, $columns);
+
+                return new Collection([$item]);
+            }
         }
 
         $query = [
@@ -264,7 +301,6 @@ class DynamoDbQueryBuilder
 
         // If the $where is not empty, we run getIterator.
         if (!empty($this->where)) {
-
             // Index key condition exists, then use Query instead of Scan.
             // However, Query only supports a few conditions.
             if ($index = $this->conditionsContainIndexKey()) {
@@ -272,6 +308,7 @@ class DynamoDbQueryBuilder
                 $isCompositeKey = isset($keysInfo['range']);
                 $hashKeyOperator = array_get($this->where, $keysInfo['hash'] . '.ComparisonOperator');
                 $isValidQueryDynamoDbOperator = ComparisonOperator::isValidQueryDynamoDbOperator($hashKeyOperator);
+
                 if ($isValidQueryDynamoDbOperator && $isCompositeKey) {
                     $rangeKeyOperator = array_get($this->where, $keysInfo['range'] . '.ComparisonOperator');
                     $isValidQueryDynamoDbOperator = ComparisonOperator::isValidQueryDynamoDbOperator($rangeKeyOperator, true);
@@ -281,14 +318,20 @@ class DynamoDbQueryBuilder
                     $op = 'Query';
                     $query['IndexName'] = $index['name'];
                     $query['KeyConditions'][$keysInfo['hash']] = array_get($this->where, $keysInfo['hash']);
+
                     if ($isCompositeKey) {
                         $query['KeyConditions'][$keysInfo['range']] = array_get($this->where, $keysInfo['range']);
                     }
+
                     $nonKeyConditions = array_except($this->where, array_values($keysInfo));
+
                     if (!empty($nonKeyConditions)) {
                         $query['QueryFilter'] = $nonKeyConditions;
                     }
                 }
+            } else if ($this->conditionsContainKey()) {
+                $op = 'Query';
+                $query['KeyConditions'] = $this->where;
             }
 
             if ($op === 'Scan') {
@@ -298,8 +341,12 @@ class DynamoDbQueryBuilder
 
         if ($use_iterator) {
             $iterator = $this->client->getIterator($op, $query);
+
+            if (isset($query['Limit'])) {
+                $iterator = new \LimitIterator($iterator, 0, $query['Limit']);
+            }
         } else {
-            if ($op == 'Scan') {
+            if ($op === 'Scan') {
                 $res = $this->client->scan($query);
             } else {
                 $res = $this->client->query($query);
@@ -322,9 +369,30 @@ class DynamoDbQueryBuilder
         return new Collection($results);
     }
 
+    protected function conditionsAreExactSearch()
+    {
+        if (empty($this->where)) {
+            return false;
+        }
+
+        foreach ($this->where as $condition) {
+            if (array_get($condition, 'ComparisonOperator') !== ComparisonOperator::EQ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * Check if conditions "where" contain primary key or composite key.
      * For composite key, it will return false if the conditions don't have all composite key.
+     *
+     * For example:
+     *   Consider a composite key condition:
+     *     $model->where('partition_key', 'foo')->where('sort_key', 'bar')
+     *   We return ['partition_key' => 'foo', 'sort_key' => 'bar'] since the conditions
+     *   contain all the composite key.
      *
      * @return array|bool the condition value
      */
