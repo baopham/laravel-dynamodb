@@ -2,6 +2,9 @@
 
 namespace BaoPham\DynamoDb\Tests;
 
+use BaoPham\DynamoDb\NotSupportedException;
+use \Illuminate\Database\Eloquent\ModelNotFoundException;
+
 /**
  * Class DynamoDbModelTest
  *
@@ -45,6 +48,60 @@ class DynamoDbModelTest extends ModelTest
         $this->assertNotEmpty($item);
         $this->assertEquals($seedId, $item->id);
         $this->assertEquals($seedName, $item->name);
+    }
+
+    public function testFindMultiple()
+    {
+        $this->expectException(NotSupportedException::class);
+        $this->testModel->find(['bar', 'foo']);
+    }
+
+    public function testFindOrFailRecordPass()
+    {
+        $seed = $this->seed();
+        $seedId = array_get($seed, 'id.S');
+        $seedName = array_get($seed, 'name.S');
+
+        $item = $this->testModel->findOrFail($seedId);
+
+        $this->assertNotEmpty($item);
+        $this->assertEquals($seedId, $item->id);
+        $this->assertEquals($seedName, $item->name);
+    }
+
+    public function testFindOrFailMultiple()
+    {
+        $this->expectException(NotSupportedException::class);
+        $this->testModel->findOrFail(['bar', 'foo']);
+    }
+
+    public function testFirstOrFailRecordPass()
+    {
+        $seed = $this->seed();
+        $seedId = array_get($seed, 'id.S');
+        $seedName = array_get($seed, 'name.S');
+
+        $first = $this->testModel
+            ->where('id', $seedId)
+            ->firstOrFail();
+
+        $this->assertNotEmpty($first);
+        $this->assertEquals($seedId, $first->id);
+        $this->assertEquals($seedName, $first->name);
+    }
+
+    public function testFindOrFailRecordFail()
+    {
+        $this->expectException(ModelNotFoundException::class);
+        $this->testModel->findOrFail('expected-to-fail');
+    }
+
+    public function testFirstOrFailRecordFail()
+    {
+        $this->expectException(ModelNotFoundException::class);
+        $this->testModel
+            ->where('id', 'expected-to-fail')
+            ->firstOrFail();
     }
 
     public function testGetAllRecords()

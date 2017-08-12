@@ -2,3 +2,4 @@ vendor
 composer.lock
 dynamodb_local_test.db
 /nbproject
+*.log
