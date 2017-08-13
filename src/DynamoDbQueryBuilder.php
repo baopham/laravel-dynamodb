@@ -144,10 +144,6 @@ class DynamoDbQueryBuilder
      */
     public function whereIn($column, $values, $boolean = 'and', $not = false)
     {
-        if ($boolean != 'and') {
-            throw new NotSupportedException('Only support "and" in whereIn clause');
-        }
-
         if ($not) {
             throw new NotSupportedException('"not in" is not a valid DynamoDB comparison operator');
         }
@@ -167,7 +163,42 @@ class DynamoDbQueryBuilder
             $values = $values->toArray();
         }
 
-        return $this->where($column, ComparisonOperator::IN, $values);
+        return $this->where($column, ComparisonOperator::IN, $values, $boolean);
+    }
+
+    /**
+     * Add a "where null" clause to the query.
+     *
+     * @param  string  $column
+     * @param  string  $boolean
+     * @param  bool    $not
+     * @return $this
+     */
+    public function whereNull($column, $boolean = 'and', $not = false)
+    {
+        if ($boolean != 'and') {
+            throw new NotSupportedException('Only support "and" in whereNull clause');
+        }
+
+        $operator = $not ? 'not_null' : 'null';
+
+        $this->where[$column] = [
+            'ComparisonOperator' => ComparisonOperator::getDynamoDbOperator($operator),
+        ];
+
+        return $this;
+    }
+
+    /**
+     * Add a "where not null" clause to the query.
+     *
+     * @param  string  $column
+     * @param  string  $boolean
+     * @return $this
+     */
+    public function whereNotNull($column, $boolean = 'and')
+    {
+        return $this->whereNull($column, $boolean, true);
     }
 
     /**
