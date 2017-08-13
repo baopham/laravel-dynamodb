@@ -72,14 +72,20 @@ Install
 Usage
 -----
 * Extends your model with `BaoPham\DynamoDb\DynamoDbModel`, then you can use Eloquent methods that are supported. The idea here is that you can switch back to Eloquent without changing your queries.  
+* Or if you want to sync your DB table with a DynamoDb table, use trait `BaoPham\DynamoDb\ModelTrait`, it will call a `PutItem` after the model is saved.
 
-Supported methods:
+### Supported methods:
+
+#### find() and delete()
 
 ```php
-// find and delete
 $model->find(<id>);
 $model->delete();
+```
 
+#### Conditions
+
+```php
 // Using getIterator(). If 'key' is the primary key or a global/local index and the condition is EQ, will use 'Query', otherwise 'Scan'.
 $model->where('key', 'key value')->get();
 
@@ -89,16 +95,28 @@ $model->where(['key' => 'key value']);
 $model->where('foo', 'bar')
     ->where('foo2', '!=' 'bar2')
     ->get();
+```
 
+#### all() and first()
+
+```php
 // Using scan operator, not too reliable since DynamoDb will only give 1MB total of data.
 $model->all();
 
 // Basically a scan but with limit of 1 item.
 $model->first();
+```
 
+#### update()
+
+```php
 // update
 $model->update($attributes);
+```
 
+#### save()
+
+```php
 $model = new Model();
 // Define fillable attributes in your Model class.
 $model->fillableAttr1 = 'foo';
@@ -106,37 +124,52 @@ $model->fillableAttr2 = 'foo';
 // DynamoDb doesn't support incremented Id, so you need to use UUID for the primary key.
 $model->id = 'de305d54-75b4-431b-adb2-eb6b9e546014'
 $model->save();
+```
 
+#### chunk()
+
+```php
 // chunk
 $model->chunk(10, function ($records) {
     foreach ($records as $record) {
 
     }
 });
+```
 
-// limit
+#### limit() and take()
+
+```php
 // Use this with caution unless your limit is small.
 // DynamoDB has a limit of 1MB so if your limit is very big, the results will not be expected.
 $model->where('name', 'foo')->take(3)->get();
+```
 
-// firstOrFail
+#### firstOrFail()
+
+```php
 $model->where('name', 'foo')->firstOrFail();
 // for composite key
 $model->where('id', 'foo')->where('id2', 'bar')->firstOrFail();
+```
 
-// findOrFail
+#### findOrFail()
+
+```php
 $model->findOrFail('foo');
 // for composite key
 $model->findOrFail(['id' => 'foo', 'id2' => 'bar']);
+```
 
-// whereNull/whereNotNull
-// NULL and NOT_NULL only check for the attribute presence not its value being null
-// See: http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Condition.html
+#### whereNull() and whereNotNull()
+
+> NULL and NOT_NULL only check for the attribute presence not its value being null  
+> See: http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Condition.html  
+
+```php
 $model->whereNull('name');
 $model->whereNotNull('name');
 ```
-
-* Or if you want to sync your DB table with a DynamoDb table, use trait `BaoPham\DynamoDb\ModelTrait`, it will call a `PutItem` after the model is saved.
 
 Indexes
 -----------
