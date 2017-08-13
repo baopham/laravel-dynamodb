@@ -40,10 +40,15 @@ abstract class DynamoDbModel extends Model
 
     /**
      * Indexes.
-     * [
-     *     'global_index_key' => 'global_index_name',
-     *     'local_index_key' => 'local_index_name',
-     * ].
+     *   [
+     *     'simple_index_name' => [
+     *          'hash' => 'index_key'
+     *     ],
+     *     'composite_index_name' => [
+     *          'hash' => 'index_hash_key',
+     *          'range' => 'index_range_key'
+     *     ],
+     *   ]
      *
      * @var array
      */
@@ -198,11 +203,7 @@ abstract class DynamoDbModel extends Model
      */
     public function newQuery()
     {
-        $builder = new DynamoDbQueryBuilder();
-
-        $builder->setModel($this);
-
-        $builder->setClient($this->client);
+        $builder = new DynamoDbQueryBuilder($this);
 
         return $builder;
     }
@@ -292,6 +293,14 @@ abstract class DynamoDbModel extends Model
     public function setDynamoDbIndexKeys($dynamoDbIndexKeys)
     {
         $this->dynamoDbIndexKeys = $dynamoDbIndexKeys;
+    }
+
+    /**
+     * @return \Aws\DynamoDb\Marshaler
+     */
+    public function getMarshaler()
+    {
+        return $this->marshaler;
     }
 
     /**
