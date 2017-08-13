@@ -89,12 +89,26 @@ $model->delete();
 // Using getIterator(). If 'key' is the primary key or a global/local index and the condition is EQ, will use 'Query', otherwise 'Scan'.
 $model->where('key', 'key value')->get();
 
-// See BaoPham\DynamoDb\ComparisonOperator
 $model->where(['key' => 'key value']);
 // Chainable for 'AND'. 'OR' is not tested.
 $model->where('foo', 'bar')
     ->where('foo2', '!=' 'bar2')
     ->get();
+$model->where('count', 'between', [0, 100])->get();
+$model->where('count', '>', 0)->get();
+$model->where('description', 'begins_with', 'foo')->get();
+$model->where('description', 'contains', 'foo')->get();
+$model->where('description', 'not_contains', 'foo')->get();
+```
+
+##### whereNull() and whereNotNull()
+
+> NULL and NOT_NULL only check for the attribute presence not its value being null  
+> See: http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Condition.html  
+
+```php
+$model->whereNull('name');
+$model->whereNotNull('name');
 ```
 
 #### all() and first()
@@ -159,16 +173,6 @@ $model->where('id', 'foo')->where('id2', 'bar')->firstOrFail();
 $model->findOrFail('foo');
 // for composite key
 $model->findOrFail(['id' => 'foo', 'id2' => 'bar']);
-```
-
-#### whereNull() and whereNotNull()
-
-> NULL and NOT_NULL only check for the attribute presence not its value being null  
-> See: http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Condition.html  
-
-```php
-$model->whereNull('name');
-$model->whereNotNull('name');
 ```
 
 Indexes
