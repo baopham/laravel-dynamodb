@@ -389,11 +389,35 @@ class DynamoDbModelTest extends ModelTest
 
         $items = $this->testModel->whereIn('name', ['foo', 'bar'])->get();
 
-        $this->assertCount(3, $items->toArray());
+        $this->assertEquals(3, $items->count());
 
         foreach ($items as $item) {
             $this->assertContains($item->name, ['foo', 'bar']);
         }
+    }
+
+    public function testWhereNull()
+    {
+        $this->seed();
+        $this->seed([], ['name']);
+
+        $items = $this->testModel->whereNull('name')->get();
+
+        $this->assertEquals(1, $items->count());
+
+        $this->assertNull($items->first()->name);
+    }
+
+    public function testWhereNotNull()
+    {
+        $this->seed();
+        $this->seed([], ['name']);
+
+        $items = $this->testModel->whereNotNull('name')->get();
+
+        $this->assertEquals(1, $items->count());
+
+        $this->assertNotNull($items->first()->name);
     }
 
     public function testChunkScan()
@@ -496,20 +520,20 @@ class DynamoDbModelTest extends ModelTest
         }
 
         $items = $this->testModel->take(3)->get();
-        $this->assertCount(3, $items->toArray());
+        $this->assertEquals(3, $items->count());
 
         $items = $this->testModel->limit(3)->get();
-        $this->assertCount(3, $items->toArray());
+        $this->assertEquals(3, $items->count());
 
         // Ensure "limit" is reset in new queries
         $items = $this->testModel->get();
-        $this->assertCount($count, $items->toArray());
+        $this->assertEquals($count, $items->count());
 
         $items = $this->testModel->where('name', 'foo')->take(4)->get();
-        $this->assertCount(4, $items->toArray());
+        $this->assertEquals(4, $items->count());
     }
 
-    protected function seed($attributes = [])
+    protected function seed($attributes = [], $exclude = [])
     {
         $item = [
             'id' => ['S' => str_random(36)],
@@ -520,6 +544,7 @@ class DynamoDbModelTest extends ModelTest
         ];
 
         $item = array_merge($item, $attributes);
+        $item = array_except($item, $exclude);
 
         $this->dynamoDbClient->putItem([
             'TableName' => $this->testModel->getTable(),

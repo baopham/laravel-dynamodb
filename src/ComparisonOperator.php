@@ -18,6 +18,8 @@ class ComparisonOperator
     const BETWEEN = 'BETWEEN';
     const NOT_CONTAINS = 'NOT_CONTAINS';
     const CONTAINS = 'CONTAINS';
+    const NULL = 'NULL';
+    const NOT_NULL = 'NOT_NULL';
 
     public static function getOperatorMapping()
     {
@@ -33,6 +35,8 @@ class ComparisonOperator
             'between' => static::BETWEEN,
             'not_contains' => static::NOT_CONTAINS,
             'contains' => static::CONTAINS,
+            'null' => static::NULL,
+            'not_null' => static::NOT_NULL,
         ];
     }
 

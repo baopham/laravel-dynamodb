@@ -128,6 +128,12 @@ $model->where('id', 'foo')->where('id2', 'bar')->firstOrFail();
 $model->findOrFail('foo');
 // for composite key
 $model->findOrFail(['id' => 'foo', 'id2' => 'bar']);
+
+// whereNull/whereNotNull
+// NULL and NOT_NULL only check for the attribute presence not its value being null
+// See: http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Condition.html
+$model->whereNull('name');
+$model->whereNotNull('name');
 ```
 
 * Or if you want to sync your DB table with a DynamoDb table, use trait `BaoPham\DynamoDb\ModelTrait`, it will call a `PutItem` after the model is saved.

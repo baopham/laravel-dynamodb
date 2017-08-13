@@ -323,7 +323,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $this->assertEquals($expectedItem, $foundItems->first()->toArray());
     }
 
-    protected function seed($attributes = [])
+    protected function seed($attributes = [], $exclude = [])
     {
         $item = [
             'id' => ['S' => 'id1'],
@@ -334,6 +334,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         ];
 
         $item = array_merge($item, $attributes);
+        $item = array_except($item, $exclude);
 
         $this->dynamoDbClient->putItem([
             'TableName' => $this->testModel->getTable(),
