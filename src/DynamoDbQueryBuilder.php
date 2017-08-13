@@ -3,6 +3,12 @@
 namespace BaoPham\DynamoDb;
 
 use Aws\DynamoDb\DynamoDbClient;
+use BaoPham\DynamoDb\Parsers\ExpressionAttributeNames;
+use BaoPham\DynamoDb\Parsers\ExpressionAttributeValues;
+use BaoPham\DynamoDb\Parsers\FilterExpression;
+use BaoPham\DynamoDb\Parsers\KeyConditionExpression;
+use BaoPham\DynamoDb\Parsers\Placeholder;
+use BaoPham\DynamoDb\Parsers\ProjectionExpression;
 use Closure;
 use Exception;
 use Illuminate\Contracts\Support\Arrayable;
@@ -44,6 +50,76 @@ class DynamoDbQueryBuilder
     protected $lastEvaluatedKey;
 
     /**
+     * @var FilterExpression
+     */
+    protected $filterExpression;
+
+    /**
+     * @var KeyConditionExpression
+     */
+    protected $keyConditionExpression;
+
+    /**
+     * @var ProjectionExpression
+     */
+    protected $projectionExpression;
+
+    /**
+     * @var ExpressionAttributeNames
+     */
+    protected $expressionAttributeNames;
+
+    /**
+     * @var ExpressionAttributeValues
+     */
+    protected $expressionAttributeValues;
+
+    /**
+     * @var Placeholder
+     */
+    protected $placeholder;
+
+    public function __construct(DynamoDbModel $model)
+    {
+        $this->model = $model;
+        $this->client = $model->getClient();
+        $this->setupExpressions();
+    }
+
+    public function setupExpressions()
+    {
+        $marshaler = $this->model->getMarshaler();
+
+        $this->placeholder = new Placeholder();
+
+        $this->expressionAttributeNames = new ExpressionAttributeNames();
+
+        $this->expressionAttributeValues = new ExpressionAttributeValues();
+
+        $this->keyConditionExpression = new KeyConditionExpression(
+            $this->placeholder,
+            $marshaler,
+            $this->expressionAttributeValues,
+            $this->expressionAttributeNames
+        );
+
+        $this->filterExpression = new FilterExpression(
+            $this->placeholder,
+            $marshaler,
+            $this->expressionAttributeValues,
+            $this->expressionAttributeNames
+        );
+
+        $this->projectionExpression = new ProjectionExpression();
+    }
+
+    public function resetExpressions()
+    {
+        $this->filterExpression->reset();
+        $this->keyConditionExpression->reset();
+    }
+
+    /**
      * Alias to set the "limit" value of the query.
      *
      * @param  int  $value
@@ -69,12 +145,6 @@ class DynamoDbQueryBuilder
 
     public function where($column, $operator = null, $value = null, $boolean = 'and')
     {
-        if ($boolean != 'and') {
-            throw new NotSupportedException('Only support "and" in where clause');
-        }
-
-        $model = $this->getModel();
-
         // If the column is an array, we will assume it is an array of key-value pairs
         // and can add them each as a where clause. We will maintain the boolean we
         // received when the method was called and pass it into the nested where.
@@ -112,22 +182,11 @@ class DynamoDbQueryBuilder
             throw new NotSupportedException('Closure in where clause is not supported');
         }
 
-        $attributeValueList = $model->marshalItem([
-            'AttributeValueList' => $value,
-        ]);
-
-        $valueList = [$attributeValueList['AttributeValueList']];
-
-        if (
-            ComparisonOperator::is($operator, ComparisonOperator::BETWEEN) ||
-            ComparisonOperator::is($operator, ComparisonOperator::IN)
-        ) {
-            $valueList = head($valueList)['L'];
-        }
-
-        $this->where[$column] = [
-            'AttributeValueList' => $valueList,
-            'ComparisonOperator' => ComparisonOperator::getDynamoDbOperator($operator),
+        $this->where[] = [
+            'column' => $column,
+            'operator' => ComparisonOperator::getDynamoDbOperator($operator),
+            'value' => $value,
+            'boolean' => $boolean,
         ];
 
         return $this;
@@ -141,6 +200,7 @@ class DynamoDbQueryBuilder
      * @param  string  $boolean
      * @param  bool    $not
      * @return $this
+     * @throws NotSupportedException
      */
     public function whereIn($column, $values, $boolean = 'and', $not = false)
     {
@@ -176,15 +236,9 @@ class DynamoDbQueryBuilder
      */
     public function whereNull($column, $boolean = 'and', $not = false)
     {
-        if ($boolean != 'and') {
-            throw new NotSupportedException('Only support "and" in whereNull clause');
-        }
+        $operator = $not ? ComparisonOperator::NOT_NULL : ComparisonOperator::NULL;
 
-        $operator = $not ? 'not_null' : 'null';
-
-        $this->where[$column] = [
-            'ComparisonOperator' => ComparisonOperator::getDynamoDbOperator($operator),
-        ];
+        $this->where[] = compact('column', 'operator', 'boolean');
 
         return $this;
     }
@@ -239,7 +293,7 @@ class DynamoDbQueryBuilder
         ];
 
         if (!empty($columns)) {
-            $query['AttributesToGet'] = $columns;
+            $query['ProjectionExpression'] = $this->projectionExpression->parse($columns);
         }
 
         $item = $this->client->getItem($query);
@@ -365,59 +419,23 @@ class DynamoDbQueryBuilder
             'TableName' => $this->model->getTable(),
         ];
 
-        $op = 'Scan';
-
         if ($limit > -1) {
             $query['Limit'] = $limit;
         }
 
         if (!empty($columns)) {
-            $query['AttributesToGet'] = $columns;
+            $query['ProjectionExpression'] = $this->projectionExpression->parse($columns);
         }
 
         if (!empty($this->lastEvaluatedKey)) {
             $query['ExclusiveStartKey'] = $this->lastEvaluatedKey;
         }
 
-        // If the $where is not empty, we run getIterator.
-        if (!empty($this->where)) {
-            // Index key condition exists, then use Query instead of Scan.
-            // However, Query only supports a few conditions.
-            if ($index = $this->conditionsContainIndexKey()) {
-                $keysInfo = $index['keysInfo'];
-                $isCompositeKey = isset($keysInfo['range']);
-                $hashKeyOperator = array_get($this->where, $keysInfo['hash'] . '.ComparisonOperator');
-                $isValidQueryDynamoDbOperator = ComparisonOperator::isValidQueryDynamoDbOperator($hashKeyOperator);
+        $queryInfo = $this->buildExpressionQuery();
+        $op = $queryInfo['op'];
+        $query = array_merge($query, $queryInfo['query']);
 
-                if ($isValidQueryDynamoDbOperator && $isCompositeKey) {
-                    $rangeKeyOperator = array_get($this->where, $keysInfo['range'] . '.ComparisonOperator');
-                    $isValidQueryDynamoDbOperator = ComparisonOperator::isValidQueryDynamoDbOperator($rangeKeyOperator, true);
-                }
-
-                if ($isValidQueryDynamoDbOperator) {
-                    $op = 'Query';
-                    $query['IndexName'] = $index['name'];
-                    $query['KeyConditions'][$keysInfo['hash']] = array_get($this->where, $keysInfo['hash']);
-
-                    if ($isCompositeKey) {
-                        $query['KeyConditions'][$keysInfo['range']] = array_get($this->where, $keysInfo['range']);
-                    }
-
-                    $nonKeyConditions = array_except($this->where, array_values($keysInfo));
-
-                    if (!empty($nonKeyConditions)) {
-                        $query['QueryFilter'] = $nonKeyConditions;
-                    }
-                }
-            } else if ($this->conditionsContainKey()) {
-                $op = 'Query';
-                $query['KeyConditions'] = $this->where;
-            }
-
-            if ($op === 'Scan') {
-                $query['ScanFilter'] = $this->where;
-            }
-        }
+        $this->cleanUpQuery($query);
 
         if ($use_iterator) {
             $iterator = $this->client->getIterator($op, $query);
@@ -449,6 +467,77 @@ class DynamoDbQueryBuilder
         return new Collection($results);
     }
 
+    protected function buildExpressionQuery()
+    {
+        $this->resetExpressions();
+
+        $op = 'Scan';
+        $query = [];
+
+        if (empty($this->where)) {
+            return compact('op', 'query');
+        }
+
+        // Index key condition exists, then use Query instead of Scan.
+        // However, Query only supports a few conditions.
+        if ($index = $this->conditionsContainIndexKey()) {
+            $keysInfo = $index['keysInfo'];
+
+            $isCompositeKey = isset($keysInfo['range']);
+
+            $hashKeyCondition = array_first($this->where, function ($condition) use ($keysInfo) {
+                return $condition['column'] === $keysInfo['hash'];
+            });
+
+            $isValidQueryOperator = ComparisonOperator::isValidQueryDynamoDbOperator($hashKeyCondition['operator']);
+
+            if ($isValidQueryOperator && $isCompositeKey) {
+                $rangeKeyCondition = array_first($this->where, function ($condition) use ($keysInfo) {
+                    return $condition['column'] === $keysInfo['range'];
+                });
+
+                $isValidQueryOperator = ComparisonOperator::isValidQueryDynamoDbOperator(
+                    $rangeKeyCondition['operator'],
+                    true
+                );
+            }
+
+            if ($isValidQueryOperator) {
+                $op = 'Query';
+
+                $indexes = array_values($keysInfo);
+
+                $keyConditions = array_filter($this->where, function ($condition) use ($indexes) {
+                    return in_array($condition['column'], $indexes);
+                });
+
+                $nonKeyConditions = array_filter($this->where, function ($condition) use ($indexes) {
+                    return !in_array($condition['column'], $indexes);
+                });
+
+                $query['IndexName'] = $index['name'];
+
+                $query['KeyConditionExpression'] = $this->keyConditionExpression->parse($keyConditions);
+
+                $query['FilterExpression'] = $this->filterExpression->parse($nonKeyConditions);
+            }
+        } else if ($this->conditionsContainKey()) {
+            $op = 'Query';
+
+            $query['KeyConditionExpression'] = $this->keyConditionExpression->parse($this->where);
+        }
+
+        if ($op === 'Scan') {
+            $query['FilterExpression'] = $this->filterExpression->parse($this->where);
+        }
+
+        $query['ExpressionAttributeNames'] = $this->expressionAttributeNames->all();
+
+        $query['ExpressionAttributeValues'] = $this->expressionAttributeValues->all();
+
+        return compact('op', 'query');
+    }
+
     protected function conditionsAreExactSearch()
     {
         if (empty($this->where)) {
@@ -456,7 +545,7 @@ class DynamoDbQueryBuilder
         }
 
         foreach ($this->where as $condition) {
-            if (array_get($condition, 'ComparisonOperator') !== ComparisonOperator::EQ) {
+            if (array_get($condition, 'operator') !== ComparisonOperator::EQ) {
                 return false;
             }
         }
@@ -482,7 +571,7 @@ class DynamoDbQueryBuilder
             return false;
         }
 
-        $conditionKeys = array_keys($this->where);
+        $conditionKeys = array_pluck($this->where, 'column');
 
         $model = $this->model;
 
@@ -496,12 +585,11 @@ class DynamoDbQueryBuilder
 
         $conditionValue = [];
 
-        foreach ($keys as $key) {
-            $condition = $this->where[$key];
-
-            $value = $model->unmarshalItem(array_get($condition, 'AttributeValueList'))[0];
-
-            $conditionValue[$key] = $value;
+        foreach ($this->where as $condition) {
+            $column = array_get($condition, 'column');
+            if (in_array($column, $keys)) {
+                $conditionValue[$column] = array_get($condition, 'value');
+            }
         }
 
         return $conditionValue;
@@ -511,7 +599,8 @@ class DynamoDbQueryBuilder
      * Check if conditions "where" contain index key
      * For composite index key, it will return false if the conditions don't have all composite key.
      *
-     * @return array|bool false or array ['name' => 'index_name', 'keysInfo' => ['hash' => 'hash_key', 'range' => 'range_key']]
+     * @return array|bool false or array
+     *   ['name' => 'index_name', 'keysInfo' => ['hash' => 'hash_key', 'range' => 'range_key']]
      */
     protected function conditionsContainIndexKey()
     {
@@ -520,7 +609,7 @@ class DynamoDbQueryBuilder
         }
 
         foreach ($this->model->getDynamoDbIndexKeys() as $name => $keysInfo) {
-            $conditionKeys = array_keys($this->where);
+            $conditionKeys = array_pluck($this->where, 'column');
             $keys = array_values($keysInfo);
             if (count(array_intersect($conditionKeys, $keys)) === count($keys)) {
                 return [
@@ -584,6 +673,27 @@ class DynamoDbQueryBuilder
         return $hasCompositeKey ? is_array(array_first($id)) : is_array($id);
     }
 
+    protected function cleanUpQuery(&$query)
+    {
+        if (empty($query['KeyConditionExpression']) && empty($query['FilterExpression'])) {
+            unset($query['ExpressionAttributeNames']);
+            unset($query['ExpressionAttributeValues']);
+        }
+
+        $nonEmptyOnly = [
+            'ExpressionAttributeNames',
+            'ExpressionAttributeValues',
+            'KeyConditionExpression',
+            'FilterExpression',
+        ];
+
+        foreach ($nonEmptyOnly as $attr) {
+            if (empty($query[$attr])) {
+                unset($query[$attr]);
+            }
+        }
+    }
+
     /**
      * @return DynamoDbModel
      */
@@ -593,26 +703,10 @@ class DynamoDbQueryBuilder
     }
 
     /**
-     * @param DynamoDbModel $model
-     */
-    public function setModel($model)
-    {
-        $this->model = $model;
-    }
-
-    /**
      * @return DynamoDbClient
      */
     public function getClient()
     {
         return $this->client;
-    }
-
-    /**
-     * @param DynamoDbClient $client
-     */
-    public function setClient($client)
-    {
-        $this->client = $client;
     }
 }

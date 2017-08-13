@@ -1,6 +1,8 @@
 <?php
 
 namespace BaoPham\DynamoDb\Tests;
+use BaoPham\DynamoDb\DynamoDbClientInterface;
+use BaoPham\DynamoDb\DynamoDbModel;
 
 /**
  * Class DynamoDbClientServiceTest
@@ -16,7 +18,7 @@ class DynamoDbClientServiceTest extends TestCase
      */
     public function testGetDynamoDbClientServiceUninitialized()
     {
-        $dynamoDbClientService = \BaoPham\DynamoDb\DynamoDbModel::getDynamoDbClientService();
+        $dynamoDbClientService = DynamoDbModel::getDynamoDbClientService();
 
         $this->assertNull(
             $dynamoDbClientService,
@@ -31,11 +33,11 @@ class DynamoDbClientServiceTest extends TestCase
      */
     public function testSetGetDynamoDbClientService()
     {
-        $mockClientService = $this->getMockBuilder(\BaoPham\DynamoDb\DynamoDbClientInterface::class)->getMock();
+        $mockClientService = $this->getMockBuilder(DynamoDbClientInterface::class)->getMock();
 
-        \BaoPham\DynamoDb\DynamoDbModel::setDynamoDbClientService($mockClientService);
+        DynamoDbModel::setDynamoDbClientService($mockClientService);
 
-        $dynamoDbClientService = \BaoPham\DynamoDb\DynamoDbModel::getDynamoDbClientService();
+        $dynamoDbClientService = DynamoDbModel::getDynamoDbClientService();
 
         $this->assertInstanceOf(
             get_class($mockClientService),
@@ -51,9 +53,9 @@ class DynamoDbClientServiceTest extends TestCase
      */
     public function testUnsetDynamoDbClientService()
     {
-        \BaoPham\DynamoDb\DynamoDbModel::unsetDynamoDbClientService();
+        DynamoDbModel::unsetDynamoDbClientService();
 
-        $dynamoDbClientService = \BaoPham\DynamoDb\DynamoDbModel::getDynamoDbClientService();
+        $dynamoDbClientService = DynamoDbModel::getDynamoDbClientService();
 
         $this->assertNull(
             $dynamoDbClientService,
@@ -68,6 +70,6 @@ class DynamoDbClientServiceTest extends TestCase
     {
         parent::tearDown();
 
-        \BaoPham\DynamoDb\DynamoDbModel::unsetDynamoDbClientService();
+        DynamoDbModel::unsetDynamoDbClientService();
     }
 }
