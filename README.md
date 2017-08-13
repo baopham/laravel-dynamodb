@@ -91,7 +91,7 @@ $model->where('key', 'key value')->get();
 
 // See BaoPham\DynamoDb\ComparisonOperator
 $model->where(['key' => 'key value']);
-// Chainable for 'AND'. 'OR' is not supported.
+// Chainable for 'AND'. 'OR' is not tested.
 $model->where('foo', 'bar')
     ->where('foo2', '!=' 'bar2')
     ->get();
@@ -259,7 +259,8 @@ Laravel ^5.1
 
 TODO
 ----
-- [ ] Upgrade a few legacy attributes: `AttributesToGet`, `ScanFilter`, ...
+- [ ] Nested conditions
+- [ ] Verify OR conditions
 
 FAQ
 ---
