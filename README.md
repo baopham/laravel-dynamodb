@@ -16,7 +16,6 @@ Supports all key types - primary hash key and composite keys.
 * [Indexes](#indexes)
 * [Composite Keys](#composite-keys)
 * [Requirements](#requirements)
-* [Todo](#todo)
 * [FAQ](#faq)
 * [License](#license)
 * [Author and Contributors](#author-and-contributors)
@@ -281,10 +280,6 @@ Requirements
 -------------
 Laravel ^5.1
 
-
-TODO
-----
-- [ ] Nested conditions
 
 FAQ
 ---
