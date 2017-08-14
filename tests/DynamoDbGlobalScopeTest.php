@@ -20,7 +20,7 @@ class DynamoDbGlobalScopeTest extends ModelTest
     public function testGlobalScope()
     {
         $seeds = [];
-        for($x = 0; $x < 10; $x++) {
+        for ($x = 0; $x < 10; $x++) {
             $seeds[] = $this->seed(['count'=>['N' => $x]]);
         }
 
@@ -32,7 +32,7 @@ class DynamoDbGlobalScopeTest extends ModelTest
     public function testLocalScope()
     {
         $seeds = [];
-        for($x = 0; $x < 10; $x++) {
+        for ($x = 0; $x < 10; $x++) {
             $seeds[] = $this->seed(['count'=>['N' => $x]]);
         }
 
@@ -44,7 +44,7 @@ class DynamoDbGlobalScopeTest extends ModelTest
     public function testDynamicLocalScope()
     {
         $seeds = [];
-        for($x = 0; $x < 10; $x++) {
+        for ($x = 0; $x < 10; $x++) {
             $seeds[] = $this->seed(['count'=>['N' => $x]]);
         }
 
@@ -88,19 +88,23 @@ class GlobalScopeModel extends \BaoPham\DynamoDb\DynamoDbModel
         ],
     ];
 
-    protected static function boot() {
+    protected static function boot()
+    {
         parent::boot();
 
-        static::addGlobalScope('count', function(DynamoDbQueryBuilder $builder) {
+        static::addGlobalScope('count', function (DynamoDbQueryBuilder $builder) 
+        {
             $builder->where('count', '>', 6);
         });
     }
 
-    public function scopeCountUnderFour($builder) {
+    public function scopeCountUnderFour($builder)
+    {
         return $builder->where('count', '<', 4);
     }
 
-    public function scopeCountUnder($builder, $count) {
+    public function scopeCountUnder($builder, $count)
+    {
         return $builder->where('count', '<', $count);
     }
 }
