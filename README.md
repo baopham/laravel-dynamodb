@@ -4,6 +4,7 @@ laravel-dynamodb
 [![Latest Stable Version](https://poser.pugx.org/baopham/dynamodb/v/stable)](https://packagist.org/packages/baopham/dynamodb)
 [![Total Downloads](https://poser.pugx.org/baopham/dynamodb/downloads)](https://packagist.org/packages/baopham/dynamodb)
 [![Latest Unstable Version](https://poser.pugx.org/baopham/dynamodb/v/unstable)](https://packagist.org/packages/baopham/dynamodb)
+[![Build Status](https://travis-ci.org/baopham/laravel-dynamodb.svg?branch=master)](https://travis-ci.org/baopham/laravel-dynamodb)
 [![License](https://poser.pugx.org/baopham/dynamodb/license)](https://packagist.org/packages/baopham/dynamodb)
 
 Supports all key types - primary hash key and composite keys.
@@ -51,6 +52,7 @@ Install
         'region' => env('DYNAMODB_REGION'),
         'local_endpoint' => env('DYNAMODB_LOCAL_ENDPOINT'), // see http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html
         'local' => env('DYNAMODB_LOCAL'), // true or false? should use dynamodb_local or not?
+        'debug' => true, // if true, it will use Laravel Log. For advanced options, see http://docs.aws.amazon.com/aws-sdk-php/v3/guide/guide/configuration.html
     ],
     ...
     ```
@@ -61,12 +63,8 @@ Install
     // config/services.php
     ...
     'dynamodb' => [
-        'key' => env('AWS_ACCESS_KEY_ID'),
-        'secret' => env('AWS_SECRET_ACCESS_KEY'),
+        ...
         'token' => env('AWS_SESSION_TOKEN'),
-        'region'=> env('DYNAMODB_REGION'),
-        'local_endpoint' => env('DYNAMODB_LOCAL_ENDPOINT'),
-        'local'=> env('DYNAMODB_LOCAL') // true or false? should use dynamodb_local or not?
     ]
     ...
     ```
@@ -74,33 +72,80 @@ Install
 Usage
 -----
 * Extends your model with `BaoPham\DynamoDb\DynamoDbModel`, then you can use Eloquent methods that are supported. The idea here is that you can switch back to Eloquent without changing your queries.  
+* Or if you want to sync your DB table with a DynamoDb table, use trait `BaoPham\DynamoDb\ModelTrait`, it will call a `PutItem` after the model is saved.
 
-Supported methods:
+### Supported methods:
+
+#### find() and delete()
 
 ```php
-// find and delete
 $model->find(<id>);
 $model->delete();
+```
 
-// Using getIterator(). If 'key' is the primary key or a global/local index and the condition is EQ, will use 'Query', otherwise 'Scan'.
+#### Conditions
+
+```php
+// Using getIterator()
+// If 'key' is the primary key or a global/local index and it is a supported Query condition,
+// will use 'Query', otherwise 'Scan'.
 $model->where('key', 'key value')->get();
 
-// See BaoPham\DynamoDb\ComparisonOperator
 $model->where(['key' => 'key value']);
-// Chainable for 'AND'. 'OR' is not supported.
+
+// Chainable for 'AND'.
 $model->where('foo', 'bar')
     ->where('foo2', '!=' 'bar2')
     ->get();
+    
+// Chainable for 'OR'.
+$model->where('foo', 'bar')
+    ->orWhere('foo2', '!=' 'bar2')
+    ->get();
+ 
+// Other types of conditions
+$model->where('count', '>', 0)->get();
+$model->where('count', '>=', 0)->get();
+$model->where('count', '<', 0)->get();
+$model->where('count', '<=', 0)->get();
+$model->whereIn('count', [0, 100])->get();
+$model->whereNotIn('count', [0, 100])->get();
+$model->where('count', 'between', [0, 100])->get();
+$model->where('description', 'begins_with', 'foo')->get();
+$model->where('description', 'contains', 'foo')->get();
+$model->where('description', 'not_contains', 'foo')->get();
+```
 
+##### whereNull() and whereNotNull()
+
+> NULL and NOT_NULL only check for the attribute presence not its value being null  
+> See: http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Condition.html  
+
+```php
+$model->whereNull('name');
+$model->whereNotNull('name');
+```
+
+#### all() and first()
+
+```php
 // Using scan operator, not too reliable since DynamoDb will only give 1MB total of data.
 $model->all();
 
 // Basically a scan but with limit of 1 item.
 $model->first();
+```
 
+#### update()
+
+```php
 // update
 $model->update($attributes);
+```
 
+#### save()
+
+```php
 $model = new Model();
 // Define fillable attributes in your Model class.
 $model->fillableAttr1 = 'foo';
@@ -108,7 +153,11 @@ $model->fillableAttr2 = 'foo';
 // DynamoDb doesn't support incremented Id, so you need to use UUID for the primary key.
 $model->id = 'de305d54-75b4-431b-adb2-eb6b9e546014'
 $model->save();
+```
 
+#### chunk()
+
+```php
 // chunk
 $model->chunk(10, function ($records) {
     foreach ($records as $record) {
@@ -117,7 +166,29 @@ $model->chunk(10, function ($records) {
 });
 ```
 
-* Or if you want to sync your DB table with a DynamoDb table, use trait `BaoPham\DynamoDb\ModelTrait`, it will call a `PutItem` after the model is saved.
+#### limit() and take()
+
+```php
+// Use this with caution unless your limit is small.
+// DynamoDB has a limit of 1MB so if your limit is very big, the results will not be expected.
+$model->where('name', 'foo')->take(3)->get();
+```
+
+#### firstOrFail()
+
+```php
+$model->where('name', 'foo')->firstOrFail();
+// for composite key
+$model->where('id', 'foo')->where('id2', 'bar')->firstOrFail();
+```
+
+#### findOrFail()
+
+```php
+$model->findOrFail('foo');
+// for composite key
+$model->findOrFail(['id' => 'foo', 'id2' => 'bar']);
+```
 
 Indexes
 -----------
@@ -207,7 +278,7 @@ Laravel ^5.1
 
 TODO
 ----
-- [ ] Upgrade a few legacy attributes: `AttributesToGet`, `ScanFilter`, ...
+- [ ] Nested conditions
 
 FAQ
 ---

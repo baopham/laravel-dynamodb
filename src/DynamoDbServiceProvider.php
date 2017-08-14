@@ -4,6 +4,7 @@ namespace BaoPham\DynamoDb;
 
 use Aws\DynamoDb\Marshaler;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 
 class DynamoDbServiceProvider extends ServiceProvider
@@ -34,6 +35,21 @@ class DynamoDbServiceProvider extends ServiceProvider
         $this->bindForApp($marshalerOptions);
     }
 
+    protected function getDebugOptions()
+    {
+        $debug = config('services.dynamodb.debug');
+
+        if ($debug === true) {
+            $logfn = function ($msg) {
+                Log::info($msg);
+            };
+
+            return ['logfn' => $logfn];
+        }
+
+        return $debug;
+    }
+
     protected function bindForApp($marshalerOptions = [])
     {
         $this->app->singleton('BaoPham\DynamoDb\DynamoDbClientInterface', function ($app) use ($marshalerOptions) {
@@ -45,6 +61,7 @@ class DynamoDbServiceProvider extends ServiceProvider
                 ],
                 'region' => config('services.dynamodb.region'),
                 'version' => '2012-08-10',
+                'debug' => $this->getDebugOptions(),
             ];
 
             $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter());
@@ -66,7 +83,9 @@ class DynamoDbServiceProvider extends ServiceProvider
                 'region' => $region,
                 'version' => '2012-08-10',
                 'endpoint' => config('services.dynamodb.local_endpoint'),
+                'debug' => $this->getDebugOptions(),
             ];
+
             $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter());
 
             return $client;

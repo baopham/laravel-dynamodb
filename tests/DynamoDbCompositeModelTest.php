@@ -2,6 +2,9 @@
 
 namespace BaoPham\DynamoDb\Tests;
 
+use BaoPham\DynamoDb\NotSupportedException;
+use \Illuminate\Database\Eloquent\ModelNotFoundException;
+
 /**
  * Class DynamoDbCompositeModelTest
  *
@@ -50,6 +53,66 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $this->assertEquals($seedId, $item->id);
         $this->assertEquals($seedId2, $item->id2);
         $this->assertEquals($seedName, $item->name);
+    }
+
+    public function testFindMultiple()
+    {
+        $this->expectException(NotSupportedException::class);
+        $this->testModel->find([['id1' => 'bar', 'id2' => 'foo']]);
+    }
+
+    public function testFindOrFailRecordPass()
+    {
+        $seed = $this->seed();
+        $seedId = array_get($seed, 'id.S');
+        $seedId2 = array_get($seed, 'id2.S');
+        $seedName = array_get($seed, 'name.S');
+
+        $item = $this->testModel->findOrFail(['id' => $seedId, 'id2' => $seedId2]);
+
+        $this->assertNotEmpty($item);
+        $this->assertEquals($seedId, $item->id);
+        $this->assertEquals($seedId2, $item->id2);
+        $this->assertEquals($seedName, $item->name);
+    }
+
+    public function testFindOrFailMultiple()
+    {
+        $this->expectException(NotSupportedException::class);
+        $this->testModel->findOrFail([['id' => 'bar', 'id2' => 'foo']]);
+    }
+
+    public function testFirstOrFailRecordPass()
+    {
+        $seed = $this->seed();
+        $seedId = array_get($seed, 'id.S');
+        $seedId2 = array_get($seed, 'id2.S');
+        $seedName = array_get($seed, 'name.S');
+
+        $first = $this->testModel
+            ->where('id', $seedId)
+            ->where('id2', $seedId2)
+            ->firstOrFail();
+
+        $this->assertNotEmpty($first);
+        $this->assertEquals($seedId, $first->id);
+        $this->assertEquals($seedId2, $first->id2);
+        $this->assertEquals($seedName, $first->name);
+    }
+
+    public function testFindOrFailRecordFail()
+    {
+        $this->expectException(ModelNotFoundException::class);
+        $this->testModel->findOrFail(['id' => 'failure-expected', 'id2' => 'expected-to-fail']);
+    }
+
+    public function testFirstOrFailRecordFail()
+    {
+        $this->expectException(ModelNotFoundException::class);
+        $this->testModel
+            ->where('id', 'failure-expected')
+            ->where('id2', 'expected-to-fail')
+            ->firstOrFail();
     }
 
     public function testUpdateRecord()
@@ -185,7 +248,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
 
     public function testConditionContainingCompositeIndexKey()
     {
-        $fooItem = $this->seed([
+        $this->seed([
             'id' => ['S' => 'id1'],
             'id2' => ['S' => '2'],
             'name' => ['S' => 'Foo'],
@@ -232,9 +295,9 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $this->assertEquals($expectedItem, $foundItems->first()->toArray());
     }
 
-    public function testConditionsDoNotContainAllCompositeKeys()
+    public function testConditionsNotContainingAllCompositeKeys()
     {
-        $fooItem = $this->seed([
+        $this->seed([
             'id' => ['S' => 'id1'],
             'id2' => ['S' => '2'],
             'name' => ['S' => 'Foo'],
@@ -260,7 +323,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $this->assertEquals($expectedItem, $foundItems->first()->toArray());
     }
 
-    protected function seed($attributes = [])
+    protected function seed($attributes = [], $exclude = [])
     {
         $item = [
             'id' => ['S' => 'id1'],
@@ -271,6 +334,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         ];
 
         $item = array_merge($item, $attributes);
+        $item = array_except($item, $exclude);
 
         $this->dynamoDbClient->putItem([
             'TableName' => $this->testModel->getTable(),

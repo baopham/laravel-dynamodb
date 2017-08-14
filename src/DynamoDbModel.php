@@ -40,15 +40,19 @@ abstract class DynamoDbModel extends Model
 
     /**
      * Indexes.
-     * [
-     *     'global_index_key' => 'global_index_name',
-     *     'local_index_key' => 'local_index_name',
-     * ].
+     *   [
+     *     'simple_index_name' => [
+     *          'hash' => 'index_key'
+     *     ],
+     *     'composite_index_name' => [
+     *          'hash' => 'index_hash_key',
+     *          'range' => 'index_range_key'
+     *     ],
+     *   ]
      *
      * @var array
      */
     protected $dynamoDbIndexKeys = [];
-
 
     /**
      * Array of your composite key.
@@ -62,7 +66,7 @@ abstract class DynamoDbModel extends Model
      * Default Date format
      * ISO 8601 Compliant
      */
-    protected $dateFormat = DateTime::ISO8601;
+    protected $dateFormat = DateTime::ATOM;
 
     /**
      * The array of global scopes on the model.
@@ -205,11 +209,7 @@ abstract class DynamoDbModel extends Model
      */
     public function newQuery()
     {
-        $builder = new DynamoDbQueryBuilder();
-
-        $builder->setModel($this);
-
-        $builder->setClient($this->client);
+        $builder = new DynamoDbQueryBuilder($this);
 
         foreach ($this->getGlobalScopes() as $identifier => $scope) {
             $builder->withGlobalScope($identifier, $scope);
@@ -305,4 +305,34 @@ abstract class DynamoDbModel extends Model
         $this->dynamoDbIndexKeys = $dynamoDbIndexKeys;
     }
 
+    /**
+     * @return \Aws\DynamoDb\Marshaler
+     */
+    public function getMarshaler()
+    {
+        return $this->marshaler;
+    }
+
+    /**
+     * Remove non-serializable properties when serializing.
+     *
+     * @return array
+     */
+    public function __sleep()
+    {
+        return array_keys(
+            array_except(get_object_vars($this), ['client', 'marshaler', 'attributeFilter'])
+        );
+    }
+
+    /**
+     * When a model is being unserialized, check if it needs to be booted and setup DynamoDB.
+     *
+     * @return void
+     */
+    public function __wakeup()
+    {
+        parent::__wakeup();
+        $this->setupDynamoDb();
+    }
 }
