@@ -295,7 +295,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $this->assertEquals($expectedItem, $foundItems->first()->toArray());
     }
 
-    public function testConditionsDoNotContainAllCompositeKeys()
+    public function testConditionsNotContainingAllCompositeKeys()
     {
         $this->seed([
             'id' => ['S' => 'id1'],

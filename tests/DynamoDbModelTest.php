@@ -553,7 +553,6 @@ class DynamoDbModelTest extends ModelTest
 
         return $item;
     }
-
 }
 
 class TestModel extends \BaoPham\DynamoDb\DynamoDbModel
