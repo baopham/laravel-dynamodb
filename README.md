@@ -86,7 +86,9 @@ $model->delete();
 #### Conditions
 
 ```php
-// Using getIterator(). If 'key' is the primary key or a global/local index and the condition is EQ, will use 'Query', otherwise 'Scan'.
+// Using getIterator()
+// If 'key' is the primary key or a global/local index and it is a supported Query condition,
+// will use 'Query', otherwise 'Scan'.
 $model->where('key', 'key value')->get();
 
 $model->where(['key' => 'key value']);
