@@ -90,6 +90,7 @@ $model->delete();
 $model->where('key', 'key value')->get();
 
 $model->where(['key' => 'key value']);
+
 // Chainable for 'AND'.
 $model->where('foo', 'bar')
     ->where('foo2', '!=' 'bar2')
@@ -99,8 +100,15 @@ $model->where('foo', 'bar')
 $model->where('foo', 'bar')
     ->orWhere('foo2', '!=' 'bar2')
     ->get();
-$model->where('count', 'between', [0, 100])->get();
+ 
+// Other types of conditions
 $model->where('count', '>', 0)->get();
+$model->where('count', '>=', 0)->get();
+$model->where('count', '<', 0)->get();
+$model->where('count', '<=', 0)->get();
+$model->whereIn('count', [0, 100])->get();
+$model->whereNotIn('count', [0, 100])->get();
+$model->where('count', 'between', [0, 100])->get();
 $model->where('description', 'begins_with', 'foo')->get();
 $model->where('description', 'contains', 'foo')->get();
 $model->where('description', 'not_contains', 'foo')->get();
