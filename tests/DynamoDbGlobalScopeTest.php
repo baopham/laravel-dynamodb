@@ -92,8 +92,7 @@ class GlobalScopeModel extends \BaoPham\DynamoDb\DynamoDbModel
     {
         parent::boot();
 
-        static::addGlobalScope('count', function (DynamoDbQueryBuilder $builder) 
-        {
+        static::addGlobalScope('count', function (DynamoDbQueryBuilder $builder) {
             $builder->where('count', '>', 6);
         });
     }
