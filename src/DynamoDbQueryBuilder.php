@@ -193,6 +193,19 @@ class DynamoDbQueryBuilder
     }
 
     /**
+     * Add an "or where" clause to the query.
+     *
+     * @param  string  $column
+     * @param  string  $operator
+     * @param  mixed   $value
+     * @return $this
+     */
+    public function orWhere($column, $operator = null, $value = null)
+    {
+        return $this->where($column, $operator, $value, 'or');
+    }
+
+    /**
      * Add a "where in" clause to the query.
      *
      * @param  string  $column
@@ -227,6 +240,18 @@ class DynamoDbQueryBuilder
     }
 
     /**
+     * Add an "or where in" clause to the query.
+     *
+     * @param  string  $column
+     * @param  mixed   $values
+     * @return $this
+     */
+    public function orWhereIn($column, $values)
+    {
+        return $this->whereIn($column, $values, 'or');
+    }
+
+    /**
      * Add a "where null" clause to the query.
      *
      * @param  string  $column
@@ -241,6 +266,28 @@ class DynamoDbQueryBuilder
         $this->where[] = compact('column', 'operator', 'boolean');
 
         return $this;
+    }
+
+    /**
+     * Add an "or where null" clause to the query.
+     *
+     * @param  string  $column
+     * @return $this
+     */
+    public function orWhereNull($column)
+    {
+        return $this->whereNull($column, 'or');
+    }
+
+    /**
+     * Add an "or where not null" clause to the query.
+     *
+     * @param  string  $column
+     * @return $this
+     */
+    public function orWhereNotNull($column)
+    {
+        return $this->whereNotNull($column, 'or');
     }
 
     /**

@@ -90,9 +90,14 @@ $model->delete();
 $model->where('key', 'key value')->get();
 
 $model->where(['key' => 'key value']);
-// Chainable for 'AND'. 'OR' is not tested.
+// Chainable for 'AND'.
 $model->where('foo', 'bar')
     ->where('foo2', '!=' 'bar2')
+    ->get();
+    
+// Chainable for 'OR'.
+$model->where('foo', 'bar')
+    ->orWhere('foo2', '!=' 'bar2')
     ->get();
 $model->where('count', 'between', [0, 100])->get();
 $model->where('count', '>', 0)->get();
@@ -264,7 +269,6 @@ Laravel ^5.1
 TODO
 ----
 - [ ] Nested conditions
-- [ ] Verify OR conditions
 
 FAQ
 ---

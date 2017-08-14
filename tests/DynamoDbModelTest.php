@@ -184,10 +184,19 @@ class DynamoDbModelTest extends ModelTest
         $this->seed(['count' => ['N' => 10]]);
         $this->seed(['count' => ['N' => 10]]);
         $this->seed(['count' => ['N' => 10]]);
+        $this->seed(['count' => ['N' => 9]]);
 
-        $items = $this->testModel->where('count', 10)->get()->toArray();
+        $items = $this->testModel->where('count', 10)->get();
 
-        $this->assertEquals(3, count($items));
+        $this->assertEquals(3, $items->count());
+
+        // OR condition
+        $items = $this->testModel
+            ->where('count', 10)
+            ->orWhere('count', 9)
+            ->get();
+
+        $this->assertEquals(4, $items->count());
     }
 
     public function testGetAllRecordsWithNonEqualCondition()
@@ -196,9 +205,17 @@ class DynamoDbModelTest extends ModelTest
         $this->seed(['count' => ['N' => 11]]);
         $this->seed(['count' => ['N' => 11]]);
 
-        $items = $this->testModel->where('count', '!=', 10)->get()->toArray();
+        $items = $this->testModel->where('count', '!=', 10)->get();
 
-        $this->assertEquals(2, count($items));
+        $this->assertEquals(2, $items->count());
+
+        // OR condition
+        $items = $this->testModel
+            ->where('count', '!=', 10)
+            ->orWhere('count', '!=', 11)
+            ->get();
+
+        $this->assertEquals(3, $items->count());
     }
 
     public function testGetAllRecordsWithGTCondition()
@@ -207,9 +224,17 @@ class DynamoDbModelTest extends ModelTest
         $this->seed(['count' => ['N' => 11]]);
         $this->seed(['count' => ['N' => 11]]);
 
-        $items = $this->testModel->where('count', '>', 10)->get()->toArray();
+        $items = $this->testModel->where('count', '>', 10)->get();
 
-        $this->assertEquals(2, count($items));
+        $this->assertEquals(2, $items->count());
+
+        // OR condition
+        $items = $this->testModel
+            ->where('count', '>', 100)
+            ->orWhere('count', '>', 10)
+            ->get();
+
+        $this->assertEquals(2, $items->count());
     }
 
     public function testGetAllRecordsWithLTCondition()
@@ -218,9 +243,17 @@ class DynamoDbModelTest extends ModelTest
         $this->seed(['count' => ['N' => 9]]);
         $this->seed(['count' => ['N' => 11]]);
 
-        $items = $this->testModel->where('count', '<', 10)->get()->toArray();
+        $items = $this->testModel->where('count', '<', 10)->get();
 
-        $this->assertEquals(1, count($items));
+        $this->assertEquals(1, $items->count());
+
+        // OR condition
+        $items = $this->testModel
+            ->where('count', '<', 1)
+            ->orWhere('count', '<', 10)
+            ->get();
+
+        $this->assertEquals(1, $items->count());
     }
 
     public function testGetAllRecordsWithGECondition()
@@ -229,9 +262,17 @@ class DynamoDbModelTest extends ModelTest
         $this->seed(['count' => ['N' => 9]]);
         $this->seed(['count' => ['N' => 11]]);
 
-        $items = $this->testModel->where('count', '>=', 10)->get()->toArray();
+        $items = $this->testModel->where('count', '>=', 10)->get();
 
-        $this->assertEquals(2, count($items));
+        $this->assertEquals(2, $items->count());
+
+        // OR condition
+        $items = $this->testModel
+            ->where('count', '>=', 10)
+            ->orWhere('count', '>=', 100)
+            ->get();
+
+        $this->assertEquals(2, $items->count());
     }
 
     public function testGetAllRecordsWithLECondition()
@@ -240,9 +281,17 @@ class DynamoDbModelTest extends ModelTest
         $this->seed(['count' => ['N' => 9]]);
         $this->seed(['count' => ['N' => 11]]);
 
-        $items = $this->testModel->where('count', '<=', 10)->get()->toArray();
+        $items = $this->testModel->where('count', '<=', 10)->get();
 
-        $this->assertEquals(2, count($items));
+        $this->assertEquals(2, $items->count());
+
+        // OR condition
+        $items = $this->testModel
+            ->where('count', '<=', 10)
+            ->orWhere('count', '<=', 1)
+            ->get();
+
+        $this->assertEquals(2, $items->count());
     }
 
     public function testGetAllRecordsWithBeginsWithOperator()
@@ -251,9 +300,17 @@ class DynamoDbModelTest extends ModelTest
         $this->seed(['description' => ['S' => 'Foo_2']]);
         $this->seed(['description' => ['S' => 'Bar_Foo']]);
 
-        $items = $this->testModel->where('description', 'BEGINS_WITH', 'Foo')->get()->toArray();
+        $items = $this->testModel->where('description', 'BEGINS_WITH', 'Foo')->get();
 
-        $this->assertEquals(2, count($items));
+        $this->assertEquals(2, $items->count());
+
+        // OR condition
+        $items = $this->testModel
+            ->where('description', 'BEGINS_WITH', 'Foo')
+            ->orWhere('description', 'BEGINS_WITH', 'Bar')
+            ->get();
+
+        $this->assertEquals(3, $items->count());
     }
 
     public function testGetAllRecordsWithContainsOperator()
@@ -261,13 +318,21 @@ class DynamoDbModelTest extends ModelTest
         $this->seed(['description' => ['L' => [['S' => 'foo'], ['S' => 'bar']]]]);
         $this->seed(['description' => ['L' => [['S' => 'foo'], ['S' => 'bar2']]]]);
 
-        $items = $this->testModel->where('description', 'CONTAINS', 'foo')->get()->toArray();
+        $items = $this->testModel->where('description', 'CONTAINS', 'foo')->get();
 
-        $this->assertEquals(2, count($items));
+        $this->assertEquals(2, $items->count());
 
-        $items = $this->testModel->where('description', 'CONTAINS', 'bar2')->get()->toArray();
+        $items = $this->testModel->where('description', 'CONTAINS', 'bar2')->get();
 
-        $this->assertEquals(1, count($items));
+        $this->assertEquals(1, $items->count());
+
+        // OR condition
+        $items = $this->testModel
+            ->where('description', 'CONTAINS', 'bar2')
+            ->orWhere('description', 'CONTAINS', 'foo')
+            ->get();
+
+        $this->assertEquals(2, $items->count());
     }
 
     public function testGetAllRecordsWithNotContainsOperator()
@@ -275,13 +340,21 @@ class DynamoDbModelTest extends ModelTest
         $this->seed(['description' => ['L' => [['S' => 'foo'], ['S' => 'bar']]]]);
         $this->seed(['description' => ['L' => [['S' => 'foo'], ['S' => 'bar2']]]]);
 
-        $items = $this->testModel->where('description', 'NOT_CONTAINS', 'foo')->get()->toArray();
+        $items = $this->testModel->where('description', 'NOT_CONTAINS', 'foo')->get();
 
-        $this->assertEquals(0, count($items));
+        $this->assertEquals(0, $items->count());
 
-        $items = $this->testModel->where('description', 'NOT_CONTAINS', 'foobar')->get()->toArray();
+        $items = $this->testModel->where('description', 'NOT_CONTAINS', 'foobar')->get();
 
-        $this->assertEquals(2, count($items));
+        $this->assertEquals(2, $items->count());
+
+        // OR condition
+        $items = $this->testModel
+            ->where('description', 'NOT_CONTAINS', 'oo')
+            ->orWhere('description', 'NOT_CONTAINS', 'aa')
+            ->get();
+
+        $this->assertEquals(2, $items->count());
     }
 
     public function testGetAllRecordsWithBetweenOperator()
@@ -289,13 +362,21 @@ class DynamoDbModelTest extends ModelTest
         $this->seed(['description' => ['N' => 10]]);
         $this->seed(['description' => ['N' => 11]]);
 
-        $items = $this->testModel->where('description', 'BETWEEN', [1, 11])->get()->toArray();
+        $items = $this->testModel->where('description', 'BETWEEN', [1, 11])->get();
 
-        $this->assertEquals(2, count($items));
+        $this->assertEquals(2, $items->count());
 
-        $items = $this->testModel->where('description', 'BETWEEN', [100, 110])->get()->toArray();
+        $items = $this->testModel->where('description', 'BETWEEN', [100, 110])->get();
 
-        $this->assertEquals(0, count($items));
+        $this->assertEquals(0, $items->count());
+
+        // OR condition
+        $items = $this->testModel
+            ->where('description', 'BETWEEN', [100, 110])
+            ->orWhere('description', 'BETWEEN', [1, 11])
+            ->get();
+
+        $this->assertEquals(2, $items->count());
     }
 
     public function testGetFirstRecord()
@@ -394,6 +475,18 @@ class DynamoDbModelTest extends ModelTest
         foreach ($items as $item) {
             $this->assertContains($item->name, ['foo', 'bar']);
         }
+
+        // OR condition
+        $items = $this->testModel
+            ->whereIn('name', ['foo', 'bar'])
+            ->orWhereIn('name', ['foobar'])
+            ->get();
+
+        $this->assertEquals(4, $items->count());
+
+        foreach ($items as $item) {
+            $this->assertContains($item->name, ['foo', 'bar', 'foobar']);
+        }
     }
 
     public function testWhereNull()
@@ -402,6 +495,13 @@ class DynamoDbModelTest extends ModelTest
         $this->seed([], ['name']);
 
         $items = $this->testModel->whereNull('name')->get();
+
+        $this->assertEquals(1, $items->count());
+
+        $this->assertNull($items->first()->name);
+
+        // OR condition
+        $items = $this->testModel->whereNull('name')->orWhereNull('description')->get();
 
         $this->assertEquals(1, $items->count());
 
@@ -418,6 +518,11 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals(1, $items->count());
 
         $this->assertNotNull($items->first()->name);
+
+        // OR condition
+        $items = $this->testModel->whereNotNull('name')->orWhereNotNull('description')->get();
+
+        $this->assertEquals(2, $items->count());
     }
 
     public function testChunkScan()
