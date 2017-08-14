@@ -26,11 +26,6 @@ class DynamoDbQueryBuilder
     protected $client;
 
     /**
-     * @var int
-     */
-    protected $limit = -1;
-
-    /**
      * The methods that should be returned from query builder.
      *
      * @var array
@@ -601,8 +596,6 @@ class DynamoDbQueryBuilder
         // // query as their own isolated nested where statement and avoid issues.
         // $originalWhereCount = is_null($query->wheres)
         //             ? 0 : count($query->wheres);
-
-        // var_dump($scope);
 
         $result = $scope(...array_values($parameters)) ?: $this;
 
