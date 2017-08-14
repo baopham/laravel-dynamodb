@@ -477,6 +477,7 @@ class DynamoDbQueryBuilder
         if ($limit === -1 && isset($this->limit)) {
             $limit = $this->limit;
         }
+        $this->applyScopes();
         if ($conditionValue = $this->conditionsContainKey()) {
             if ($this->conditionsAreExactSearch()) {
                 $item = $this->find($conditionValue, $columns);
@@ -897,5 +898,28 @@ class DynamoDbQueryBuilder
         // }
 
         return $result;
+    }
+
+    /**
+     * Dynamically handle calls into the query instance.
+     *
+     * @param  string  $method
+     * @param  array  $parameters
+     * @return mixed
+     */
+    public function __call($method, $parameters)
+    {
+
+        if (method_exists($this->model, $scope = 'scope'.ucfirst($method))) {
+            return $this->callScope([$this->model, $scope], $parameters);
+        }
+
+        if (in_array($method, $this->passthru)) {
+            return $this->toBase()->{$method}(...$parameters);
+        }
+
+        $this->query->{$method}(...$parameters);
+
+        return $this;
     }
 }
