@@ -1,6 +1,6 @@
 {
     "name": "baopham/dynamodb",
-    "description": "DynamoDb wrapper for your Laravel model and helpers",
+    "description": "Eloquent syntax for DynamoDB",
     "keywords": ["laravel", "dynamodb", "aws"],
     "require": {
         "aws/aws-sdk-php": "^3.0.0",
