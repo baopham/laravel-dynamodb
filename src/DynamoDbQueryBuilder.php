@@ -524,27 +524,35 @@ class DynamoDbQueryBuilder
         if ($conditionValue = $this->conditionsContainKey()) {
             if ($this->conditionsAreExactSearch()) {
                 $item = $this->find($conditionValue, $columns);
+
                 return new Collection([$item]);
             }
         }
+
         $query = [
             'TableName' => $this->model->getTable(),
         ];
+
         if ($limit > -1) {
             $query['Limit'] = $limit;
         }
+
         if (!empty($columns)) {
             $query['ProjectionExpression'] = $this->projectionExpression->parse($columns);
         }
+
         if (!empty($this->lastEvaluatedKey)) {
             $query['ExclusiveStartKey'] = $this->lastEvaluatedKey;
         }
         $queryInfo = $this->buildExpressionQuery();
         $op = $queryInfo['op'];
         $query = array_merge($query, $queryInfo['query']);
+
         $this->cleanUpQuery($query);
+
         if ($use_iterator) {
             $iterator = $this->client->getIterator($op, $query);
+        
             if (isset($query['Limit'])) {
                 $iterator = new \LimitIterator($iterator, 0, $query['Limit']);
             }
@@ -554,10 +562,13 @@ class DynamoDbQueryBuilder
             } else {
                 $res = $this->client->query($query);
             }
+
             $this->lastEvaluatedKey = array_get($res, 'LastEvaluatedKey');
             $iterator = $res['Items'];
         }
+
         $results = [];
+
         foreach ($iterator as $item) {
             $item = $this->model->unmarshalItem($item);
             $model = $this->model->newInstance($item, true);
@@ -565,6 +576,7 @@ class DynamoDbQueryBuilder
             $model->syncOriginal();
             $results[] = $model;
         }
+        
         return new Collection($results);
     }
 
