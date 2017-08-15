@@ -556,7 +556,7 @@ class DynamoDbQueryBuilder
         if ($limit === -1 && isset($this->limit)) {
             $limit = $this->limit;
         }
-        
+
         if ($conditionValue = $this->conditionsContainKey()) {
             if ($this->conditionsAreExactSearch()) {
                 $item = $this->find($conditionValue, $columns);
@@ -599,7 +599,7 @@ class DynamoDbQueryBuilder
         $query = [];
 
         if (empty($this->wheres)) {
-            return compact('op', 'query');
+            return [ 'op' => $op, 'query' => $query ];
         }
 
         // Index key condition exists, then use Query instead of Scan.
@@ -659,7 +659,7 @@ class DynamoDbQueryBuilder
 
         $query['ExpressionAttributeValues'] = $this->expressionAttributeValues->all();
 
-        return compact('op', 'query');
+        return [ 'op' => $op, 'query' => $query ];
     }
 
     protected function conditionsAreExactSearch()
