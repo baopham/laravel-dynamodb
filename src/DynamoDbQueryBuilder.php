@@ -503,6 +503,57 @@ class DynamoDbQueryBuilder
 
     protected function getAll($columns = [], $limit = -1, $use_iterator = true)
     {
+        $queryInfo = $this->buildQueryInfo($columns, $limit);
+        $op = $queryInfo['op'];
+        $query = $queryInfo['query'];
+
+        if ($use_iterator) {
+            $iterator = $this->client->getIterator($op, $query);
+
+            if (isset($query['Limit'])) {
+                $iterator = new \LimitIterator($iterator, 0, $query['Limit']);
+            }
+        } else {
+            if ($op === 'Scan') {
+                $res = $this->client->scan($query);
+            } else {
+                $res = $this->client->query($query);
+            }
+
+            $this->lastEvaluatedKey = array_get($res, 'LastEvaluatedKey');
+            $iterator = $res['Items'];
+        }
+
+        $results = [];
+
+        foreach ($iterator as $item) {
+            $item = $this->model->unmarshalItem($item);
+            $model = $this->model->newInstance($item, true);
+            $model->setUnfillableAttributes($item);
+            $model->syncOriginal();
+            $results[] = $model;
+        }
+
+        return new Collection($results);
+    }
+
+    /**
+     * Similar to Eloquents `toSql()` call, but outputs the JSON passed to DynamoDb for the requests
+     * @return string
+     */
+    public function toRequestJson($columns = [], $limit = -1, $json_options = JSON_PRETTY_PRINT)
+    {
+        $queryInfo = $this->buildQueryInfo($columns, $limit);
+        return json_encode($queryInfo, $json_options);
+    }
+
+    /**
+     * Builds the Request JSON pass to DynamoDb
+     * @return array
+     */
+    public function buildQueryInfo($columns = [], $limit = -1)
+    {
+        $this->applyScopes();
         if ($limit === -1 && isset($this->limit)) {
             $limit = $this->limit;
         }
@@ -536,35 +587,9 @@ class DynamoDbQueryBuilder
         $query = array_merge($query, $queryInfo['query']);
 
         $this->cleanUpQuery($query);
+        $queryInfo['query'] = $query;
 
-        if ($use_iterator) {
-            $iterator = $this->client->getIterator($op, $query);
-
-            if (isset($query['Limit'])) {
-                $iterator = new \LimitIterator($iterator, 0, $query['Limit']);
-            }
-        } else {
-            if ($op === 'Scan') {
-                $res = $this->client->scan($query);
-            } else {
-                $res = $this->client->query($query);
-            }
-
-            $this->lastEvaluatedKey = array_get($res, 'LastEvaluatedKey');
-            $iterator = $res['Items'];
-        }
-
-        $results = [];
-
-        foreach ($iterator as $item) {
-            $item = $this->model->unmarshalItem($item);
-            $model = $this->model->newInstance($item, true);
-            $model->setUnfillableAttributes($item);
-            $model->syncOriginal();
-            $results[] = $model;
-        }
-
-        return new Collection($results);
+        return $queryInfo;
     }
 
     protected function buildExpressionQuery()
@@ -575,7 +600,7 @@ class DynamoDbQueryBuilder
         $query = [];
 
         if (empty($this->wheres)) {
-            return compact('op', 'query');
+            return [ 'op' => $op, 'query' => $query ];
         }
 
         // Index key condition exists, then use Query instead of Scan.
@@ -635,7 +660,7 @@ class DynamoDbQueryBuilder
 
         $query['ExpressionAttributeValues'] = $this->expressionAttributeValues->all();
 
-        return compact('op', 'query');
+        return [ 'op' => $op, 'query' => $query ];
     }
 
     protected function conditionsAreExactSearch()
