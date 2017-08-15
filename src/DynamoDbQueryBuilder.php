@@ -41,16 +41,6 @@ class DynamoDbQueryBuilder
     protected $client;
 
     /**
-     * The methods that should be returned from query builder.
-     *
-     * @var array
-     */
-    protected $passthru = [
-        'insert', 'insertGetId', 'getBindings', 'toSql',
-        'exists', 'count', 'min', 'max', 'avg', 'sum', 'getConnection',
-    ];
-
-    /**
      * Applied global scopes.
      *
      * @var array
@@ -964,10 +954,6 @@ class DynamoDbQueryBuilder
     {
         if (method_exists($this->model, $scope = 'scope'.ucfirst($method))) {
             return $this->callScope([$this->model, $scope], $parameters);
-        }
-
-        if (in_array($method, $this->passthru)) {
-            return $this->toBase()->{$method}(...$parameters);
         }
 
         $this->query->{$method}(...$parameters);
