@@ -60,7 +60,7 @@ class ConditionExpression
      * @param array $where
      *   [
      *     'column' => 'name',
-     *     'operator' => 'EQ',
+     *     'type' => 'EQ',
      *     'value' => 'foo',
      *     'boolean' => 'and',
      *   ]
@@ -78,6 +78,8 @@ class ConditionExpression
 
         foreach ($where as $condition) {
             $boolean = array_get($condition, 'boolean');
+            $value = array_get($condition, 'value');
+            $type = array_get($condition, 'type');
 
             $prefix = '';
 
@@ -85,10 +87,15 @@ class ConditionExpression
                 $prefix = strtoupper($boolean) . ' ';
             }
 
+            if ($type === 'Nested') {
+                $parsed[] = $prefix . $this->parseNestedCondition($value);
+                continue;
+            }
+
             $parsed[] = $prefix . $this->parseCondition(
                 array_get($condition, 'column'),
-                array_get($condition, 'operator'),
-                array_get($condition, 'value')
+                $type,
+                $value
             );
         }
 
@@ -105,6 +112,11 @@ class ConditionExpression
     protected function getSupportedOperators()
     {
         return static::OPERATORS;
+    }
+
+    protected function parseNestedCondition(array $conditions)
+    {
+        return '(' . $this->parse($conditions) . ')';
     }
 
     protected function parseCondition($name, $operator, $value)

@@ -28,7 +28,7 @@ class DynamoDbQueryBuilder
     /**
      * @var array
      */
-    protected $where = [];
+    public $wheres = [];
 
     /**
      * @var DynamoDbModel
@@ -189,7 +189,7 @@ class DynamoDbQueryBuilder
         // wants to begin a nested where statement which is wrapped in parenthesis.
         // We'll add that Closure to the query then return back out immediately.
         if ($column instanceof Closure) {
-            throw new NotSupportedException('Closure in where clause is not supported');
+            return $this->whereNested($column, $boolean);
         }
 
         // If the given operator is not found in the list of valid operators we will
@@ -206,12 +206,55 @@ class DynamoDbQueryBuilder
             throw new NotSupportedException('Closure in where clause is not supported');
         }
 
-        $this->where[] = [
+        $this->wheres[] = [
             'column' => $column,
-            'operator' => ComparisonOperator::getDynamoDbOperator($operator),
+            'type' => ComparisonOperator::getDynamoDbOperator($operator),
             'value' => $value,
             'boolean' => $boolean,
         ];
+
+        return $this;
+    }
+
+    /**
+     * Add a nested where statement to the query.
+     *
+     * @param  \Closure $callback
+     * @param  string   $boolean
+     * @return DynamoDbQueryBuilder|static
+     */
+    public function whereNested(Closure $callback, $boolean = 'and')
+    {
+        call_user_func($callback, $query = $this->forNestedWhere());
+
+        return $this->addNestedWhereQuery($query, $boolean);
+    }
+
+    /**
+     * Create a new query instance for nested where condition.
+     *
+     * @return DynamoDbQueryBuilder
+     */
+    public function forNestedWhere()
+    {
+        return $this->newQuery();
+    }
+
+    /**
+     * Add another query builder as a nested where to the query builder.
+     *
+     * @param  DynamoDbQueryBuilder|static $query
+     * @param  string  $boolean
+     * @return $this
+     */
+    public function addNestedWhereQuery($query, $boolean = 'and')
+    {
+        if (count($query->wheres)) {
+            $type = 'Nested';
+            $column = null;
+            $value = $query->wheres;
+            $this->wheres[] = compact('column', 'type', 'value', 'boolean');
+        }
 
         return $this;
     }
@@ -285,9 +328,9 @@ class DynamoDbQueryBuilder
      */
     public function whereNull($column, $boolean = 'and', $not = false)
     {
-        $operator = $not ? ComparisonOperator::NOT_NULL : ComparisonOperator::NULL;
+        $type = $not ? ComparisonOperator::NOT_NULL : ComparisonOperator::NULL;
 
-        $this->where[] = compact('column', 'operator', 'boolean');
+        $this->wheres[] = compact('column', 'type', 'boolean');
 
         return $this;
     }
@@ -324,6 +367,16 @@ class DynamoDbQueryBuilder
     public function whereNotNull($column, $boolean = 'and')
     {
         return $this->whereNull($column, $boolean, true);
+    }
+
+    /**
+     * Get a new instance of the query builder.
+     *
+     * @return DynamoDbQueryBuilder
+     */
+    public function newQuery()
+    {
+        return new static($this->getModel());
     }
 
     /**
@@ -532,7 +585,7 @@ class DynamoDbQueryBuilder
         $op = 'Scan';
         $query = [];
 
-        if (empty($this->where)) {
+        if (empty($this->wheres)) {
             return compact('op', 'query');
         }
 
@@ -543,19 +596,19 @@ class DynamoDbQueryBuilder
 
             $isCompositeKey = isset($keysInfo['range']);
 
-            $hashKeyCondition = array_first($this->where, function ($condition) use ($keysInfo) {
+            $hashKeyCondition = array_first($this->wheres, function ($condition) use ($keysInfo) {
                 return $condition['column'] === $keysInfo['hash'];
             });
 
-            $isValidQueryOperator = ComparisonOperator::isValidQueryDynamoDbOperator($hashKeyCondition['operator']);
+            $isValidQueryOperator = ComparisonOperator::isValidQueryDynamoDbOperator($hashKeyCondition['type']);
 
             if ($isValidQueryOperator && $isCompositeKey) {
-                $rangeKeyCondition = array_first($this->where, function ($condition) use ($keysInfo) {
+                $rangeKeyCondition = array_first($this->wheres, function ($condition) use ($keysInfo) {
                     return $condition['column'] === $keysInfo['range'];
                 });
 
                 $isValidQueryOperator = ComparisonOperator::isValidQueryDynamoDbOperator(
-                    $rangeKeyCondition['operator'],
+                    $rangeKeyCondition['type'],
                     true
                 );
             }
@@ -565,11 +618,11 @@ class DynamoDbQueryBuilder
 
                 $indexes = array_values($keysInfo);
 
-                $keyConditions = array_filter($this->where, function ($condition) use ($indexes) {
+                $keyConditions = array_filter($this->wheres, function ($condition) use ($indexes) {
                     return in_array($condition['column'], $indexes);
                 });
 
-                $nonKeyConditions = array_filter($this->where, function ($condition) use ($indexes) {
+                $nonKeyConditions = array_filter($this->wheres, function ($condition) use ($indexes) {
                     return !in_array($condition['column'], $indexes);
                 });
 
@@ -582,11 +635,11 @@ class DynamoDbQueryBuilder
         } else if ($this->conditionsContainKey()) {
             $op = 'Query';
 
-            $query['KeyConditionExpression'] = $this->keyConditionExpression->parse($this->where);
+            $query['KeyConditionExpression'] = $this->keyConditionExpression->parse($this->wheres);
         }
 
         if ($op === 'Scan') {
-            $query['FilterExpression'] = $this->filterExpression->parse($this->where);
+            $query['FilterExpression'] = $this->filterExpression->parse($this->wheres);
         }
 
         $query['ExpressionAttributeNames'] = $this->expressionAttributeNames->all();
@@ -598,12 +651,12 @@ class DynamoDbQueryBuilder
 
     protected function conditionsAreExactSearch()
     {
-        if (empty($this->where)) {
+        if (empty($this->wheres)) {
             return false;
         }
 
-        foreach ($this->where as $condition) {
-            if (array_get($condition, 'operator') !== ComparisonOperator::EQ) {
+        foreach ($this->wheres as $condition) {
+            if (array_get($condition, 'type') !== ComparisonOperator::EQ) {
                 return false;
             }
         }
@@ -625,11 +678,11 @@ class DynamoDbQueryBuilder
      */
     protected function conditionsContainKey()
     {
-        if (empty($this->where)) {
+        if (empty($this->wheres)) {
             return false;
         }
 
-        $conditionKeys = array_pluck($this->where, 'column');
+        $conditionKeys = array_pluck($this->wheres, 'column');
 
         $model = $this->model;
 
@@ -643,7 +696,7 @@ class DynamoDbQueryBuilder
 
         $conditionValue = [];
 
-        foreach ($this->where as $condition) {
+        foreach ($this->wheres as $condition) {
             $column = array_get($condition, 'column');
             if (in_array($column, $keys)) {
                 $conditionValue[$column] = array_get($condition, 'value');
@@ -662,12 +715,12 @@ class DynamoDbQueryBuilder
      */
     protected function conditionsContainIndexKey()
     {
-        if (empty($this->where)) {
+        if (empty($this->wheres)) {
             return false;
         }
 
         foreach ($this->model->getDynamoDbIndexKeys() as $name => $keysInfo) {
-            $conditionKeys = array_pluck($this->where, 'column');
+            $conditionKeys = array_pluck($this->wheres, 'column');
             $keys = array_values($keysInfo);
             if (count(array_intersect($conditionKeys, $keys)) === count($keys)) {
                 return [

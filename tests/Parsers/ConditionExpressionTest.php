@@ -45,87 +45,101 @@ class ConditionExpressionTest extends TestCase
         $where = [
             [
                 'column' => 'name',
-                'operator' => ComparisonOperator::EQ,
+                'type' => ComparisonOperator::EQ,
                 'value' => 'foo',
                 'boolean' => 'and',
             ],
             [
                 'column' => 'count1',
-                'operator' => ComparisonOperator::GT,
+                'type' => ComparisonOperator::GT,
                 'value' => 1,
                 'boolean' => 'and',
             ],
             [
                 'column' => 'count2',
-                'operator' => ComparisonOperator::GE,
+                'type' => ComparisonOperator::GE,
                 'value' => 2,
                 'boolean' => 'or',
             ],
             [
                 'column' => 'count3',
-                'operator' => ComparisonOperator::LT,
+                'type' => ComparisonOperator::LT,
                 'value' => 3,
                 'boolean' => 'and',
             ],
             [
                 'column' => 'count4',
-                'operator' => ComparisonOperator::LE,
+                'type' => ComparisonOperator::LE,
                 'value' => 4,
                 'boolean' => 'and',
             ],
             [
                 'column' => 'description',
-                'operator' => ComparisonOperator::BEGINS_WITH,
+                'type' => ComparisonOperator::BEGINS_WITH,
                 'value' => 'hello world',
                 'boolean' => 'and',
             ],
             [
                 'column' => 'score',
-                'operator' => ComparisonOperator::BETWEEN,
+                'type' => ComparisonOperator::BETWEEN,
                 'value' => [0, 100],
                 'boolean' => 'and',
             ],
             [
                 'column' => 'age',
-                'operator' => ComparisonOperator::IN,
+                'type' => ComparisonOperator::IN,
                 'value' => [0, 20],
                 'boolean' => 'and',
             ],
             [
                 'column' => 'foo',
-                'operator' => ComparisonOperator::CONTAINS,
+                'type' => ComparisonOperator::CONTAINS,
                 'value' => 'foobar',
                 'boolean' => 'and',
             ],
             [
                 'column' => 'bar',
-                'operator' => ComparisonOperator::NOT_CONTAINS,
+                'type' => ComparisonOperator::NOT_CONTAINS,
                 'value' => 'foobar',
                 'boolean' => 'or',
             ],
             [
                 'column' => 'gender',
-                'operator' => ComparisonOperator::NULL,
+                'type' => ComparisonOperator::NULL,
                 'boolean' => 'and',
             ],
             [
                 'column' => 'occupation',
-                'operator' => ComparisonOperator::NOT_NULL,
+                'type' => ComparisonOperator::NOT_NULL,
                 'boolean' => 'and',
             ],
             [
                 'column' => 'retired',
-                'operator' => ComparisonOperator::NE,
+                'type' => ComparisonOperator::NE,
                 'value' => true,
                 'boolean' => 'or',
             ],
+            [
+                'column' => null,
+                'type' => 'Nested',
+                'value' => [
+                    [
+                        'column' => 'phone',
+                        'type' => ComparisonOperator::IN,
+                        'value' => ['android'],
+                        'boolean' => 'and',
+                    ],
+                ],
+                'boolean' => 'and',
+            ]
         ];
 
         $this->assertEquals(
             "#name = :a1 AND #count1 > :a2 OR #count2 >= :a3 AND #count3 < :a4 " .
             "AND #count4 <= :a5 AND begins_with(#description, :a6) AND (#score BETWEEN :a7 AND :a8) " .
             "AND #age IN (:a9, :a10) AND contains(#foo, :a11) OR NOT contains(#bar, :a12) " .
-            "AND attribute_not_exists(#gender) AND attribute_exists(#occupation) OR #retired <> :a13",
+            "AND attribute_not_exists(#gender) AND attribute_exists(#occupation) OR #retired <> :a13 " .
+            "AND (#phone IN (:a14))",
             $this->parser->parse($where)
         );
 
@@ -142,8 +156,9 @@ class ConditionExpressionTest extends TestCase
         $this->assertEquals(['S' => 'foobar'], $this->values->get(':a11'));
         $this->assertEquals(['S' => 'foobar'], $this->values->get(':a12'));
         $this->assertEquals(['BOOL' => true], $this->values->get(':a13'));
+        $this->assertEquals(['S' => 'android'], $this->values->get(':a14'));
 
-        $columns = array_pluck($where, 'column');
+        $columns = array_filter(array_pluck($where, 'column'));
 
         foreach ($columns as $column) {
             $this->assertEquals($column, $this->names->get("#{$column}"));

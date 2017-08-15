@@ -16,7 +16,6 @@ Supports all key types - primary hash key and composite keys.
 * [Indexes](#indexes)
 * [Composite Keys](#composite-keys)
 * [Requirements](#requirements)
-* [Todo](#todo)
 * [FAQ](#faq)
 * [License](#license)
 * [Author and Contributors](#author-and-contributors)
@@ -114,6 +113,12 @@ $model->where('count', 'between', [0, 100])->get();
 $model->where('description', 'begins_with', 'foo')->get();
 $model->where('description', 'contains', 'foo')->get();
 $model->where('description', 'not_contains', 'foo')->get();
+
+// Nested conditions
+$model->where('name', 'foo')
+    ->where(function ($query) {
+        $query->where('count', 10)->orWhere('count', 20);
+    });
 ```
 
 ##### whereNull() and whereNotNull()
@@ -275,10 +280,6 @@ Requirements
 -------------
 Laravel ^5.1
 
-
-TODO
-----
-- [ ] Nested conditions
 
 FAQ
 ---
