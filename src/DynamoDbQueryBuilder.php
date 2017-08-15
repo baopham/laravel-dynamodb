@@ -474,10 +474,10 @@ class DynamoDbQueryBuilder
 
     protected function getAll($columns = [], $limit = -1, $use_iterator = true)
     {
+        $this->applyScopes();
         if ($limit === -1 && isset($this->limit)) {
             $limit = $this->limit;
         }
-        $this->applyScopes();
         if ($conditionValue = $this->conditionsContainKey()) {
             if ($this->conditionsAreExactSearch()) {
                 $item = $this->find($conditionValue, $columns);
@@ -909,7 +909,6 @@ class DynamoDbQueryBuilder
      */
     public function __call($method, $parameters)
     {
-
         if (method_exists($this->model, $scope = 'scope'.ucfirst($method))) {
             return $this->callScope([$this->model, $scope], $parameters);
         }

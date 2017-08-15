@@ -6,7 +6,7 @@ use Carbon\Carbon;
 use BaoPham\DynamoDb\DynamoDbQueryBuilder;
 
 /**
- * Class DynamoDbTimestampTest
+ * Class DynamoDbGlobalScopeTest
  *
  * @package BaoPham\DynamoDb\Tests
  */
@@ -21,7 +21,7 @@ class DynamoDbGlobalScopeTest extends ModelTest
     {
         $seeds = [];
         for ($x = 0; $x < 10; $x++) {
-            $seeds[] = $this->seed(['count'=>['N' => $x]]);
+            $seeds[] = $this->seed(['count' => ['N' => $x]]);
         }
 
         $items = $this->testModel->all();
@@ -33,7 +33,7 @@ class DynamoDbGlobalScopeTest extends ModelTest
     {
         $seeds = [];
         for ($x = 0; $x < 10; $x++) {
-            $seeds[] = $this->seed(['count'=>['N' => $x]]);
+            $seeds[] = $this->seed(['count' => ['N' => $x]]);
         }
 
         $items = $this->testModel->withoutGlobalScopes()->countUnderFour()->get();
@@ -45,7 +45,7 @@ class DynamoDbGlobalScopeTest extends ModelTest
     {
         $seeds = [];
         for ($x = 0; $x < 10; $x++) {
-            $seeds[] = $this->seed(['count'=>['N' => $x]]);
+            $seeds[] = $this->seed(['count' => ['N' => $x]]);
         }
 
         $items = $this->testModel->withoutGlobalScopes()->countUnder(6)->get();
