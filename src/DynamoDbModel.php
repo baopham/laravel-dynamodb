@@ -68,12 +68,6 @@ abstract class DynamoDbModel extends Model
      */
     protected $dateFormat = DateTime::ATOM;
 
-    /**
-     * The array of global scopes on the model.
-     *
-     * @var array
-     */
-    protected static $globalScopes = [];
 
     public function __construct(array $attributes = [])
     {
