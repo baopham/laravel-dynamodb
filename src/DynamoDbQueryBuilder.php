@@ -503,39 +503,9 @@ class DynamoDbQueryBuilder
 
     protected function getAll($columns = [], $limit = -1, $use_iterator = true)
     {
-        if ($limit === -1 && isset($this->limit)) {
-            $limit = $this->limit;
-        }
-
-        if ($conditionValue = $this->conditionsContainKey()) {
-            if ($this->conditionsAreExactSearch()) {
-                $item = $this->find($conditionValue, $columns);
-
-                return new Collection([$item]);
-            }
-        }
-
-        $query = [
-            'TableName' => $this->model->getTable(),
-        ];
-
-        if ($limit > -1) {
-            $query['Limit'] = $limit;
-        }
-
-        if (!empty($columns)) {
-            $query['ProjectionExpression'] = $this->projectionExpression->parse($columns);
-        }
-
-        if (!empty($this->lastEvaluatedKey)) {
-            $query['ExclusiveStartKey'] = $this->lastEvaluatedKey;
-        }
-
-        $queryInfo = $this->buildExpressionQuery();
+        $queryInfo = $this->buildQueryInfo($columns, $limit);
         $op = $queryInfo['op'];
-        $query = array_merge($query, $queryInfo['query']);
-
-        $this->cleanUpQuery($query);
+        $query = $queryInfo['query'];
 
         if ($use_iterator) {
             $iterator = $this->client->getIterator($op, $query);
@@ -565,6 +535,60 @@ class DynamoDbQueryBuilder
         }
 
         return new Collection($results);
+    }
+    /** 
+     * Similar to Eloquents `toSql()` call, but outputs the JSON passed to DynamoDb for the requests
+     * @return string
+     */ 
+    public function toRequestJson($columns = [], $limit = -1)
+    {
+        $queryInfo = $this->buildQueryInfo($columns, $limit);
+        return json_encode($queryInfo);
+    }
+
+    /**
+     * Builds the Request JSON pass to DynamoDb
+     * @return array
+     */
+    public function buildQueryInfo($columns = [], $limit = -1)
+    {
+        $this->applyScopes();
+        if ($limit === -1 && isset($this->limit)) {
+            $limit = $this->limit;
+        }
+        
+        if ($conditionValue = $this->conditionsContainKey()) {
+            if ($this->conditionsAreExactSearch()) {
+                $item = $this->find($conditionValue, $columns);
+
+                return new Collection([$item]);
+            }
+        }
+
+        $query = [
+            'TableName' => $this->model->getTable(),
+        ];
+
+        if ($limit > -1) {
+            $query['Limit'] = $limit;
+        }
+
+        if (!empty($columns)) {
+            $query['ProjectionExpression'] = $this->projectionExpression->parse($columns);
+        }
+
+        if (!empty($this->lastEvaluatedKey)) {
+            $query['ExclusiveStartKey'] = $this->lastEvaluatedKey;
+        }
+
+        $queryInfo = $this->buildExpressionQuery();
+        $op = $queryInfo['op'];
+        $query = array_merge($query, $queryInfo['query']);
+
+        $this->cleanUpQuery($query);
+        $queryInfo['query'] = $query;
+
+        return $queryInfo;
     }
 
     protected function buildExpressionQuery()
