@@ -540,10 +540,10 @@ class DynamoDbQueryBuilder
      * Similar to Eloquents `toSql()` call, but outputs the JSON passed to DynamoDb for the requests
      * @return string
      */ 
-    public function toRequestJson($columns = [], $limit = -1)
+    public function toRequestJson($columns = [], $limit = -1, $json_options = JSON_PRETTY_PRINT)
     {
         $queryInfo = $this->buildQueryInfo($columns, $limit);
-        return json_encode($queryInfo);
+        return json_encode($queryInfo, $json_options);
     }
 
     /**
