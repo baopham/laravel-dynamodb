@@ -518,6 +518,7 @@ class DynamoDbQueryBuilder
     protected function getAll($columns = [], $limit = -1, $use_iterator = true)
     {
         $this->applyScopes();
+
         if ($limit === -1 && isset($this->limit)) {
             $limit = $this->limit;
         }
@@ -544,6 +545,7 @@ class DynamoDbQueryBuilder
         if (!empty($this->lastEvaluatedKey)) {
             $query['ExclusiveStartKey'] = $this->lastEvaluatedKey;
         }
+
         $queryInfo = $this->buildExpressionQuery();
         $op = $queryInfo['op'];
         $query = array_merge($query, $queryInfo['query']);
@@ -552,7 +554,7 @@ class DynamoDbQueryBuilder
 
         if ($use_iterator) {
             $iterator = $this->client->getIterator($op, $query);
-        
+
             if (isset($query['Limit'])) {
                 $iterator = new \LimitIterator($iterator, 0, $query['Limit']);
             }
@@ -576,7 +578,7 @@ class DynamoDbQueryBuilder
             $model->syncOriginal();
             $results[] = $model;
         }
-        
+
         return new Collection($results);
     }
 

@@ -6,15 +6,15 @@ use Carbon\Carbon;
 use BaoPham\DynamoDb\DynamoDbQueryBuilder;
 
 /**
- * Class DynamoDbGlobalScopeTest
+ * Class DynamoDbQueryScopeTest
  *
  * @package BaoPham\DynamoDb\Tests
  */
-class DynamoDbGlobalScopeTest extends ModelTest
+class DynamoDbQueryScopeTest extends ModelTest
 {
     protected function getTestModel()
     {
-        return new GlobalScopeModel([]);
+        return new ModelWithQueryScopes([]);
     }
 
     public function testGlobalScope()
@@ -74,7 +74,7 @@ class DynamoDbGlobalScopeTest extends ModelTest
     }
 }
 
-class GlobalScopeModel extends \BaoPham\DynamoDb\DynamoDbModel
+class ModelWithQueryScopes extends \BaoPham\DynamoDb\DynamoDbModel
 {
     protected $fillable = ['name', 'description', 'count'];
 
