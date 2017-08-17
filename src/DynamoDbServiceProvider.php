@@ -53,16 +53,23 @@ class DynamoDbServiceProvider extends ServiceProvider
     protected function bindForApp($marshalerOptions = [])
     {
         $this->app->singleton('BaoPham\DynamoDb\DynamoDbClientInterface', function ($app) use ($marshalerOptions) {
+            $key = config('services.dynamodb.key');
+            $secret = config('services.dynamodb.secret');
+            $token = config('services.dynamodb.token');
+
             $config = [
-                'credentials' => [
-                    'key' => config('services.dynamodb.key'),
-                    'secret' => config('services.dynamodb.secret'),
-                    'token' => config('services.dynamodb.token'),
-                ],
                 'region' => config('services.dynamodb.region'),
                 'version' => '2012-08-10',
                 'debug' => $this->getDebugOptions(),
             ];
+
+            if (!empty($key) || !empty($secret) || !empty($token)) {
+                $config['credentials'] = [
+                    'key' => $key,
+                    'secret' => $secret,
+                    'token' => $token,
+                ];
+            }
 
             $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter());
 
