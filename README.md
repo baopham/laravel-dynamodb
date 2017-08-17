@@ -13,6 +13,16 @@ Supports all key types - primary hash key and composite keys.
 
 * [Install](#install)
 * [Usage](#usage)
+  * [find() and delete()](#find-and-delete) 
+  * [Conditions](#conditions)
+  * [all() and first()](#all-and-first)
+  * [Update](#update)
+  * [Save](#save)
+  * [Chunk](#chunk)
+  * [limit() and take()](#limit-and-take)
+  * [firstOrFail()](#firstorfail)
+  * [findOrFail()](#findorfail)
+  * [Query scope](#query-scope)
 * [Indexes](#indexes)
 * [Composite Keys](#composite-keys)
 * [Requirements](#requirements)
@@ -32,7 +42,7 @@ Install
 
     ```php
     // config/app.php
-    
+
     'providers' => [
         ...
         BaoPham\DynamoDb\DynamoDbServiceProvider::class,
@@ -73,7 +83,7 @@ Usage
 * Extends your model with `BaoPham\DynamoDb\DynamoDbModel`, then you can use Eloquent methods that are supported. The idea here is that you can switch back to Eloquent without changing your queries.  
 * Or if you want to sync your DB table with a DynamoDb table, use trait `BaoPham\DynamoDb\ModelTrait`, it will call a `PutItem` after the model is saved.
 
-### Supported methods:
+### Supported features:
 
 #### find() and delete()
 
@@ -193,6 +203,40 @@ $model->where('id', 'foo')->where('id2', 'bar')->firstOrFail();
 $model->findOrFail('foo');
 // for composite key
 $model->findOrFail(['id' => 'foo', 'id2' => 'bar']);
+```
+
+#### Query Scope
+
+```php
+class Foo extends DynamoDbModel
+{
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::addGlobalScope('count', function (DynamoDbQueryBuilder $builder) {
+            $builder->where('count', '>', 6);
+        });
+    }
+
+    public function scopeCountUnderFour($builder)
+    {
+        return $builder->where('count', '<', 4);
+    }
+
+    public function scopeCountUnder($builder, $count)
+    {
+        return $builder->where('count', '<', $count);
+    }
+}
+
+$foo = Foo();
+// Global scope will be applied
+$foo->all();
+// Local scope
+$foo->withoutGlobalScopes()->countUnderFour()->get();
+// Dynamic local scope
+$foo->withoutGlobalScopes()->countUnder(6)->get();
 ```
 
 Indexes
