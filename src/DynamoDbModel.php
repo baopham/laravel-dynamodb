@@ -205,6 +205,10 @@ abstract class DynamoDbModel extends Model
     {
         $builder = new DynamoDbQueryBuilder($this);
 
+        foreach ($this->getGlobalScopes() as $identifier => $scope) {
+            $builder->withGlobalScope($identifier, $scope);
+        }
+
         return $builder;
     }
 
