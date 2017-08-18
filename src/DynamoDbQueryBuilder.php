@@ -526,7 +526,7 @@ class DynamoDbQueryBuilder
             if ($this->conditionsAreExactSearch()) {
                 $item = $this->find($conditionValue, $columns);
 
-                return new Collection([$item]);
+                return $this->getModel()->newCollection([$item]);
             }
         }
 
@@ -579,7 +579,7 @@ class DynamoDbQueryBuilder
             $results[] = $model;
         }
 
-        return new Collection($results);
+        return $this->getModel()->newCollection($results);
     }
 
     protected function buildExpressionQuery()
