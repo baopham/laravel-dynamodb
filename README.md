@@ -27,7 +27,7 @@ Supports all key types - primary hash key and composite keys.
 * [Composite Keys](#composite-keys)
 * [Requirements](#requirements)
 * [FAQ](#faq)
-* [License](#license)
+* [License](license)
 * [Author and Contributors](#author-and-contributors)
 
 Install
@@ -330,9 +330,6 @@ FAQ
 Q: Cannot assign `id` property if its not in the fillable array  
 A: Try [this](https://github.com/baopham/laravel-dynamodb/issues/10)?  
 
-License
---------
-MIT
 
 
 Author and Contributors
