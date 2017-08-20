@@ -2,22 +2,18 @@
 
 namespace BaoPham\DynamoDb;
 
+use BaoPham\DynamoDb\Concerns\HasParsers;
 use Closure;
 use Exception;
 use Aws\DynamoDb\DynamoDbClient;
-use BaoPham\DynamoDb\Parsers\ExpressionAttributeNames;
-use BaoPham\DynamoDb\Parsers\ExpressionAttributeValues;
-use BaoPham\DynamoDb\Parsers\FilterExpression;
-use BaoPham\DynamoDb\Parsers\KeyConditionExpression;
-use BaoPham\DynamoDb\Parsers\Placeholder;
-use BaoPham\DynamoDb\Parsers\ProjectionExpression;
 use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Database\Eloquent\Collection;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
 
 class DynamoDbQueryBuilder
 {
+    use HasParsers;
+
     /**
      * The maximum number of records to return.
      *
@@ -63,74 +59,11 @@ class DynamoDbQueryBuilder
      */
     protected $lastEvaluatedKey;
 
-    /**
-     * @var FilterExpression
-     */
-    protected $filterExpression;
-
-    /**
-     * @var KeyConditionExpression
-     */
-    protected $keyConditionExpression;
-
-    /**
-     * @var ProjectionExpression
-     */
-    protected $projectionExpression;
-
-    /**
-     * @var ExpressionAttributeNames
-     */
-    protected $expressionAttributeNames;
-
-    /**
-     * @var ExpressionAttributeValues
-     */
-    protected $expressionAttributeValues;
-
-    /**
-     * @var Placeholder
-     */
-    protected $placeholder;
-
     public function __construct(DynamoDbModel $model)
     {
         $this->model = $model;
         $this->client = $model->getClient();
         $this->setupExpressions();
-    }
-
-    public function setupExpressions()
-    {
-        $marshaler = $this->model->getMarshaler();
-
-        $this->placeholder = new Placeholder();
-
-        $this->expressionAttributeNames = new ExpressionAttributeNames();
-
-        $this->expressionAttributeValues = new ExpressionAttributeValues();
-
-        $this->keyConditionExpression = new KeyConditionExpression(
-            $this->placeholder,
-            $marshaler,
-            $this->expressionAttributeValues,
-            $this->expressionAttributeNames
-        );
-
-        $this->filterExpression = new FilterExpression(
-            $this->placeholder,
-            $marshaler,
-            $this->expressionAttributeValues,
-            $this->expressionAttributeNames
-        );
-
-        $this->projectionExpression = new ProjectionExpression();
-    }
-
-    public function resetExpressions()
-    {
-        $this->filterExpression->reset();
-        $this->keyConditionExpression->reset();
     }
 
     /**
@@ -469,6 +402,39 @@ class DynamoDbQueryBuilder
         throw (new ModelNotFoundException)->setModel(get_class($this->model));
     }
 
+    /**
+     * Remove attributes from an existing item
+     *
+     * @param array ...$attributes
+     * @return bool
+     * @throws InvalidQuery
+     */
+    public function removeAttribute(...$attributes)
+    {
+        $key = $this->conditionsContainKey();
+
+        if (!$key || !$this->conditionsAreExactSearch()) {
+            throw new InvalidQuery('Need to provide the key in your query');
+        }
+
+        $this->model->setId($key);
+
+        try {
+            $this->client->updateItem([
+                'TableName' => $this->model->getTable(),
+                'Key' => $this->getDynamoDbKey(),
+                'UpdateExpression' => $this->updateExpression->remove($attributes),
+                'ExpressionAttributeNames' => $this->expressionAttributeNames->all(),
+            ]);
+
+            return true;
+        } catch (Exception $e) {
+            Log::error($e);
+
+            return false;
+        }
+    }
+
     public function get($columns = [])
     {
         return $this->getAll($columns);
@@ -499,7 +465,7 @@ class DynamoDbQueryBuilder
 
             return true;
         } catch (Exception $e) {
-            Log::info($e);
+            Log::error($e);
 
             return false;
         }

@@ -230,13 +230,22 @@ class Foo extends DynamoDbModel
     }
 }
 
-$foo = Foo();
+$foo = new Foo();
 // Global scope will be applied
 $foo->all();
 // Local scope
 $foo->withoutGlobalScopes()->countUnderFour()->get();
 // Dynamic local scope
 $foo->withoutGlobalScopes()->countUnder(6)->get();
+```
+
+#### REMOVE — Deleting Attributes From An Item
+
+> See: http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.UpdateExpressions.html#Expressions.UpdateExpressions.REMOVE
+
+```php
+$model = new Model();
+$model->where('id', 'foo')->removeAttribute('name', 'description');
 ```
 
 Indexes
