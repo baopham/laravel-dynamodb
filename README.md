@@ -27,7 +27,7 @@ Supports all key types - primary hash key and composite keys.
 * [Composite Keys](#composite-keys)
 * [Requirements](#requirements)
 * [FAQ](#faq)
-* [License](LICENSE.md)
+* [License](LICENSE)
 * [Author and Contributors](#author-and-contributors)
 
 Install
