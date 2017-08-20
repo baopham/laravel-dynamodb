@@ -341,3 +341,4 @@ Author and Contributors
 * [warrick-loyaltycorp](https://github.com/warrick-loyaltycorp)
 * [Alexander Ward](https://github.com/cthos)
 * [Quang Ngo](https://github.com/vanquang9387)
+* [David Higgins](https://github.com/zoul0813)
