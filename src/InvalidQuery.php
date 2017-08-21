@@ -7,5 +7,4 @@ namespace BaoPham\DynamoDb;
  */
 class InvalidQuery extends \Exception
 {
-
 }

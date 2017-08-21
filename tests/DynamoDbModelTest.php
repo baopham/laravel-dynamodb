@@ -536,7 +536,7 @@ class DynamoDbModelTest extends ModelTest
         $this->testModel->chunk(2, function ($results) use (&$iteration) {
             if ($iteration === 1) {
                 $this->assertEquals(2, count($results));
-            } else if ($iteration === 2) {
+            } elseif ($iteration === 2) {
                 $this->assertEquals(1, count($results));
             }
 
@@ -658,7 +658,7 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals(4, $items->count());
     }
 
-    public function testRemoveUpdateExpression()
+    public function testRemoveUpdateExpressionOnQuery()
     {
         $seed = $this->seed(['id' => ['S' => 'foo']]);
 
@@ -668,6 +668,23 @@ class DynamoDbModelTest extends ModelTest
         $this->testModel->where('id', 'foo')->removeAttribute('description', 'name');
 
         $item = $this->testModel->find('foo');
+
+        $this->assertNull($item->name);
+        $this->assertNull($item->description);
+        $this->assertNotNull($item->count);
+        $this->assertNotNull($item->author);
+    }
+
+    public function testRemoveUpdateExpressionOnModel()
+    {
+        $seed = $this->seed(['id' => ['S' => 'foo']]);
+
+        $this->assertNotNull(array_get($seed, 'name.S'));
+        $this->assertNotNull(array_get($seed, 'description.S'));
+
+        $item = $this->testModel->first();
+        $item->removeAttribute('description', 'name');
+        $item = $this->testModel->first();
 
         $this->assertNull($item->name);
         $this->assertNull($item->description);

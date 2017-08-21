@@ -1,6 +1,7 @@
 <?php
 
 namespace BaoPham\DynamoDb\Tests;
+
 use BaoPham\DynamoDb\DynamoDbClientInterface;
 use BaoPham\DynamoDb\DynamoDbModel;
 

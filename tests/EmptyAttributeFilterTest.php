@@ -54,4 +54,3 @@ class EmptyAttributeFilterTest extends TestCase
         $this->assertEquals($expected, $attributes);
     }
 }
-
