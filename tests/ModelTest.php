@@ -54,8 +54,11 @@ abstract class ModelTest extends TestCase
             'endpoint' => 'http://localhost:3000',
         ];
 
-        $this->dynamoDb = new DynamoDbClientService($config, new Marshaler($marshalerOptions),
-            new EmptyAttributeFilter);
+        $this->dynamoDb = new DynamoDbClientService(
+            $config,
+            new Marshaler($marshalerOptions),
+            new EmptyAttributeFilter
+        );
 
         // Set the DynamoDbClient, this is handled by the DynamoDbServiceProvider boot in normal use.
         DynamoDbModel::setDynamoDbClientService($this->dynamoDb);

@@ -367,7 +367,6 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
 
         return $item;
     }
-
 }
 
 class CompositeTestModel extends \BaoPham\DynamoDb\DynamoDbModel

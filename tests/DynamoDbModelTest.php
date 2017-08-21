@@ -536,7 +536,7 @@ class DynamoDbModelTest extends ModelTest
         $this->testModel->chunk(2, function ($results) use (&$iteration) {
             if ($iteration === 1) {
                 $this->assertEquals(2, count($results));
-            } else if ($iteration === 2) {
+            } elseif ($iteration === 2) {
                 $this->assertEquals(1, count($results));
             }
 

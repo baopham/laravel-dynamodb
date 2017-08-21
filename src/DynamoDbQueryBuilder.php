@@ -382,7 +382,8 @@ class DynamoDbQueryBuilder
         }
 
         throw (new ModelNotFoundException)->setModel(
-            get_class($this->model), $id
+            get_class($this->model),
+            $id
         );
     }
 
@@ -604,7 +605,7 @@ class DynamoDbQueryBuilder
 
                 $query['FilterExpression'] = $this->filterExpression->parse($nonKeyConditions);
             }
-        } else if ($this->conditionsContainKey()) {
+        } elseif ($this->conditionsContainKey()) {
             $op = 'Query';
 
             $query['KeyConditionExpression'] = $this->keyConditionExpression->parse($this->wheres);
