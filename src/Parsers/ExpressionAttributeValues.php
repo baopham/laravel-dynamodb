@@ -35,6 +35,11 @@ class ExpressionAttributeValues
         return $this->mapping;
     }
 
+    public function placeholders()
+    {
+        return array_keys($this->mapping);
+    }
+
     public function reset()
     {
         $this->mapping = [];
