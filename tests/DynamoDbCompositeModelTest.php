@@ -323,7 +323,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $this->assertEquals($expectedItem, $foundItems->first()->toArray());
     }
 
-    public function testRemoveUpdateExpression()
+    public function testRemoveUpdateExpressionOnQuery()
     {
         $seed = $this->seed([
             'id' => ['S' => 'foo'],
@@ -339,6 +339,26 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
             ->removeAttribute('description', 'name');
 
         $item = $this->testModel->find(['id' => 'foo', 'id2' => 'bar']);
+
+        $this->assertNull($item->name);
+        $this->assertNull($item->description);
+        $this->assertNotNull($item->count);
+        $this->assertNotNull($item->author);
+    }
+
+    public function testRemoveUpdateExpressionOnModel()
+    {
+        $seed = $this->seed([
+            'id' => ['S' => 'foo'],
+            'id2' => ['S' => 'bar']
+        ]);
+
+        $this->assertNotNull(array_get($seed, 'name.S'));
+        $this->assertNotNull(array_get($seed, 'description.S'));
+
+        $item = $this->testModel->first();
+        $item->removeAttribute('description', 'name');
+        $item = $this->testModel->first();
 
         $this->assertNull($item->name);
         $this->assertNull($item->description);

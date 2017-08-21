@@ -389,9 +389,9 @@ class DynamoDbQueryBuilder
 
     public function first($columns = [])
     {
-        $item = $this->getAll($columns, 1);
+        $items = $this->getAll($columns, 1);
 
-        return $item->first();
+        return $items->first();
     }
 
     public function firstOrFail($columns = [])
@@ -412,20 +412,25 @@ class DynamoDbQueryBuilder
      */
     public function removeAttribute(...$attributes)
     {
-        $key = $this->conditionsContainKey();
+        $key = $this->getDynamoDbKey();
 
-        if (!$key || !$this->conditionsAreExactSearch()) {
-            throw new InvalidQuery('Need to provide the key in your query');
+        if (empty($key)) {
+            $conditionValue = $this->conditionsContainKey();
+
+            if (!$conditionValue || !$this->conditionsAreExactSearch()) {
+                throw new InvalidQuery('Need to provide the key in your query');
+            }
+
+            $this->model->setId($conditionValue);
+            $key = $this->getDynamoDbKey();
         }
-
-        $this->model->setId($key);
 
         $this->resetExpressions();
 
         try {
             $this->client->updateItem([
                 'TableName' => $this->model->getTable(),
-                'Key' => $this->getDynamoDbKey(),
+                'Key' => $key,
                 'UpdateExpression' => $this->updateExpression->remove($attributes),
                 'ExpressionAttributeNames' => $this->expressionAttributeNames->all(),
             ]);
@@ -715,7 +720,11 @@ class DynamoDbQueryBuilder
         $keys = [];
 
         foreach ($this->model->getCompositeKey() as $key) {
-            $keys = array_merge($keys, $this->getSpecificDynamoDbKey($key, $this->model->getAttribute($key)));
+            $dynamoDbKey = $this->getSpecificDynamoDbKey($key, $this->model->getAttribute($key));
+
+            if (!empty($dynamoDbKey)) {
+                $keys = array_merge($keys, $dynamoDbKey);
+            }
         }
 
         return $keys;
@@ -728,6 +737,10 @@ class DynamoDbQueryBuilder
 
     protected function getSpecificDynamoDbKey($keyName, $value)
     {
+        if (is_null($value)) {
+            return null;
+        }
+
         $idKey = $this->model->marshalItem([
             $keyName => $value,
         ]);
