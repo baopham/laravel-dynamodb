@@ -23,6 +23,7 @@ Supports all key types - primary hash key and composite keys.
   * [firstOrFail()](#firstorfail)
   * [findOrFail()](#findorfail)
   * [Query scope](#query-scope)
+  * [REMOVE — Deleting Attributes From An Item](#remove--deleting-attributes-from-an-item)
 * [Indexes](#indexes)
 * [Composite Keys](#composite-keys)
 * [Requirements](#requirements)
