@@ -247,6 +247,9 @@ $foo->withoutGlobalScopes()->countUnder(6)->get();
 ```php
 $model = new Model();
 $model->where('id', 'foo')->removeAttribute('name', 'description');
+
+// Or
+Model::find('foo')->removeAttribute('name', 'description');
 ```
 
 Indexes
