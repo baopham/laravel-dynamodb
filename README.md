@@ -344,6 +344,10 @@ Q: Cannot assign `id` property if its not in the fillable array
 A: Try [this](https://github.com/baopham/laravel-dynamodb/issues/10)?  
 
 
+Q: How to create migration?  
+A: Please see [this issue](https://github.com/baopham/laravel-dynamodb/issues/90)  
+
+
 
 Author and Contributors
 -------
