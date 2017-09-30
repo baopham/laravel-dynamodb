@@ -212,15 +212,6 @@ abstract class DynamoDbModel extends Model
         return $builder;
     }
 
-    public function setUnfillableAttributes($attributes)
-    {
-        $keysToFill = array_diff(array_keys($attributes), $this->fillable);
-
-        foreach ($keysToFill as $key) {
-            $this->setAttribute($key, $attributes[$key]);
-        }
-    }
-
     public function hasCompositeKey()
     {
         return !empty($this->compositeKey);
