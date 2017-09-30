@@ -327,15 +327,13 @@ class DynamoDbQueryBuilder
             return $this->findMany($id, $columns);
         }
 
-        $model = $this->model;
-
-        $model->setId($id);
+        $this->model->setId($id);
 
         $key = $this->getDynamoDbKey();
 
         $query = [
             'ConsistentRead' => true,
-            'TableName' => $model->getTable(),
+            'TableName' => $this->model->getTable(),
             'Key' => $key,
         ];
 
@@ -351,15 +349,11 @@ class DynamoDbQueryBuilder
             return;
         }
 
-        $item = $model->unmarshalItem($item);
+        $item = $this->model->unmarshalItem($item);
 
-        $model->fill($item);
+        $model = $this->model->newInstance([], true);
 
-        $model->setUnfillableAttributes($item);
-
-        $model->syncOriginal();
-
-        $model->exists = true;
+        $model->setRawAttributes($item, true);
 
         return $model;
     }
@@ -547,9 +541,8 @@ class DynamoDbQueryBuilder
 
         foreach ($iterator as $item) {
             $item = $this->model->unmarshalItem($item);
-            $model = $this->model->newInstance($item, true);
-            $model->setUnfillableAttributes($item);
-            $model->syncOriginal();
+            $model = $this->model->newInstance([], $exists = true);
+            $model->setRawAttributes($item, $sync = true);
             $results[] = $model;
         }
 
