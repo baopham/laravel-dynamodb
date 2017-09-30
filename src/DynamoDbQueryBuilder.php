@@ -952,8 +952,6 @@ class DynamoDbQueryBuilder
             return $this->callScope([$this->model, $scope], $parameters);
         }
 
-        $this->query->{$method}(...$parameters);
-
         return $this;
     }
 }
