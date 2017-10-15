@@ -32,7 +32,7 @@ class DynamoDbTimestampTest extends ModelTest
             ],
         ];
 
-        $record = $this->dynamoDbClient->getItem($query)->toArray();
+        $record = $this->getClient()->getItem($query)->toArray();
 
         $this->assertArrayHasKey('Item', $record);
         $this->assertEquals($this->testModel->created_at, $now);
@@ -58,12 +58,12 @@ class DynamoDbTimestampTest extends ModelTest
             ],
         ];
 
-        $record = $this->dynamoDbClient->getItem($query)->toArray();
+        $record = $this->getClient()->getItem($query)->toArray();
 
         $this->assertEquals($this->testModel->updated_at, $now);
     }
 
-    protected function seed($attributes = [])
+    public function seed($attributes = [])
     {
         $item = [
             'id' => ['S' => str_random(36)],
@@ -75,7 +75,7 @@ class DynamoDbTimestampTest extends ModelTest
 
         $item = array_merge($item, $attributes);
 
-        $this->dynamoDbClient->putItem([
+        $this->getClient()->putItem([
             'TableName' => $this->testModel->getTable(),
             'Item' => $item,
         ]);

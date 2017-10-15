@@ -12,6 +12,13 @@ use Illuminate\Database\Eloquent\Model;
 abstract class DynamoDbModel extends Model
 {
     /**
+     * The connection name for the model.
+     *
+     * @var string
+     */
+    protected $connection;
+
+    /**
      * Always set this to false since DynamoDb does not support incremental Id.
      *
      * @var bool
@@ -22,11 +29,6 @@ abstract class DynamoDbModel extends Model
      * @var \BaoPham\DynamoDb\DynamoDbClientInterface
      */
     protected static $dynamoDb;
-
-    /**
-     * @var \Aws\DynamoDb\DynamoDbClient
-     */
-    protected $client;
 
     /**
      * @var \Aws\DynamoDb\Marshaler
@@ -114,7 +116,6 @@ abstract class DynamoDbModel extends Model
 
     protected function setupDynamoDb()
     {
-        $this->client = static::$dynamoDb->getClient();
         $this->marshaler = static::$dynamoDb->getMarshaler();
         $this->attributeFilter = static::$dynamoDb->getAttributeFilter();
     }
@@ -247,15 +248,7 @@ abstract class DynamoDbModel extends Model
      */
     public function getClient()
     {
-        return $this->client;
-    }
-
-    /**
-     * @param \Aws\DynamoDb\DynamoDbClient $client
-     */
-    public function setClient($client)
-    {
-        $this->client = $client;
+        return static::$dynamoDb->getClient($this->connection);
     }
 
     /**
@@ -306,7 +299,7 @@ abstract class DynamoDbModel extends Model
     public function __sleep()
     {
         return array_keys(
-            array_except(get_object_vars($this), ['client', 'marshaler', 'attributeFilter'])
+            array_except(get_object_vars($this), ['marshaler', 'attributeFilter'])
         );
     }
 

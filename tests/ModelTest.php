@@ -2,10 +2,7 @@
 
 namespace BaoPham\DynamoDb\Tests;
 
-use Aws\DynamoDb\Marshaler;
-use BaoPham\DynamoDb\DynamoDbClientService;
-use BaoPham\DynamoDb\DynamoDbModel;
-use BaoPham\DynamoDb\EmptyAttributeFilter;
+use BaoPham\DynamoDb\DynamoDbServiceProvider;
 
 /**
  * Class ModelTest
@@ -14,16 +11,6 @@ use BaoPham\DynamoDb\EmptyAttributeFilter;
  */
 abstract class ModelTest extends TestCase
 {
-    /**
-     * @var \Aws\DynamoDb\DynamoDbClient
-     */
-    protected $dynamoDbClient;
-
-    /**
-     * @var \BaoPham\DynamoDb\DynamoDbClientService
-     */
-    protected $dynamoDb;
-
     /**
      * @var TestModel
      */
@@ -35,16 +22,24 @@ abstract class ModelTest extends TestCase
 
         $this->setUpDatabase();
 
-        $this->bindDynamoDbClientInstance();
+        $this->testModel = $this->getTestModel();
     }
 
-    protected function bindDynamoDbClientInstance()
+    protected function getPackageProviders($app)
     {
-        $marshalerOptions = [
-            'nullify_invalid' => true,
-        ];
+        return [DynamoDbServiceProvider::class];
+    }
 
-        $config = [
+    /**
+     * Define environment setup.
+     *
+     * @param  \Illuminate\Foundation\Application  $app
+     * @return void
+     */
+    protected function getEnvironmentSetUp($app)
+    {
+        $app['config']->set('dynamodb.default', 'test');
+        $app['config']->set('dynamodb.connections.test', [
             'credentials' => [
                 'key' => 'dynamodb_local',
                 'secret' => 'secret',
@@ -52,20 +47,7 @@ abstract class ModelTest extends TestCase
             'region' => 'test',
             'version' => '2012-08-10',
             'endpoint' => 'http://localhost:3000',
-        ];
-
-        $this->dynamoDb = new DynamoDbClientService(
-            $config,
-            new Marshaler($marshalerOptions),
-            new EmptyAttributeFilter
-        );
-
-        // Set the DynamoDbClient, this is handled by the DynamoDbServiceProvider boot in normal use.
-        DynamoDbModel::setDynamoDbClientService($this->dynamoDb);
-
-        $this->testModel = $this->getTestModel();
-
-        $this->dynamoDbClient = $this->dynamoDb->getClient();
+        ]);
     }
 
     abstract protected function getTestModel();
@@ -73,5 +55,10 @@ abstract class ModelTest extends TestCase
     protected function setUpDatabase()
     {
         copy(dirname(__FILE__) . '/../dynamodb_local_init.db', dirname(__FILE__) . '/../dynamodb_local_test.db');
+    }
+
+    protected function getClient()
+    {
+        return $this->testModel->getClient();
     }
 }
