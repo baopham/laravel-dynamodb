@@ -53,7 +53,7 @@ class DynamoDbQueryScopeTest extends ModelTest
         $this->assertEquals(6, count($items));
     }
 
-    protected function seed($attributes = [])
+    public function seed($attributes = [])
     {
         $item = [
             'id' => ['S' => str_random(36)],
@@ -65,7 +65,7 @@ class DynamoDbQueryScopeTest extends ModelTest
 
         $item = array_merge($item, $attributes);
 
-        $this->dynamoDbClient->putItem([
+        $this->getClient()->putItem([
             'TableName' => $this->testModel->getTable(),
             'Item' => $item,
         ]);

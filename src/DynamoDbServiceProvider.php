@@ -3,8 +3,6 @@
 namespace BaoPham\DynamoDb;
 
 use Aws\DynamoDb\Marshaler;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 
 class DynamoDbServiceProvider extends ServiceProvider
@@ -17,6 +15,10 @@ class DynamoDbServiceProvider extends ServiceProvider
     public function boot()
     {
         DynamoDbModel::setDynamoDbClientService($this->app->make(DynamoDbClientInterface::class));
+
+        $this->publishes([
+            __DIR__.'/../config/dynamodb.php' => config_path('dynamodb.php'),
+        ]);
     }
 
     /**
@@ -28,72 +30,8 @@ class DynamoDbServiceProvider extends ServiceProvider
             'nullify_invalid' => true,
         ];
 
-        if ($this->app->environment() == 'testing' || config('services.dynamodb.local')) {
-            return $this->bindForTesting($marshalerOptions);
-        }
-
-        $this->bindForApp($marshalerOptions);
-    }
-
-    protected function getDebugOptions()
-    {
-        $debug = config('services.dynamodb.debug');
-
-        if ($debug === true) {
-            $logfn = function ($msg) {
-                Log::info($msg);
-            };
-
-            return ['logfn' => $logfn];
-        }
-
-        return $debug;
-    }
-
-    protected function bindForApp($marshalerOptions = [])
-    {
-        $this->app->singleton('BaoPham\DynamoDb\DynamoDbClientInterface', function ($app) use ($marshalerOptions) {
-            $key = config('services.dynamodb.key');
-            $secret = config('services.dynamodb.secret');
-            $token = config('services.dynamodb.token');
-
-            $config = [
-                'region' => config('services.dynamodb.region'),
-                'version' => '2012-08-10',
-                'debug' => $this->getDebugOptions(),
-            ];
-
-            if (!empty($key) || !empty($secret) || !empty($token)) {
-                $config['credentials'] = [
-                    'key' => $key,
-                    'secret' => $secret,
-                    'token' => $token,
-                ];
-            }
-
-            $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter());
-
-            return $client;
-        });
-    }
-
-    protected function bindForTesting($marshalerOptions = [])
-    {
-        $this->app->singleton('BaoPham\DynamoDb\DynamoDbClientInterface', function ($app) use ($marshalerOptions) {
-            $region = App::environment() == 'testing' ? 'test' : 'stub';
-
-            $config = [
-                'credentials' => [
-                    'key' => 'dynamodb_local',
-                    'secret' => 'secret',
-                ],
-                'region' => $region,
-                'version' => '2012-08-10',
-                'endpoint' => config('services.dynamodb.local_endpoint'),
-                'debug' => $this->getDebugOptions(),
-            ];
-
-            $client = new DynamoDbClientService($config, new Marshaler($marshalerOptions), new EmptyAttributeFilter());
+        $this->app->singleton(DynamoDbClientInterface::class, function ($app) use ($marshalerOptions) {
+            $client = new DynamoDbClientService(new Marshaler($marshalerOptions), new EmptyAttributeFilter());
 
             return $client;
         });
