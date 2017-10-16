@@ -4,7 +4,7 @@ namespace BaoPham\DynamoDb;
 
 interface DynamoDbClientInterface
 {
-    public function getClient();
+    public function getClient($connection = null);
 
     public function getMarshaler();
 
