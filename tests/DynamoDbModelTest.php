@@ -658,7 +658,19 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals(4, $items->count());
     }
 
-    public function testRemoveAttributeOnQuery()
+    public function testRemoveNestedAttribute()
+    {
+        $this->seed(['id' => ['S' => 'foo']]);
+
+        $this->testModel
+            ->where('id', 'foo')
+            ->removeAttribute('nested.foo');
+
+        $item = $this->testModel->find('foo');
+        $this->assertArrayNotHasKey('foo', $item->nested);
+    }
+
+    public function testRemoveAttributesOnQuery()
     {
         $this->seed(['id' => ['S' => 'foo']]);
 
@@ -667,10 +679,10 @@ class DynamoDbModelTest extends ModelTest
             ->removeAttribute('description', 'name', 'nested.foo', 'nested.nestedArray[0]', 'nestedArray[0]');
 
         $item = $this->testModel->find('foo');
-        $this->assertRemoveAttribute($item);
+        $this->assertRemoveAttributes($item);
     }
 
-    public function testRemoveAttributeOnModel()
+    public function testRemoveAttributesOnModel()
     {
         $this->seed(['id' => ['S' => 'foo']]);
 
@@ -678,10 +690,10 @@ class DynamoDbModelTest extends ModelTest
         $item->removeAttribute('description', 'name', 'nested.foo', 'nested.nestedArray[0]', 'nestedArray[0]');
         $item = $this->testModel->first();
 
-        $this->assertRemoveAttribute($item);
+        $this->assertRemoveAttributes($item);
     }
 
-    protected function assertRemoveAttribute($item)
+    protected function assertRemoveAttributes($item)
     {
         $this->assertNull($item->name);
         $this->assertNull($item->description);

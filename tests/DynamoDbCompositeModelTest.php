@@ -323,7 +323,23 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $this->assertEquals($expectedItem, $foundItems->first()->toArray());
     }
 
-    public function testRemoveAttributeOnQuery()
+    public function testRemoveNestedAttribute()
+    {
+        $this->seed([
+            'id' => ['S' => 'foo'],
+            'id2' => ['S' => 'bar']
+        ]);
+
+        $this->testModel
+            ->where('id', 'foo')
+            ->where('id2', 'bar')
+            ->removeAttribute('nested.foo');
+
+        $item = $this->testModel->find(['id' => 'foo', 'id2' => 'bar']);
+        $this->assertArrayNotHasKey('foo', $item->nested);
+    }
+
+    public function testRemoveAttributesOnQuery()
     {
         $this->seed([
             'id' => ['S' => 'foo'],
@@ -337,10 +353,10 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
 
         $item = $this->testModel->find(['id' => 'foo', 'id2' => 'bar']);
 
-        $this->assertRemoveAttribute($item);
+        $this->assertRemoveAttributes($item);
     }
 
-    public function testRemoveAttributeOnModel()
+    public function testRemoveAttributesOnModel()
     {
         $this->seed([
             'id' => ['S' => 'foo'],
@@ -351,7 +367,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $item->removeAttribute('description', 'name', 'nested.foo', 'nested.nestedArray[0]', 'nestedArray[0]');
         $item = $this->testModel->first();
 
-        $this->assertRemoveAttribute($item);
+        $this->assertRemoveAttributes($item);
     }
 
     public function seed($attributes = [], $exclude = [])
