@@ -246,10 +246,10 @@ $foo->withoutGlobalScopes()->countUnder(6)->get();
 
 ```php
 $model = new Model();
-$model->where('id', 'foo')->removeAttribute('name', 'description');
+$model->where('id', 'foo')->removeAttribute('name', 'description', 'nested.foo', 'nestedArray[0]');
 
 // Or
-Model::find('foo')->removeAttribute('name', 'description');
+Model::find('foo')->removeAttribute('name', 'description', 'nested.foo', 'nestedArray[0]');
 ```
 
 Indexes
