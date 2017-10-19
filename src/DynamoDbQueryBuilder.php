@@ -422,12 +422,13 @@ class DynamoDbQueryBuilder
         $this->resetExpressions();
 
         try {
-            $this->client->updateItem(array_filter([
+            $query = [
                 'TableName' => $this->model->getTable(),
                 'Key' => $key,
                 'UpdateExpression' => $this->updateExpression->remove($attributes),
                 'ExpressionAttributeNames' => $this->expressionAttributeNames->all(),
-            ]));
+            ];
+            $this->client->updateItem($this->cleanUpQuery($query));
 
             return true;
         } catch (Exception $e) {
@@ -517,8 +518,7 @@ class DynamoDbQueryBuilder
         $queryInfo = $this->buildExpressionQuery();
         $op = $queryInfo['op'];
         $query = array_merge($query, $queryInfo['query']);
-
-        $this->cleanUpQuery($query);
+        $query = $this->cleanUpQuery($query);
 
         if ($use_iterator) {
             $iterator = $this->client->getIterator($op, $query);
@@ -763,25 +763,9 @@ class DynamoDbQueryBuilder
         return $hasCompositeKey ? is_array(array_first($id)) : is_array($id);
     }
 
-    protected function cleanUpQuery(&$query)
+    private function cleanUpQuery($query)
     {
-        if (empty($query['KeyConditionExpression']) && empty($query['FilterExpression'])) {
-            unset($query['ExpressionAttributeNames']);
-            unset($query['ExpressionAttributeValues']);
-        }
-
-        $nonEmptyOnly = [
-            'ExpressionAttributeNames',
-            'ExpressionAttributeValues',
-            'KeyConditionExpression',
-            'FilterExpression',
-        ];
-
-        foreach ($nonEmptyOnly as $attr) {
-            if (empty($query[$attr])) {
-                unset($query[$attr]);
-            }
-        }
+        return array_filter($query);
     }
 
     /**
