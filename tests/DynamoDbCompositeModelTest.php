@@ -323,47 +323,35 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $this->assertEquals($expectedItem, $foundItems->first()->toArray());
     }
 
-    public function testRemoveUpdateExpressionOnQuery()
+    public function testRemoveAttributeOnQuery()
     {
-        $seed = $this->seed([
+        $this->seed([
             'id' => ['S' => 'foo'],
             'id2' => ['S' => 'bar']
         ]);
-
-        $this->assertNotNull(array_get($seed, 'name.S'));
-        $this->assertNotNull(array_get($seed, 'description.S'));
 
         $this->testModel
             ->where('id', 'foo')
             ->where('id2', 'bar')
-            ->removeAttribute('description', 'name');
+            ->removeAttribute('description', 'name', 'nested.foo', 'nested.nestedArray[0]', 'nestedArray[0]');
 
         $item = $this->testModel->find(['id' => 'foo', 'id2' => 'bar']);
 
-        $this->assertNull($item->name);
-        $this->assertNull($item->description);
-        $this->assertNotNull($item->count);
-        $this->assertNotNull($item->author);
+        $this->assertRemoveAttribute($item);
     }
 
-    public function testRemoveUpdateExpressionOnModel()
+    public function testRemoveAttributeOnModel()
     {
-        $seed = $this->seed([
+        $this->seed([
             'id' => ['S' => 'foo'],
             'id2' => ['S' => 'bar']
         ]);
 
-        $this->assertNotNull(array_get($seed, 'name.S'));
-        $this->assertNotNull(array_get($seed, 'description.S'));
-
         $item = $this->testModel->first();
-        $item->removeAttribute('description', 'name');
+        $item->removeAttribute('description', 'name', 'nested.foo', 'nested.nestedArray[0]', 'nestedArray[0]');
         $item = $this->testModel->first();
 
-        $this->assertNull($item->name);
-        $this->assertNull($item->description);
-        $this->assertNotNull($item->count);
-        $this->assertNotNull($item->author);
+        $this->assertRemoveAttribute($item);
     }
 
     public function seed($attributes = [], $exclude = [])
@@ -375,6 +363,19 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
             'description' => ['S' => str_random(256)],
             'count' => ['N' => rand()],
             'author' => ['S' => str_random()],
+            'nested' => [
+                'M' => [
+                    'foo' => ['S' => 'bar'],
+                    'nestedArray' => ['L' => [['S' => 'first']]],
+                    'hello' => ['S' => 'world'],
+                ],
+            ],
+            'nestedArray' => [
+                'L' => [
+                    ['S' => 'first'],
+                    ['S' => 'second'],
+                ],
+            ],
         ];
 
         $item = array_merge($item, $attributes);
