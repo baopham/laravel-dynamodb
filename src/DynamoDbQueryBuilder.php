@@ -422,12 +422,12 @@ class DynamoDbQueryBuilder
         $this->resetExpressions();
 
         try {
-            $this->client->updateItem([
+            $this->client->updateItem(array_filter([
                 'TableName' => $this->model->getTable(),
                 'Key' => $key,
                 'UpdateExpression' => $this->updateExpression->remove($attributes),
                 'ExpressionAttributeNames' => $this->expressionAttributeNames->all(),
-            ]);
+            ]));
 
             return true;
         } catch (Exception $e) {
