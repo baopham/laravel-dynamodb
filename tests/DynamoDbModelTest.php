@@ -658,36 +658,38 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals(4, $items->count());
     }
 
-    public function testRemoveUpdateExpressionOnQuery()
+    public function testRemoveAttributeOnQuery()
     {
-        $seed = $this->seed(['id' => ['S' => 'foo']]);
+        $this->seed(['id' => ['S' => 'foo']]);
 
-        $this->assertNotNull(array_get($seed, 'name.S'));
-        $this->assertNotNull(array_get($seed, 'description.S'));
-
-        $this->testModel->where('id', 'foo')->removeAttribute('description', 'name');
+        $this->testModel
+            ->where('id', 'foo')
+            ->removeAttribute('description', 'name', 'nested.foo', 'nested.nestedArray[0]', 'nestedArray[0]');
 
         $item = $this->testModel->find('foo');
-
-        $this->assertNull($item->name);
-        $this->assertNull($item->description);
-        $this->assertNotNull($item->count);
-        $this->assertNotNull($item->author);
+        $this->assertRemoveAttribute($item);
     }
 
-    public function testRemoveUpdateExpressionOnModel()
+    public function testRemoveAttributeOnModel()
     {
-        $seed = $this->seed(['id' => ['S' => 'foo']]);
-
-        $this->assertNotNull(array_get($seed, 'name.S'));
-        $this->assertNotNull(array_get($seed, 'description.S'));
+        $this->seed(['id' => ['S' => 'foo']]);
 
         $item = $this->testModel->first();
-        $item->removeAttribute('description', 'name');
+        $item->removeAttribute('description', 'name', 'nested.foo', 'nested.nestedArray[0]', 'nestedArray[0]');
         $item = $this->testModel->first();
 
+        $this->assertRemoveAttribute($item);
+    }
+
+    protected function assertRemoveAttribute($item)
+    {
         $this->assertNull($item->name);
         $this->assertNull($item->description);
+        $this->assertArrayNotHasKey('foo', $item->nested);
+        $this->assertCount(0, $item->nested['nestedArray']);
+        $this->assertCount(1, $item->nestedArray);
+        $this->assertNotContains('first', $item->nestedArray);
+        $this->assertNotNull($item->nested['hello']);
         $this->assertNotNull($item->count);
         $this->assertNotNull($item->author);
     }
@@ -700,6 +702,19 @@ class DynamoDbModelTest extends ModelTest
             'description' => ['S' => str_random(256)],
             'count' => ['N' => rand()],
             'author' => ['S' => str_random()],
+            'nested' => [
+                'M' => [
+                    'foo' => ['S' => 'bar'],
+                    'nestedArray' => ['L' => [['S' => 'first']]],
+                    'hello' => ['S' => 'world'],
+                ],
+            ],
+            'nestedArray' => [
+                'L' => [
+                    ['S' => 'first'],
+                    ['S' => 'second'],
+                ],
+            ],
         ];
 
         $item = array_merge($item, $attributes);
