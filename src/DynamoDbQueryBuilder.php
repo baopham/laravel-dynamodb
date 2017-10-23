@@ -310,8 +310,9 @@ class DynamoDbQueryBuilder
      */
     public function chunk($chunk_size, callable $callback)
     {
+        $this->applyScopes();
         while (true) {
-            $results = $this->getAll([], $chunk_size, false);
+            $results = $this->getAll([], $chunk_size, false, false);
 
             call_user_func($callback, $results);
 
@@ -484,9 +485,9 @@ class DynamoDbQueryBuilder
         return $this->getAll([$this->model->getKeyName()])->count();
     }
 
-    protected function getAll($columns = [], $limit = -1, $use_iterator = true)
+    protected function getAll($columns = [], $limit = -1, $use_iterator = true, $apply_scopes = true)
     {
-        $this->applyScopes();
+        if($apply_scopes) $this->applyScopes();
 
         if ($limit === -1 && isset($this->limit)) {
             $limit = $this->limit;
