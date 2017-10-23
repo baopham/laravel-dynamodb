@@ -78,6 +78,40 @@ class DynamoDbQueryBuilder
     }
 
     /**
+     * Alias to set the "offset" value of the query.
+     *
+     * @param  mixed  $value
+     * @return \Illuminate\Database\Query\Builder|static
+     */
+    public function skip($value)
+    {
+        return $this->offset($value);
+    }
+
+    /**
+     * Alias to set the "setLastEvaluatedKey" value of the query.
+     *
+     * @param  mixed  $value
+     * @return $this
+     */
+    public function offset($value)
+    {
+        return $this->setLastEvaluatedKey($value);
+    }
+
+    /**
+     * Set the "lastEvaluatedKey" value of the query.
+     *
+     * @param mixed $value
+     * @return $this
+     */
+    public function setLastEvaluatedKey($value)
+    {
+        $this->LastEvaluatedKey = $value;
+        return $this;
+    }
+
+    /**
      * Set the "limit" value of the query.
      *
      * @param  int  $value
