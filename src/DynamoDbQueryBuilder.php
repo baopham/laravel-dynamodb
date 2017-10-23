@@ -107,8 +107,18 @@ class DynamoDbQueryBuilder
      */
     public function setLastEvaluatedKey($value)
     {
-        $this->LastEvaluatedKey = $value;
+        if(empty($value)) {
+            $this->lastEvaluatedKey = null;
+        } else {
+            $this->lastEvaluatedKey = [ $this->model->getKeyName() => $this->model->getMarshaler()->marshalValue($value) ];
+        }
         return $this;
+    }
+
+    public function getLastEvaluatedKey()
+    {
+        // TODO: add support for composite keys
+        return empty($this->lastEvaluatedKey) ? null : $this->model->getMarshaler()->unmarshalValue(array_get($this->lastEvaluatedKey, $this->model->getKeyName(), null));
     }
 
     /**
