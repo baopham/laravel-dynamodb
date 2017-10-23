@@ -487,7 +487,7 @@ class DynamoDbQueryBuilder
 
     protected function getAll($columns = [], $limit = -1, $use_iterator = true, $apply_scopes = true)
     {
-        if($apply_scopes) $this->applyScopes();
+        if ($apply_scopes) $this->applyScopes();
 
         if ($limit === -1 && isset($this->limit)) {
             $limit = $this->limit;
