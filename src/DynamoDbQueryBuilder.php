@@ -5,6 +5,7 @@ namespace BaoPham\DynamoDb;
 use BaoPham\DynamoDb\Concerns\HasParsers;
 use Closure;
 use Exception;
+use InvalidArgumentException;
 use Aws\DynamoDb\DynamoDbClient;
 use Illuminate\Contracts\Support\Arrayable;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -75,6 +76,81 @@ class DynamoDbQueryBuilder
     public function take($value)
     {
         return $this->limit($value);
+    }
+
+    /**
+     * Alias to set the "offset" value of the query.
+     *
+     * @param  mixed  $value
+     * @return \Illuminate\Database\Query\Builder|static
+     */
+    public function skip($value)
+    {
+        return $this->offset($value);
+    }
+
+    /**
+     * Alias to set the "setLastEvaluatedKey" value of the query.
+     *
+     * @param  mixed  $value
+     * @return $this
+     */
+    public function offset($value)
+    {
+        return $this->setLastEvaluatedKey($value);
+    }
+
+    /**
+     * Set the "lastEvaluatedKey" value of the query.
+     *
+     * @param mixed $value
+     * @return $this
+     */
+    public function setLastEvaluatedKey($value)
+    {
+        if (empty($value)) {
+            $this->lastEvaluatedKey = null;
+            return $this;
+        }
+
+        if ($this->model->hasCompositeKey()) {
+            // require $value to be an array
+            if (!is_array($value) && count($value) < 2) {
+                throw new InvalidArgumentException('$value must be an array with 2 elements when the model uses a Composite Key');
+            }
+
+            $keys = $this->model->getCompositeKeyName();
+            $last = [];
+            $last[array_shift($keys)] = $this->model->getMarshaler()->marshalValue(array_shift($value));
+            $last[array_shift($keys)] = $this->model->getMarshaler()->marshalValue(array_shift($value));
+            $this->lastEvaluatedKey = $last;
+            return $this;
+        }
+
+        if (is_array($value)) {
+            $value = array_shift($value);
+        }
+        $this->lastEvaluatedKey = [ $this->model->getKeyName() => $this->model->getMarshaler()->marshalValue($value) ];
+
+        return $this;
+    }
+
+    public function getLastEvaluatedKey()
+    {
+        if (empty($this->lastEvaluatedKey)) {
+            return null;
+        }
+
+        if ($this->model->hasCompositeKey()) {
+            $keys = $this->model->getCompositeKeyName();
+            $last = [];
+            foreach ($keys as $k) {
+                $last[$k] = $this->model->getMarshaler()->unmarshalValue(array_get($this->lastEvaluatedKey, $k));
+            }
+            return $last;
+        }
+
+        return $this->model->getMarshaler()->unmarshalValue(array_get($this->lastEvaluatedKey, $this->model->getKeyName(), null));
     }
 
     /**
@@ -657,7 +733,7 @@ class DynamoDbQueryBuilder
 
         $model = $this->model;
 
-        $keys = $model->hasCompositeKey() ? $model->getCompositeKey() : [$model->getKeyName()];
+        $keys = $model->hasCompositeKey() ? $model->getCompositeKeyName() : [$model->getKeyName()];
 
         $conditionsContainKey = count(array_intersect($conditionKeys, $keys)) === count($keys);
 
@@ -712,7 +788,7 @@ class DynamoDbQueryBuilder
 
         $keys = [];
 
-        foreach ($this->model->getCompositeKey() as $key) {
+        foreach ($this->model->getCompositeKeyName() as $key) {
             $dynamoDbKey = $this->getSpecificDynamoDbKey($key, $this->model->getAttribute($key));
 
             if (!empty($dynamoDbKey)) {
@@ -754,7 +830,7 @@ class DynamoDbQueryBuilder
         }
 
         if ($hasCompositeKey) {
-            $compositeKey = $this->model->getCompositeKey();
+            $compositeKey = $this->model->getCompositeKeyName();
             if (isset($id[$compositeKey[0]]) && isset($id[$compositeKey[1]])) {
                 return false;
             }
