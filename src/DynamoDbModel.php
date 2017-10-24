@@ -253,6 +253,22 @@ abstract class DynamoDbModel extends Model
     }
 
     /**
+     * @return array
+     */
+    public function getCompositeKeyValue()
+    {
+        if(!$this->hasCompositeKey()) 
+            return new Exception(__CLASS__ . ' does not have a composite key');
+
+        $keys = $this->getCompositeKey();
+        $values = [];
+        foreach($keys as $k) {
+            $values[$k] = $this->{$k};
+        }
+        return $values;
+    }
+
+    /**
      * @param array $compositeKey
      */
     public function setCompositeKey($compositeKey)
