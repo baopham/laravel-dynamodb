@@ -115,8 +115,9 @@ class DynamoDbQueryBuilder
 
         if ($this->model->hasCompositeKey()) {
             // require $value to be an array
-            if (!is_array($value) && count($value) < 2) 
+            if (!is_array($value) && count($value) < 2) {
                 throw new InvalidArgumentException('$value must be an array with 2 elements when the model uses a Composite Key');
+            }
 
             $keys = $this->model->getCompositeKeyName();
             $last = [];
