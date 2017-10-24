@@ -118,7 +118,7 @@ class DynamoDbQueryBuilder
             if(!is_array($value) && count($value) < 2) 
                 throw new InvalidArgumentException('$value must be an array with 2 elements when the model uses a Composite Key');
 
-            $keys = $this->model->getCompositeKey();
+            $keys = $this->model->getCompositeKeyName();
             $last = [];
             $last[array_shift($keys)] = $this->model->getMarshaler()->marshalValue(array_shift($value));
             $last[array_shift($keys)] = $this->model->getMarshaler()->marshalValue(array_shift($value));
@@ -138,7 +138,7 @@ class DynamoDbQueryBuilder
             return null;
 
         if($this->model->hasCompositeKey()) {
-            $keys = $this->model->getCompositeKey();
+            $keys = $this->model->getCompositeKeyName();
             $last = [];
             foreach($keys as $k) {
                 $last[$k] = $this->model->getMarshaler()->unmarshalValue(array_get($this->lastEvaluatedKey, $k));
@@ -729,7 +729,7 @@ class DynamoDbQueryBuilder
 
         $model = $this->model;
 
-        $keys = $model->hasCompositeKey() ? $model->getCompositeKey() : [$model->getKeyName()];
+        $keys = $model->hasCompositeKey() ? $model->getCompositeKeyName() : [$model->getKeyName()];
 
         $conditionsContainKey = count(array_intersect($conditionKeys, $keys)) === count($keys);
 
@@ -784,7 +784,7 @@ class DynamoDbQueryBuilder
 
         $keys = [];
 
-        foreach ($this->model->getCompositeKey() as $key) {
+        foreach ($this->model->getCompositeKeyName() as $key) {
             $dynamoDbKey = $this->getSpecificDynamoDbKey($key, $this->model->getAttribute($key));
 
             if (!empty($dynamoDbKey)) {
@@ -826,7 +826,7 @@ class DynamoDbQueryBuilder
         }
 
         if ($hasCompositeKey) {
-            $compositeKey = $this->model->getCompositeKey();
+            $compositeKey = $this->model->getCompositeKeyName();
             if (isset($id[$compositeKey[0]]) && isset($id[$compositeKey[1]])) {
                 return false;
             }
