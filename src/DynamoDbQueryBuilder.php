@@ -136,8 +136,9 @@ class DynamoDbQueryBuilder
 
     public function getLastEvaluatedKey()
     {
-        if (empty($this->lastEvaluatedKey))
+        if (empty($this->lastEvaluatedKey)) {
             return null;
+        }
 
         if ($this->model->hasCompositeKey()) {
             $keys = $this->model->getCompositeKeyName();
