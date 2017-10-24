@@ -126,6 +126,7 @@ class DynamoDbQueryBuilder
             return $this;
         }
 
+        if(is_array($value)) $value = array_shift($value);
         $this->lastEvaluatedKey = [ $this->model->getKeyName() => $this->model->getMarshaler()->marshalValue($value) ];
 
         return $this;
