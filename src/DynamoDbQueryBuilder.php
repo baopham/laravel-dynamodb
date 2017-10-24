@@ -108,14 +108,14 @@ class DynamoDbQueryBuilder
      */
     public function setLastEvaluatedKey($value)
     {
-        if(empty($value)) {
+        if (empty($value)) {
             $this->lastEvaluatedKey = null;
             return $this;
         }
 
-        if($this->model->hasCompositeKey()) {
+        if ($this->model->hasCompositeKey()) {
             // require $value to be an array
-            if(!is_array($value) && count($value) < 2) 
+            if (!is_array($value) && count($value) < 2) 
                 throw new InvalidArgumentException('$value must be an array with 2 elements when the model uses a Composite Key');
 
             $keys = $this->model->getCompositeKeyName();
@@ -126,7 +126,9 @@ class DynamoDbQueryBuilder
             return $this;
         }
 
-        if(is_array($value)) $value = array_shift($value);
+        if (is_array($value)) {
+            $value = array_shift($value);
+        }
         $this->lastEvaluatedKey = [ $this->model->getKeyName() => $this->model->getMarshaler()->marshalValue($value) ];
 
         return $this;
@@ -137,10 +139,10 @@ class DynamoDbQueryBuilder
         if (empty($this->lastEvaluatedKey))
             return null;
 
-        if($this->model->hasCompositeKey()) {
+        if ($this->model->hasCompositeKey()) {
             $keys = $this->model->getCompositeKeyName();
             $last = [];
-            foreach($keys as $k) {
+            foreach ($keys as $k) {
                 $last[$k] = $this->model->getMarshaler()->unmarshalValue(array_get($this->lastEvaluatedKey, $k));
             }
             return $last;
