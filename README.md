@@ -11,6 +11,8 @@ Supports all key types - primary hash key and composite keys.
 
 > For advanced users only. If you're not familiar with Laravel, Laravel Eloquent and DynamoDB, then I suggest that you get familiar with those first. 
 
+**Breaking changes in v2: config no longer lives in config/services.php**
+
 * [Install](#install)
 * [Usage](#usage)
   * [find() and delete()](#find-and-delete) 
@@ -27,6 +29,7 @@ Supports all key types - primary hash key and composite keys.
 * [Indexes](#indexes)
 * [Composite Keys](#composite-keys)
 * [Requirements](#requirements)
+* [Migrate from v1 to v2](#migrate-from-v1-to-v2)
 * [FAQ](#faq)
 * [License](LICENSE)
 * [Author and Contributors](#author-and-contributors)
@@ -51,33 +54,14 @@ Install
     ];
     ```
 
-* Put DynamoDb config in `config/services.php`:
+* Run:
 
     ```php
-    // config/services.php
-    ...
-    'dynamodb' => [
-        'key' => env('DYNAMODB_KEY'),
-        'secret' => env('DYNAMODB_SECRET'),
-        'region' => env('DYNAMODB_REGION'),
-        'local_endpoint' => env('DYNAMODB_LOCAL_ENDPOINT'), // see http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html
-        'local' => env('DYNAMODB_LOCAL'), // true or false? should use dynamodb_local or not?
-        'debug' => true, // if true, it will use Laravel Log. For advanced options, see http://docs.aws.amazon.com/aws-sdk-php/v3/guide/guide/configuration.html
-    ],
-    ...
+    php artisan vendor:publish
     ```
 
-  * If using from an assumed IAM role, you can also use the `token` parameter, your config in this case will look something like this:
+* Update DynamoDb config in [config/dynamodb.php](config/dynamodb.php)
 
-    ```php
-    // config/services.php
-    ...
-    'dynamodb' => [
-        ...
-        'token' => env('AWS_SESSION_TOKEN'),
-    ]
-    ...
-    ```
 
 Usage
 -----
@@ -336,6 +320,20 @@ $model->find(['id1' => 'value1', 'id2' => 'value2']);
 Requirements
 -------------
 Laravel ^5.1
+
+
+Migrate from v1 to v2
+---------------------
+
+Follow these steps:
+
+1. Update your `composer.json` to use v2
+1. Run `composer update`
+1. Run `php artisan vendor:publish`
+1. Move your DynamoDb config in `config/services.php` to the new config file `config/dynamodb.php` as one of the connections
+    1. Move `key`, `secret`, `token` inside `credentials`
+    1. Rename `local_endpoint` to `endpoint`
+    1. Remove `local` field
 
 
 FAQ

@@ -31,7 +31,7 @@ class DynamoDbModelTest extends ModelTest
             ],
         ];
 
-        $record = $this->dynamoDbClient->getItem($query)->toArray();
+        $record = $this->getClient()->getItem($query)->toArray();
 
         $this->assertArrayHasKey('Item', $record);
         $this->assertEquals($this->testModel->id, $record['Item']['id']['S']);
@@ -132,7 +132,7 @@ class DynamoDbModelTest extends ModelTest
             ],
         ];
 
-        $record = $this->dynamoDbClient->getItem($query)->toArray();
+        $record = $this->getClient()->getItem($query)->toArray();
 
         $this->assertEquals($newName, array_get($record, 'Item.name.S'));
     }
@@ -155,7 +155,7 @@ class DynamoDbModelTest extends ModelTest
             ],
         ];
 
-        $record = $this->dynamoDbClient->getItem($query)->toArray();
+        $record = $this->getClient()->getItem($query)->toArray();
 
         $this->assertEquals($newName, array_get($record, 'Item.name.S'));
     }
@@ -174,7 +174,7 @@ class DynamoDbModelTest extends ModelTest
             ],
         ];
 
-        $record = $this->dynamoDbClient->getItem($query)->toArray();
+        $record = $this->getClient()->getItem($query)->toArray();
 
         $this->assertArrayNotHasKey('Item', $record);
     }
@@ -706,7 +706,7 @@ class DynamoDbModelTest extends ModelTest
         $this->assertNotNull($item->author);
     }
 
-    protected function seed($attributes = [], $exclude = [])
+    public function seed($attributes = [], $exclude = [])
     {
         $item = [
             'id' => ['S' => str_random(36)],
@@ -732,7 +732,7 @@ class DynamoDbModelTest extends ModelTest
         $item = array_merge($item, $attributes);
         $item = array_except($item, $exclude);
 
-        $this->dynamoDbClient->putItem([
+        $this->getClient()->putItem([
             'TableName' => $this->testModel->getTable(),
             'Item' => $item,
         ]);

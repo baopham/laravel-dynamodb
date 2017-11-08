@@ -14,7 +14,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
 {
     protected function getTestModel()
     {
-        return new CompositeTestModel([], $this->dynamoDb);
+        return new CompositeTestModel([]);
     }
 
     public function testCreateRecord()
@@ -33,7 +33,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
             ],
         ];
 
-        $record = $this->dynamoDbClient->getItem($query)->toArray();
+        $record = $this->getClient()->getItem($query)->toArray();
 
         $this->assertArrayHasKey('Item', $record);
         $this->assertEquals($this->testModel->id, $record['Item']['id']['S']);
@@ -135,7 +135,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
             ],
         ];
 
-        $record = $this->dynamoDbClient->getItem($query)->toArray();
+        $record = $this->getClient()->getItem($query)->toArray();
 
         $this->assertEquals($newName, array_get($record, 'Item.name.S'));
     }
@@ -160,7 +160,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
             ],
         ];
 
-        $record = $this->dynamoDbClient->getItem($query)->toArray();
+        $record = $this->getClient()->getItem($query)->toArray();
 
         $this->assertEquals($newName, array_get($record, 'Item.name.S'));
     }
@@ -181,7 +181,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
             ],
         ];
 
-        $record = $this->dynamoDbClient->getItem($query)->toArray();
+        $record = $this->getClient()->getItem($query)->toArray();
 
         $this->assertArrayNotHasKey('Item', $record);
     }
@@ -370,7 +370,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $this->assertRemoveAttributes($item);
     }
 
-    protected function seed($attributes = [], $exclude = [])
+    public function seed($attributes = [], $exclude = [])
     {
         $item = [
             'id' => ['S' => 'id1'],
@@ -397,7 +397,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $item = array_merge($item, $attributes);
         $item = array_except($item, $exclude);
 
-        $this->dynamoDbClient->putItem([
+        $this->getClient()->putItem([
             'TableName' => $this->testModel->getTable(),
             'Item' => $item,
         ]);
