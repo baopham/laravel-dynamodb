@@ -469,7 +469,7 @@ class DynamoDbQueryBuilder
 
     public function count()
     {
-        return $this->getAll([$this->model->getKeyName()])->count();
+        return $this->getAll($this->model->getKeyNames())->count();
     }
 
     protected function getAll($columns = [], $limit = -1, $useIterator = true)
@@ -645,7 +645,7 @@ class DynamoDbQueryBuilder
 
         $model = $this->model;
 
-        $keys = $model->hasCompositeKey() ? $model->getCompositeKey() : [$model->getKeyName()];
+        $keys = $model->getKeyNames();
 
         $conditionsContainKey = count(array_intersect($conditionKeys, $keys)) === count($keys);
 
@@ -692,63 +692,52 @@ class DynamoDbQueryBuilder
         return false;
     }
 
+    /**
+     * Return key for DynamoDb query.
+     *
+     * @return array|null
+     *
+     * e.g.
+     * [
+     *   'id' => ['S' => 'foo'],
+     * ]
+     *
+     * or
+     *
+     * [
+     *   'id' => ['S' => 'foo'],
+     *   'id2' => ['S' => 'bar'],
+     * ]
+     */
     protected function getDynamoDbKey()
     {
-        if (!$this->model->hasCompositeKey()) {
-            return $this->getDynamoDbPrimaryKey();
-        }
-
         $keys = [];
 
-        foreach ($this->model->getCompositeKey() as $key) {
-            $dynamoDbKey = $this->getSpecificDynamoDbKey($key, $this->model->getAttribute($key));
-
-            if (!empty($dynamoDbKey)) {
-                $keys = array_merge($keys, $dynamoDbKey);
+        foreach ($this->model->getKeys() as $key => $value) {
+            if (is_null($value)) {
+                continue;
             }
+            $keys[$key] = $this->model->marshalValue($value);
         }
 
         return $keys;
     }
 
-    protected function getDynamoDbPrimaryKey()
-    {
-        return $this->getSpecificDynamoDbKey($this->model->getKeyName(), $this->model->getKey());
-    }
-
-    protected function getSpecificDynamoDbKey($keyName, $value)
-    {
-        if (is_null($value)) {
-            return null;
-        }
-
-        $idKey = $this->model->marshalItem([
-            $keyName => $value,
-        ]);
-
-        $key = [
-            $keyName => $idKey[$keyName],
-        ];
-
-        return $key;
-    }
-
     protected function isMultipleIds($id)
     {
-        $hasCompositeKey = $this->model->hasCompositeKey();
+        $keys = collect($this->model->getKeyNames());
 
-        if (!$hasCompositeKey && isset($id[$this->model->getKeyName()])) {
+        // could be ['id' => 'foo'], ['id1' => 'foo', 'id2' => 'bar']
+        $single = $keys->every(function ($name) use ($id) {
+            return isset($id[$name]);
+        });
+
+        if ($single) {
             return false;
         }
 
-        if ($hasCompositeKey) {
-            $compositeKey = $this->model->getCompositeKey();
-            if (isset($id[$compositeKey[0]]) && isset($id[$compositeKey[1]])) {
-                return false;
-            }
-        }
-
-        return $hasCompositeKey ? is_array(array_first($id)) : is_array($id);
+        // could be ['foo', 'bar'], [['id1' => 'foo', 'id2' => 'bar'], ...]
+        return $this->model->hasCompositeKey() ? is_array(array_first($id)) : is_array($id);
     }
 
     private function cleanUpQuery($query)
@@ -868,7 +857,7 @@ class DynamoDbQueryBuilder
                 // passing in the builder and the model instance. After we run all of these
                 // scopes we will return back the builder instance to the outside caller.
                 if ($scope instanceof Scope) {
-                    $scope->apply($builder, $this->getModel());
+                    throw new NotSupportedException('Scope object is not yet supported');
                 }
             });
 
