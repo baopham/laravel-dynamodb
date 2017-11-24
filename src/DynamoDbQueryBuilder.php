@@ -4,11 +4,9 @@ namespace BaoPham\DynamoDb;
 
 use BaoPham\DynamoDb\Concerns\HasParsers;
 use Closure;
-use Exception;
 use Aws\DynamoDb\DynamoDbClient;
 use Illuminate\Contracts\Support\Arrayable;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\Log;
 
 class DynamoDbQueryBuilder
 {
@@ -421,21 +419,15 @@ class DynamoDbQueryBuilder
 
         $this->resetExpressions();
 
-        try {
-            $query = [
-                'TableName' => $this->model->getTable(),
-                'Key' => $key,
-                'UpdateExpression' => $this->updateExpression->remove($attributes),
-                'ExpressionAttributeNames' => $this->expressionAttributeNames->all(),
-            ];
-            $this->client->updateItem($this->cleanUpQuery($query));
+        $query = [
+            'TableName' => $this->model->getTable(),
+            'Key' => $key,
+            'UpdateExpression' => $this->updateExpression->remove($attributes),
+            'ExpressionAttributeNames' => $this->expressionAttributeNames->all(),
+        ];
+        $result = $this->client->updateItem($this->cleanUpQuery($query));
 
-            return true;
-        } catch (Exception $e) {
-            Log::error($e);
-
-            return false;
-        }
+        return array_get($result, '@metadata.statusCode') === 200;
     }
 
     public function get($columns = [])
@@ -453,25 +445,18 @@ class DynamoDbQueryBuilder
         ];
 
         $result = $this->client->deleteItem($query);
-        $status = array_get($result->toArray(), '@metadata.statusCode');
 
-        return $status == 200;
+        return array_get($result->toArray(), '@metadata.statusCode') === 200;
     }
 
     public function save()
     {
-        try {
-            $this->client->putItem([
-                'TableName' => $this->model->getTable(),
-                'Item' => $this->model->marshalItem($this->model->getAttributes()),
-            ]);
+        $result = $this->client->putItem([
+            'TableName' => $this->model->getTable(),
+            'Item' => $this->model->marshalItem($this->model->getAttributes()),
+        ]);
 
-            return true;
-        } catch (Exception $e) {
-            Log::error($e);
-
-            return false;
-        }
+        return array_get($result, '@metadata.statusCode') === 200;
     }
 
     public function all($columns = [])
