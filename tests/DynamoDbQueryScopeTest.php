@@ -26,7 +26,11 @@ class DynamoDbQueryScopeTest extends ModelTest
 
         $items = $this->testModel->all();
 
-        $this->assertEquals(3, count($items));
+        $this->assertCount(3, $items);
+
+        foreach ($items as $item) {
+            $this->assertGreaterThan(6, $item->count);
+        }
     }
 
     public function testLocalScope()
@@ -38,7 +42,7 @@ class DynamoDbQueryScopeTest extends ModelTest
 
         $items = $this->testModel->withoutGlobalScopes()->countUnderFour()->get();
 
-        $this->assertEquals(4, count($items));
+        $this->assertCount(4, $items);
     }
 
     public function testDynamicLocalScope()
@@ -50,7 +54,41 @@ class DynamoDbQueryScopeTest extends ModelTest
 
         $items = $this->testModel->withoutGlobalScopes()->countUnder(6)->get();
 
-        $this->assertEquals(6, count($items));
+        $this->assertCount(6, $items);
+    }
+
+    public function testChunkWithGlobalScope()
+    {
+        for ($x = 0; $x < 350; $x++) {
+            $this->seed(['count' => ['N' => $x]]);
+        }
+
+        // also test that it doesn't fail if there are more than 300 calls
+        $this->testModel->chunk(1, function ($results) {
+            $this->assertGreaterThan(6, $results->first()->count);
+        });
+    }
+
+    public function testChunkWithLocalScope()
+    {
+        for ($x = 0; $x < 10; $x++) {
+            $this->seed(['count' => ['N' => $x]]);
+        }
+
+        $this->testModel->withoutGlobalScopes()->countUnderFour()->chunk(1, function ($results) {
+            $this->assertLessThan(4, $results->first()->count);
+        });
+    }
+
+    public function testChunkWithDynamicLocalScope()
+    {
+        for ($x = 0; $x < 10; $x++) {
+            $this->seed(['count' => ['N' => $x]]);
+        }
+
+        $this->testModel->withoutGlobalScopes()->countUnder(6)->chunk(1, function ($results) {
+            $this->assertLessThan(6, $results->first()->count);
+        });
     }
 
     public function seed($attributes = [])

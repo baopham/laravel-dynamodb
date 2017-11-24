@@ -7,6 +7,7 @@ use Closure;
 use Aws\DynamoDb\DynamoDbClient;
 use Illuminate\Contracts\Support\Arrayable;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\Eloquent\Scope;
 
 class DynamoDbQueryBuilder
 {
@@ -303,15 +304,17 @@ class DynamoDbQueryBuilder
     /**
      * Implements the Query Chunk method
      *
-     * @param int $chunk_size
+     * @param int $chunkSize
      * @param callable $callback
      */
-    public function chunk($chunk_size, callable $callback)
+    public function chunk($chunkSize, callable $callback)
     {
         while (true) {
-            $results = $this->getAll([], $chunk_size, false);
+            $results = $this->getAll([], $chunkSize, false);
 
-            call_user_func($callback, $results);
+            if ($results->isNotEmpty()) {
+                call_user_func($callback, $results);
+            }
 
             if (empty($this->lastEvaluatedKey)) {
                 break;
@@ -469,7 +472,7 @@ class DynamoDbQueryBuilder
         return $this->getAll([$this->model->getKeyName()])->count();
     }
 
-    protected function getAll($columns = [], $limit = -1, $use_iterator = true)
+    protected function getAll($columns = [], $limit = -1, $useIterator = true)
     {
         $this->applyScopes();
 
@@ -505,7 +508,7 @@ class DynamoDbQueryBuilder
         $query = array_merge($query, $queryInfo['query']);
         $query = $this->cleanUpQuery($query);
 
-        if ($use_iterator) {
+        if ($useIterator) {
             $iterator = $this->client->getIterator($op, $query);
 
             if (isset($query['Limit'])) {
@@ -848,7 +851,7 @@ class DynamoDbQueryBuilder
 
         $builder = $this;
 
-        foreach ($this->scopes as $identifier => $scope) {
+        foreach ($builder->scopes as $identifier => $scope) {
             if (! isset($builder->scopes[$identifier])) {
                 continue;
             }
@@ -868,6 +871,8 @@ class DynamoDbQueryBuilder
                     $scope->apply($builder, $this->getModel());
                 }
             });
+
+            $builder->withoutGlobalScope($identifier);
         }
 
         return $builder;
