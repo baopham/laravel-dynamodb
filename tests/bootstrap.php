@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: bao
- * Date: 2015-08-01
- * Time: 10:49 PM
- */
+// @codingStandardsIgnoreFile
 
 function includeIfExists($file)
 {

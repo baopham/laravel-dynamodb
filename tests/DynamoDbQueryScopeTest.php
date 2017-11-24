@@ -140,6 +140,7 @@ class DynamoDbQueryScopeTest extends ModelTest
     }
 }
 
+// phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
 class ModelWithQueryScopes extends \BaoPham\DynamoDb\DynamoDbModel
 {
     protected $fillable = ['name', 'description', 'count'];
@@ -173,3 +174,4 @@ class ModelWithQueryScopes extends \BaoPham\DynamoDb\DynamoDbModel
         return $builder->where('count', '<', $count);
     }
 }
+// phpcs:enable PSR1.Classes.ClassDeclaration.MultipleClasses

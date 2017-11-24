@@ -84,6 +84,7 @@ class DynamoDbTimestampTest extends ModelTest
     }
 }
 
+// phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
 class TimestampModel extends \BaoPham\DynamoDb\DynamoDbModel
 {
     protected $fillable = ['name', 'description', 'count'];
@@ -98,3 +99,4 @@ class TimestampModel extends \BaoPham\DynamoDb\DynamoDbModel
         ],
     ];
 }
+// phpcs:enable PSR1.Classes.ClassDeclaration.MultipleClasses

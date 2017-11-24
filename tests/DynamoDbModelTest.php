@@ -741,6 +741,7 @@ class DynamoDbModelTest extends ModelTest
     }
 }
 
+// phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
 class TestModel extends \BaoPham\DynamoDb\DynamoDbModel
 {
     protected $fillable = ['name', 'description', 'count'];
@@ -753,3 +754,4 @@ class TestModel extends \BaoPham\DynamoDb\DynamoDbModel
         ],
     ];
 }
+// phpcs:enable PSR1.Classes.ClassDeclaration.MultipleClasses
