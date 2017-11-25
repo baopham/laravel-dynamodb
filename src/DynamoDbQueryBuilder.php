@@ -768,7 +768,7 @@ class DynamoDbQueryBuilder
      * Return key for DynamoDb query.
      *
      * @param array|null $modelKeys
-     * @return array|null e.g.
+     * @return array
      *
      * e.g.
      * [
@@ -905,7 +905,7 @@ class DynamoDbQueryBuilder
     /**
      * Apply the scopes to the Eloquent builder instance and return it.
      *
-     * @return \Illuminate\Database\Eloquent\Builder|static
+     * @return DynamoDbQueryBuilder
      */
     public function applyScopes()
     {
