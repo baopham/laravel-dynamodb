@@ -27,6 +27,7 @@ Supports all key types - primary hash key and composite keys.
   * [findOrFail()](#findorfail)
   * [Query scope](#query-scope)
   * [REMOVE — Deleting Attributes From An Item](#remove--deleting-attributes-from-an-item)
+  * [toSql() style](#tosql-style)
 * [Indexes](#indexes)
 * [Composite Keys](#composite-keys)
 * [Requirements](#requirements)
@@ -256,6 +257,18 @@ $model->where('id', 'foo')->removeAttribute('name', 'description', 'nested.foo',
 Model::find('foo')->removeAttribute('name', 'description', 'nested.foo', 'nestedArray[0]');
 ```
 
+
+#### toSql() style
+
+For debugging purposes, you can choose to convert to the actual DynamoDb query
+
+```php
+list($op, $query) = $model->where('count', '>', 10)->toDynamoDbQuery();
+```
+
+where `$op` will be either `Scan` or `Query` and `$query` will be the query body being sent to AWS.
+
+
 Indexes
 -----------
 If your table has indexes, make sure to declare them in your model class like so
@@ -286,7 +299,7 @@ Note that order of index matters when a key exists in multiple indexes.
 For example, we have this
 
 ```php
-$this->where('user_id', 123)->where('count', '>', 10)->get();
+$model->where('user_id', 123)->where('count', '>', 10)->get();
 ```
 
 with
@@ -318,6 +331,13 @@ protected $dynamoDbIndexKeys = [
 ```
 
 will use `user_index`.
+
+
+Most of the time, you should not have to do anything but if you need to use a specific index, you can specify it like so
+
+```php
+$model->where('user_id', 123)->where('count', '>', 10)->withIndex('count_index')->get();
+```
 
 
 Composite Keys

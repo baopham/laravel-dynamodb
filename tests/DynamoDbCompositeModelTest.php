@@ -246,7 +246,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         ])->toArray());
     }
 
-    public function testConditionContainingCompositeIndexKey()
+    public function testConditionContainingIndexKey()
     {
         $this->seed([
             'id' => ['S' => 'id1'],
@@ -293,6 +293,18 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
 
         $this->assertEquals(3, $foundItems->count());
         $this->assertEquals($expectedItem, $foundItems->first()->toArray());
+    }
+
+    public function testSetIndexManually()
+    {
+        list($op, $query) = $this->testModel
+            ->where('id', 'id1')
+            ->where('author', 'BP')
+            ->withIndex('id_author_index')
+            ->toDynamoDbQuery();
+
+        $this->assertEquals('id_author_index', array_get($query, 'IndexName'));
+        $this->assertEquals('Query', $op);
     }
 
     public function testConditionsNotContainingAllCompositeKeys()
@@ -449,6 +461,11 @@ class CompositeTestModel extends \BaoPham\DynamoDb\DynamoDbModel
         'id_count_index' => [
             'hash' => 'id',
             'range' => 'count',
+        ],
+        // extra index for testing setting index manually, not yet provisioned
+        'id_author_index' => [
+            'hash' => 'id',
+            'range' => 'author',
         ],
     ];
 }
