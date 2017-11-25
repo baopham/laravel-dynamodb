@@ -370,6 +370,38 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $this->assertRemoveAttributes($item);
     }
 
+    public function testAfter()
+    {
+        for ($i = 0; $i < 10; $i++) {
+            $seed = $this->seed(['count' => ['N' => $i]]);
+
+            $attributes = $this->testModel->unmarshalItem($seed);
+
+            $model = $this->testModel->newInstance($attributes);
+
+            // hydrate keys
+            foreach ($model->getKeyNames() as $key) {
+                $model->setAttribute($key, $attributes[$key]);
+            }
+        }
+
+        // Paginate 2 items at a time
+        $pageSize = 2;
+        $last = null;
+        $paginationResult = collect();
+
+        do {
+            $items = $this->testModel
+                ->where('count', '>', -1)
+                ->after($last)
+                ->limit($pageSize)->all();
+            $last = $items->last();
+            $paginationResult = $paginationResult->merge($items->pluck('count'));
+        } while ($last);
+
+        $this->assertEquals(range(0, 9), $paginationResult->sort()->values()->toArray());
+    }
+
     public function seed($attributes = [], $exclude = [])
     {
         $item = [

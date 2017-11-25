@@ -18,6 +18,7 @@ Supports all key types - primary hash key and composite keys.
   * [find() and delete()](#find-and-delete) 
   * [Conditions](#conditions)
   * [all() and first()](#all-and-first)
+  * [Pagination](#pagination)
   * [Update](#update)
   * [Save](#save)
   * [Chunk](#chunk)
@@ -134,6 +135,26 @@ $model->all();
 
 // Basically a scan but with limit of 1 item.
 $model->first();
+```
+
+#### Pagination
+
+Unfortunately, offset of how many records to skip does not make sense for DynamoDb.
+Instead, provide the last result of the previous query as the starting point for the next query.  
+
+**Examples:**
+
+For query such as:
+
+```php
+$query = $model->where('count', 10)->limit(2);
+$last = $query->all()->last();
+```
+
+Take the last item of this query result as the next "offset":
+
+```php
+$nextPage = $query->after($last)->limit(2)->all();
 ```
 
 #### update()
