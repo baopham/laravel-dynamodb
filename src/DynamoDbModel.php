@@ -316,22 +316,6 @@ abstract class DynamoDbModel extends Model
     /**
      * @return array
      */
-    public function getCompositeKey()
-    {
-        return $this->compositeKey;
-    }
-
-    /**
-     * @param array $compositeKey
-     */
-    public function setCompositeKey($compositeKey)
-    {
-        $this->compositeKey = $compositeKey;
-    }
-
-    /**
-     * @return array
-     */
     public function getDynamoDbIndexKeys()
     {
         return $this->dynamoDbIndexKeys;
