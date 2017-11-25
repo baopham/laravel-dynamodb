@@ -693,19 +693,10 @@ class DynamoDbModelTest extends ModelTest
         $this->assertRemoveAttributes($item);
     }
 
-    public function testAfter()
+    public function testAfterForQueryOperation()
     {
         for ($i = 0; $i < 10; $i++) {
-            $seed = $this->seed(['count' => ['N' => 10]]);
-
-            $attributes = $this->testModel->unmarshalItem($seed);
-
-            $model = $this->testModel->newInstance($attributes);
-
-            // hydrate keys
-            foreach ($model->getKeyNames() as $key) {
-                $model->setAttribute($key, $attributes[$key]);
-            }
+            $this->seed(['count' => ['N' => 10]]);
         }
 
         // Paginate 2 items at a time
@@ -726,6 +717,28 @@ class DynamoDbModelTest extends ModelTest
         $paginationResult->each(function ($count) {
             $this->assertEquals(10, $count);
         });
+    }
+
+    public function testAfterForScanOperation()
+    {
+        for ($i = 0; $i < 10; $i++) {
+            $this->seed(['count' => ['N' => $i]]);
+        }
+
+        // Paginate 2 items at a time
+        $pageSize = 2;
+        $last = null;
+        $paginationResult = collect();
+
+        do {
+            $items = $this->testModel
+                ->after($last)
+                ->limit($pageSize)->all();
+            $last = $items->last();
+            $paginationResult = $paginationResult->merge($items->pluck('count'));
+        } while ($last);
+
+        $this->assertEquals(range(0, 9), $paginationResult->sort()->values()->toArray());
     }
 
     protected function assertRemoveAttributes($item)
