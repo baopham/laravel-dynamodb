@@ -36,12 +36,12 @@ abstract class DynamoDbModel extends Model
     /**
      * Indexes.
      *   [
-     *     'simple_index_name' => [
-     *          'hash' => 'index_key'
+     *     '<simple_index_name>' => [
+     *          'hash' => '<index_key>'
      *     ],
-     *     'composite_index_name' => [
-     *          'hash' => 'index_hash_key',
-     *          'range' => 'index_range_key'
+     *     '<composite_index_name>' => [
+     *          'hash' => '<index_hash_key>',
+     *          'range' => '<index_range_key>'
      *     ],
      *   ]
      *
@@ -51,7 +51,7 @@ abstract class DynamoDbModel extends Model
 
     /**
      * Array of your composite key.
-     * ['hash', 'range']
+     * ['<hash>', '<range>']
      *
      * @var array
      */
