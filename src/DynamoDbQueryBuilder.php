@@ -61,6 +61,13 @@ class DynamoDbQueryBuilder
      */
     protected $lastEvaluatedKey;
 
+    /**
+     * Specified index name for the query.
+     *
+     * @var string
+     */
+    protected $index;
+
     public function __construct(DynamoDbModel $model)
     {
         $this->model = $model;
@@ -152,6 +159,18 @@ class DynamoDbQueryBuilder
 
         $this->lastEvaluatedKey = $this->getDynamoDbKey($afterKey);
 
+        return $this;
+    }
+
+    /**
+     * Set the index name manually
+     *
+     * @param string $index The index name
+     * @return $this
+     */
+    public function withIndex($index)
+    {
+        $this->index = $index;
         return $this;
     }
 
@@ -539,18 +558,11 @@ class DynamoDbQueryBuilder
         return $this->getAll($this->model->getKeyNames())->count();
     }
 
-    protected function getAll($columns = [], $limit = null, $useIterator = null)
-    {
-        if (is_null($limit)) {
-            $limit = static::MAX_LIMIT;
-        }
-
-        if (is_null($useIterator)) {
-            $useIterator = static::DEFAULT_TO_ITERATOR;
-        }
-
-        $this->applyScopes();
-
+    protected function getAll(
+        $columns = [],
+        $limit = DynamoDbQueryBuilder::MAX_LIMIT,
+        $useIterator = DynamoDbQueryBuilder::DEFAULT_TO_ITERATOR
+    ) {
         if ($conditionValue = $this->conditionsContainKey()) {
             if ($this->conditionsAreExactSearch()) {
                 $item = $this->find($conditionValue, $columns);
@@ -559,26 +571,7 @@ class DynamoDbQueryBuilder
             }
         }
 
-        $query = [
-            'TableName' => $this->model->getTable(),
-        ];
-
-        if ($limit > static::MAX_LIMIT) {
-            $query['Limit'] = $limit;
-        }
-
-        if (!empty($columns)) {
-            $query['ProjectionExpression'] = $this->projectionExpression->parse($columns);
-        }
-
-        if (!empty($this->lastEvaluatedKey)) {
-            $query['ExclusiveStartKey'] = $this->lastEvaluatedKey;
-        }
-
-        $queryInfo = $this->buildExpressionQuery();
-        $op = $queryInfo['op'];
-        $query = array_merge($query, $queryInfo['query']);
-        $query = $this->cleanUpQuery($query);
+        list($op, $query) = $this->toDynamoDbQuery($columns, $limit);
 
         if ($useIterator) {
             $iterator = $this->client->getIterator($op, $query);
@@ -609,6 +602,32 @@ class DynamoDbQueryBuilder
         return $this->getModel()->newCollection($results);
     }
 
+    public function toDynamoDbQuery(
+        $columns = [],
+        $limit = DynamoDbQueryBuilder::MAX_LIMIT
+    ) {
+        $this->applyScopes();
+
+        list($op, $query) = $this->buildExpressionQuery();
+
+        $query['TableName'] = $this->model->getTable();
+
+        if ($limit !== static::MAX_LIMIT) {
+            $query['Limit'] = $limit;
+        }
+
+        if (!empty($columns)) {
+            $query['ProjectionExpression'] = $this->projectionExpression->parse($columns);
+        }
+
+        if (!empty($this->lastEvaluatedKey)) {
+            $query['ExclusiveStartKey'] = $this->lastEvaluatedKey;
+        }
+
+        $query = $this->cleanUpQuery($query);
+        return [$op, $query];
+    }
+
     protected function buildExpressionQuery()
     {
         $this->resetExpressions();
@@ -617,7 +636,7 @@ class DynamoDbQueryBuilder
         $query = [];
 
         if (empty($this->wheres)) {
-            return compact('op', 'query');
+            return [$op, $query];
         }
 
         // Index key condition exists, then use Query instead of Scan.
@@ -677,7 +696,7 @@ class DynamoDbQueryBuilder
 
         $query['ExpressionAttributeValues'] = $this->expressionAttributeValues->all();
 
-        return compact('op', 'query');
+        return [$op, $query];
     }
 
     protected function conditionsAreExactSearch()
@@ -753,11 +772,14 @@ class DynamoDbQueryBuilder
         foreach ($this->model->getDynamoDbIndexKeys() as $name => $keysInfo) {
             $conditionKeys = array_pluck($this->wheres, 'column');
             $keys = array_values($keysInfo);
+
             if (count(array_intersect($conditionKeys, $keys)) === count($keys)) {
-                return [
-                    'name' => $name,
-                    'keysInfo' => $keysInfo
-                ];
+                if ($this->index === $name || !isset($this->index)) {
+                    return [
+                        'name' => $name,
+                        'keysInfo' => $keysInfo
+                    ];
+                }
             }
         }
 
