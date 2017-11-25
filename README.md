@@ -179,7 +179,6 @@ $model->save();
 #### chunk()
 
 ```php
-// chunk
 $model->chunk(10, function ($records) {
     foreach ($records as $record) {
 
@@ -272,7 +271,7 @@ If your table has indexes, make sure to declare them in your model class like so
  *          'hash' => '<index_hash_key>',
  *          'range' => '<index_range_key>'
  *     ],
- * ].
+ * ]
  *
  * @var array
  */
