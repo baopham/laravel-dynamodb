@@ -409,7 +409,14 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
 // phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
 class CompositeTestModel extends \BaoPham\DynamoDb\DynamoDbModel
 {
-    protected $fillable = ['name', 'description', 'count'];
+    protected $fillable = [
+        'name',
+        'description',
+        'count',
+        'author',
+        'nested',
+        'nestedArray',
+    ];
 
     protected $table = 'composite_test_model';
 
