@@ -370,6 +370,29 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $this->assertRemoveAttributes($item);
     }
 
+    public function testAfterForQueryOperation()
+    {
+        for ($i = 0; $i < 10; $i++) {
+            $this->seed(['count' => ['N' => $i]]);
+        }
+
+        // Paginate 2 items at a time
+        $pageSize = 2;
+        $last = null;
+        $paginationResult = collect();
+
+        do {
+            $items = $this->testModel
+                ->where('count', '>', -1)
+                ->after($last)
+                ->limit($pageSize)->all();
+            $last = $items->last();
+            $paginationResult = $paginationResult->merge($items->pluck('count'));
+        } while ($last);
+
+        $this->assertEquals(range(0, 9), $paginationResult->sort()->values()->toArray());
+    }
+
     public function seed($attributes = [], $exclude = [])
     {
         $item = [
@@ -409,7 +432,14 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
 // phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
 class CompositeTestModel extends \BaoPham\DynamoDb\DynamoDbModel
 {
-    protected $fillable = ['name', 'description', 'count'];
+    protected $fillable = [
+        'name',
+        'description',
+        'count',
+        'author',
+        'nested',
+        'nestedArray',
+    ];
 
     protected $table = 'composite_test_model';
 

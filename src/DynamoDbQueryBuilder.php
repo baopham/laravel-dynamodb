@@ -13,6 +13,9 @@ class DynamoDbQueryBuilder
 {
     use HasParsers;
 
+    const MAX_LIMIT = -1;
+    const DEFAULT_TO_ITERATOR = true;
+
     /**
      * The maximum number of records to return.
      *
@@ -89,6 +92,69 @@ class DynamoDbQueryBuilder
         return $this;
     }
 
+    /**
+     * Alias to set the "offset" value of the query.
+     *
+     * @param  int $value
+     * @throws NotSupportedException
+     */
+    public function skip($value)
+    {
+        return $this->offset($value);
+    }
+
+    /**
+     * Set the "offset" value of the query.
+     *
+     * @param  int $value
+     * @throws NotSupportedException
+     */
+    public function offset($value)
+    {
+        throw new NotSupportedException('Skip/Offset is not supported. Consider using after() instead');
+    }
+
+
+    /**
+     * Determine the starting point (exclusively) of the query.
+     * Unfortunately, offset of how many records to skip does not make sense for DynamoDb.
+     * Instead, provide the last result of the previous query as the starting point for the next query.
+     *
+     * @param  DynamoDbModel  $after
+     *   Pass in the model instance or the LastEvaluatedKey value from the previous query.
+     *
+     *   Examples:
+     *
+     *   For query such as
+     *       $query = $model->where('count', 10)->limit(2);
+     *       $last = $query->all()->last();
+     *     Take the last item of this query result as the next "offset":
+     *       $nextPage = $query->after($last)->limit(2)->all();
+     *
+     * @return $this
+     */
+    public function after($after)
+    {
+        if (empty($after)) {
+            $this->lastEvaluatedKey = null;
+
+            return $this;
+        }
+
+        $afterKey = $after->getKeys();
+
+        if ($index = $this->conditionsContainIndexKey()) {
+            $columns = array_values($index['keysInfo']);
+            foreach ($columns as $column) {
+                $afterKey[$column] = $after->getAttribute($column);
+            }
+        }
+
+        $this->lastEvaluatedKey = $this->getDynamoDbKey($afterKey);
+
+        return $this;
+    }
+
     public function where($column, $operator = null, $value = null, $boolean = 'and')
     {
         // If the column is an array, we will assume it is an array of key-value pairs
@@ -143,7 +209,7 @@ class DynamoDbQueryBuilder
      *
      * @param  \Closure $callback
      * @param  string   $boolean
-     * @return DynamoDbQueryBuilder|static
+     * @return $this
      */
     public function whereNested(Closure $callback, $boolean = 'and')
     {
@@ -155,7 +221,7 @@ class DynamoDbQueryBuilder
     /**
      * Create a new query instance for nested where condition.
      *
-     * @return DynamoDbQueryBuilder
+     * @return $this
      */
     public function forNestedWhere()
     {
@@ -435,7 +501,7 @@ class DynamoDbQueryBuilder
 
     public function get($columns = [])
     {
-        return $this->getAll($columns);
+        return $this->all($columns);
     }
 
     public function delete()
@@ -464,21 +530,27 @@ class DynamoDbQueryBuilder
 
     public function all($columns = [])
     {
-        return $this->getAll($columns);
+        $limit = isset($this->limit) ? $this->limit : static::MAX_LIMIT;
+        return $this->getAll($columns, $limit);
     }
 
     public function count()
     {
-        return $this->getAll([$this->model->getKeyName()])->count();
+        return $this->getAll($this->model->getKeyNames())->count();
     }
 
-    protected function getAll($columns = [], $limit = -1, $useIterator = true)
+    protected function getAll($columns = [], $limit = null, $useIterator = null)
     {
+        if (is_null($limit)) {
+            $limit = static::MAX_LIMIT;
+        }
+
+        if (is_null($useIterator)) {
+            $useIterator = static::DEFAULT_TO_ITERATOR;
+        }
+
         $this->applyScopes();
 
-        if ($limit === -1 && isset($this->limit)) {
-            $limit = $this->limit;
-        }
         if ($conditionValue = $this->conditionsContainKey()) {
             if ($this->conditionsAreExactSearch()) {
                 $item = $this->find($conditionValue, $columns);
@@ -491,7 +563,7 @@ class DynamoDbQueryBuilder
             'TableName' => $this->model->getTable(),
         ];
 
-        if ($limit > -1) {
+        if ($limit > static::MAX_LIMIT) {
             $query['Limit'] = $limit;
         }
 
@@ -645,7 +717,7 @@ class DynamoDbQueryBuilder
 
         $model = $this->model;
 
-        $keys = $model->hasCompositeKey() ? $model->getCompositeKey() : [$model->getKeyName()];
+        $keys = $model->getKeyNames();
 
         $conditionsContainKey = count(array_intersect($conditionKeys, $keys)) === count($keys);
 
@@ -692,63 +764,55 @@ class DynamoDbQueryBuilder
         return false;
     }
 
-    protected function getDynamoDbKey()
+    /**
+     * Return key for DynamoDb query.
+     *
+     * @param array|null $modelKeys
+     * @return array
+     *
+     * e.g.
+     * [
+     *   'id' => ['S' => 'foo'],
+     * ]
+     *
+     * or
+     *
+     * [
+     *   'id' => ['S' => 'foo'],
+     *   'id2' => ['S' => 'bar'],
+     * ]
+     */
+    protected function getDynamoDbKey($modelKeys = null)
     {
-        if (!$this->model->hasCompositeKey()) {
-            return $this->getDynamoDbPrimaryKey();
-        }
+        $modelKeys = $modelKeys ?: $this->model->getKeys();
 
         $keys = [];
 
-        foreach ($this->model->getCompositeKey() as $key) {
-            $dynamoDbKey = $this->getSpecificDynamoDbKey($key, $this->model->getAttribute($key));
-
-            if (!empty($dynamoDbKey)) {
-                $keys = array_merge($keys, $dynamoDbKey);
+        foreach ($modelKeys as $key => $value) {
+            if (is_null($value)) {
+                continue;
             }
+            $keys[$key] = $this->model->marshalValue($value);
         }
 
         return $keys;
     }
 
-    protected function getDynamoDbPrimaryKey()
-    {
-        return $this->getSpecificDynamoDbKey($this->model->getKeyName(), $this->model->getKey());
-    }
-
-    protected function getSpecificDynamoDbKey($keyName, $value)
-    {
-        if (is_null($value)) {
-            return null;
-        }
-
-        $idKey = $this->model->marshalItem([
-            $keyName => $value,
-        ]);
-
-        $key = [
-            $keyName => $idKey[$keyName],
-        ];
-
-        return $key;
-    }
-
     protected function isMultipleIds($id)
     {
-        $hasCompositeKey = $this->model->hasCompositeKey();
+        $keys = collect($this->model->getKeyNames());
 
-        if (!$hasCompositeKey && isset($id[$this->model->getKeyName()])) {
+        // could be ['id' => 'foo'], ['id1' => 'foo', 'id2' => 'bar']
+        $single = $keys->every(function ($name) use ($id) {
+            return isset($id[$name]);
+        });
+
+        if ($single) {
             return false;
         }
 
-        if ($hasCompositeKey) {
-            $compositeKey = $this->model->getCompositeKey();
-            if (isset($id[$compositeKey[0]]) && isset($id[$compositeKey[1]])) {
-                return false;
-            }
-        }
-
-        return $hasCompositeKey ? is_array(array_first($id)) : is_array($id);
+        // could be ['foo', 'bar'], [['id1' => 'foo', 'id2' => 'bar'], ...]
+        return $this->model->hasCompositeKey() ? is_array(array_first($id)) : is_array($id);
     }
 
     private function cleanUpQuery($query)
@@ -841,7 +905,7 @@ class DynamoDbQueryBuilder
     /**
      * Apply the scopes to the Eloquent builder instance and return it.
      *
-     * @return \Illuminate\Database\Eloquent\Builder|static
+     * @return DynamoDbQueryBuilder
      */
     public function applyScopes()
     {
@@ -868,7 +932,7 @@ class DynamoDbQueryBuilder
                 // passing in the builder and the model instance. After we run all of these
                 // scopes we will return back the builder instance to the outside caller.
                 if ($scope instanceof Scope) {
-                    $scope->apply($builder, $this->getModel());
+                    throw new NotSupportedException('Scope object is not yet supported');
                 }
             });
 

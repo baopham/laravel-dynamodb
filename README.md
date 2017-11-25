@@ -18,6 +18,7 @@ Supports all key types - primary hash key and composite keys.
   * [find() and delete()](#find-and-delete) 
   * [Conditions](#conditions)
   * [all() and first()](#all-and-first)
+  * [Pagination](#pagination)
   * [Update](#update)
   * [Save](#save)
   * [Chunk](#chunk)
@@ -136,6 +137,26 @@ $model->all();
 $model->first();
 ```
 
+#### Pagination
+
+Unfortunately, offset of how many records to skip does not make sense for DynamoDb.
+Instead, provide the last result of the previous query as the starting point for the next query.  
+
+**Examples:**
+
+For query such as:
+
+```php
+$query = $model->where('count', 10)->limit(2);
+$last = $query->all()->last();
+```
+
+Take the last item of this query result as the next "offset":
+
+```php
+$nextPage = $query->after($last)->limit(2)->all();
+```
+
 #### update()
 
 ```php
@@ -158,7 +179,6 @@ $model->save();
 #### chunk()
 
 ```php
-// chunk
 $model->chunk(10, function ($records) {
     foreach ($records as $record) {
 
@@ -244,14 +264,14 @@ If your table has indexes, make sure to declare them in your model class like so
 /**
  * Indexes.
  * [
- *     'simple_index_name' => [
- *          'hash' => 'index_key'
+ *     '<simple_index_name>' => [
+ *          'hash' => '<index_key>'
  *     ],
- *     'composite_index_name' => [
- *          'hash' => 'index_hash_key',
- *          'range' => 'index_range_key'
+ *     '<composite_index_name>' => [
+ *          'hash' => '<index_hash_key>',
+ *          'range' => '<index_range_key>'
  *     ],
- * ].
+ * ]
  *
  * @var array
  */

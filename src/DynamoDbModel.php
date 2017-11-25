@@ -36,12 +36,12 @@ abstract class DynamoDbModel extends Model
     /**
      * Indexes.
      *   [
-     *     'simple_index_name' => [
-     *          'hash' => 'index_key'
+     *     '<simple_index_name>' => [
+     *          'hash' => '<index_key>'
      *     ],
-     *     'composite_index_name' => [
-     *          'hash' => 'index_hash_key',
-     *          'range' => 'index_range_key'
+     *     '<composite_index_name>' => [
+     *          'hash' => '<index_hash_key>',
+     *          'range' => '<index_range_key>'
      *     ],
      *   ]
      *
@@ -51,7 +51,7 @@ abstract class DynamoDbModel extends Model
 
     /**
      * Array of your composite key.
-     * ['hash', 'range']
+     * ['<hash>', '<range>']
      *
      * @var array
      */
@@ -216,6 +216,11 @@ abstract class DynamoDbModel extends Model
         return $this->marshaler->marshalItem($item);
     }
 
+    public function marshalValue($value)
+    {
+        return $this->marshaler->marshalValue($value);
+    }
+
     public function unmarshalItem($item)
     {
         return $this->marshaler->unmarshalItem($item);
@@ -245,19 +250,67 @@ abstract class DynamoDbModel extends Model
     }
 
     /**
-     * @return array
+     * Get the value of the model's primary / composite key.
+     *
+     * @return mixed
      */
-    public function getCompositeKey()
+    public function getKey()
     {
-        return $this->compositeKey;
+        if ($this->hasCompositeKey()) {
+            $key = [];
+
+            foreach ($this->compositeKey as $name) {
+                $key[$name] = $this->getAttribute($name);
+            }
+
+            return $key;
+        }
+
+        return $this->getAttribute($this->getKeyName());
     }
 
     /**
-     * @param array $compositeKey
+     * Get the value of the model's primary / composite key.
+     * Use this if you always want the key values in associative array form.
+     *
+     * @return array
+     *
+     * ['id' => 'foo']
+     *
+     * or
+     *
+     * ['id' => 'foo', 'id2' => 'bar']
      */
-    public function setCompositeKey($compositeKey)
+    public function getKeys()
     {
-        $this->compositeKey = $compositeKey;
+        if ($this->hasCompositeKey()) {
+            return $this->getKey();
+        }
+
+        $name = $this->getKeyName();
+
+        return [$name => $this->getAttribute($name)];
+    }
+
+    /**
+     * Get the primary/composite key for the model.
+     *
+     * @return array|string
+     */
+    public function getKeyName()
+    {
+        return $this->hasCompositeKey() ? $this->compositeKey : $this->primaryKey;
+    }
+
+    /**
+     * Get the primary/composite key for the model.
+     * Use this if you always want to get the key in array form.
+     *
+     * @return array
+     */
+    public function getKeyNames()
+    {
+        return $this->hasCompositeKey() ? $this->compositeKey : [$this->primaryKey];
     }
 
     /**

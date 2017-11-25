@@ -693,6 +693,54 @@ class DynamoDbModelTest extends ModelTest
         $this->assertRemoveAttributes($item);
     }
 
+    public function testAfterForQueryOperation()
+    {
+        for ($i = 0; $i < 10; $i++) {
+            $this->seed(['count' => ['N' => 10]]);
+        }
+
+        // Paginate 2 items at a time
+        $pageSize = 2;
+        $last = null;
+        $paginationResult = collect();
+
+        do {
+            $items = $this->testModel
+                ->where('count', 10)
+                ->after($last)
+                ->limit($pageSize)->all();
+            $last = $items->last();
+            $paginationResult = $paginationResult->merge($items->pluck('count'));
+        } while ($last);
+
+        $this->assertCount(10, $paginationResult);
+        $paginationResult->each(function ($count) {
+            $this->assertEquals(10, $count);
+        });
+    }
+
+    public function testAfterForScanOperation()
+    {
+        for ($i = 0; $i < 10; $i++) {
+            $this->seed(['count' => ['N' => $i]]);
+        }
+
+        // Paginate 2 items at a time
+        $pageSize = 2;
+        $last = null;
+        $paginationResult = collect();
+
+        do {
+            $items = $this->testModel
+                ->after($last)
+                ->limit($pageSize)->all();
+            $last = $items->last();
+            $paginationResult = $paginationResult->merge($items->pluck('count'));
+        } while ($last);
+
+        $this->assertEquals(range(0, 9), $paginationResult->sort()->values()->toArray());
+    }
+
     protected function assertRemoveAttributes($item)
     {
         $this->assertNull($item->name);
@@ -744,7 +792,14 @@ class DynamoDbModelTest extends ModelTest
 // phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
 class TestModel extends \BaoPham\DynamoDb\DynamoDbModel
 {
-    protected $fillable = ['name', 'description', 'count'];
+    protected $fillable = [
+        'name',
+        'description',
+        'count',
+        'author',
+        'nested',
+        'nestedArray',
+    ];
 
     protected $table = 'test_model';
 
