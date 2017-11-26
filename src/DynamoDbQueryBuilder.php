@@ -135,7 +135,7 @@ class DynamoDbQueryBuilder
      *   For query such as
      *       $query = $model->where('count', 10)->limit(2);
      *       $last = $query->all()->last();
-     *     Take the last item of this query result as the next "offset":
+     *   Take the last item of this query result as the next "offset":
      *       $nextPage = $query->after($last)->limit(2)->all();
      *
      * @return $this
