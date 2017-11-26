@@ -14,6 +14,11 @@ class UpdateExpression
         $this->names = $names;
     }
 
+    public function reset()
+    {
+        $this->names->reset();
+    }
+
     public function remove(array $attributes)
     {
         foreach ($attributes as $attribute) {

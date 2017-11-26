@@ -28,14 +28,14 @@ trait HasParsers
     protected $projectionExpression;
 
     /**
-     * @var ExpressionAttributeNames
-     */
-    protected $expressionAttributeNames;
-
-    /**
      * @var UpdateExpression
      */
     protected $updateExpression;
+
+    /**
+     * @var ExpressionAttributeNames
+     */
+    protected $expressionAttributeNames;
 
     /**
      * @var ExpressionAttributeValues
@@ -80,5 +80,6 @@ trait HasParsers
     {
         $this->filterExpression->reset();
         $this->keyConditionExpression->reset();
+        $this->updateExpression->reset();
     }
 }
