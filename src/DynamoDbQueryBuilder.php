@@ -121,7 +121,6 @@ class DynamoDbQueryBuilder
         throw new NotSupportedException('Skip/Offset is not supported. Consider using after() instead');
     }
 
-
     /**
      * Determine the starting point (exclusively) of the query.
      * Unfortunately, offset of how many records to skip does not make sense for DynamoDb.
