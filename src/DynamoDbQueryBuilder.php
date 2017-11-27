@@ -126,7 +126,7 @@ class DynamoDbQueryBuilder
      * Unfortunately, offset of how many records to skip does not make sense for DynamoDb.
      * Instead, provide the last result of the previous query as the starting point for the next query.
      *
-     * @param  DynamoDbModel  $after
+     * @param  DynamoDbModel|null  $after
      *   Examples:
      *
      *   For query such as
@@ -135,9 +135,11 @@ class DynamoDbQueryBuilder
      *   Take the last item of this query result as the next "offset":
      *       $nextPage = $query->after($last)->limit(2)->all();
      *
+     *   Alternatively, pass in nothing to reset the starting point.
+     *
      * @return $this
      */
-    public function after(DynamoDbModel $after)
+    public function after(DynamoDbModel $after = null)
     {
         if (empty($after)) {
             $this->lastEvaluatedKey = null;
