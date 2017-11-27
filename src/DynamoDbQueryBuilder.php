@@ -127,8 +127,6 @@ class DynamoDbQueryBuilder
      * Instead, provide the last result of the previous query as the starting point for the next query.
      *
      * @param  DynamoDbModel  $after
-     *   Pass in the model instance or the LastEvaluatedKey value from the previous query.
-     *
      *   Examples:
      *
      *   For query such as
