@@ -140,7 +140,7 @@ class DynamoDbQueryBuilder
      *
      * @return $this
      */
-    public function after($after)
+    public function after(DynamoDbModel $after)
     {
         if (empty($after)) {
             $this->lastEvaluatedKey = null;
