@@ -250,22 +250,12 @@ abstract class DynamoDbModel extends Model
     }
 
     /**
-     * Get the value of the model's primary / composite key.
+     * Get the value of the model's primary key.
      *
      * @return mixed
      */
     public function getKey()
     {
-        if ($this->hasCompositeKey()) {
-            $key = [];
-
-            foreach ($this->compositeKey as $name) {
-                $key[$name] = $this->getAttribute($name);
-            }
-
-            return $key;
-        }
-
         return $this->getAttribute($this->getKeyName());
     }
 
@@ -284,7 +274,13 @@ abstract class DynamoDbModel extends Model
     public function getKeys()
     {
         if ($this->hasCompositeKey()) {
-            return $this->getKey();
+            $key = [];
+
+            foreach ($this->compositeKey as $name) {
+                $key[$name] = $this->getAttribute($name);
+            }
+
+            return $key;
         }
 
         $name = $this->getKeyName();
@@ -293,18 +289,17 @@ abstract class DynamoDbModel extends Model
     }
 
     /**
-     * Get the primary/composite key for the model.
+     * Get the primary for the model.
      *
-     * @return array|string
+     * @return string
      */
     public function getKeyName()
     {
-        return $this->hasCompositeKey() ? $this->compositeKey : $this->primaryKey;
+        return $this->primaryKey;
     }
 
     /**
      * Get the primary/composite key for the model.
-     * Use this if you always want to get the key in array form.
      *
      * @return array
      */
