@@ -386,6 +386,10 @@ Q: How to create migration?
 A: Please see [this issue](https://github.com/baopham/laravel-dynamodb/issues/90)  
 
 
+Q: How to use with factory?  
+A: Please see [this issue](https://github.com/baopham/laravel-dynamodb/issues/111)  
+
+
 
 Author and Contributors
 -------
