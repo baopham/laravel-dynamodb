@@ -8,9 +8,16 @@ For an overview of DynamoDB Local please refer to the documentation at http://do
 Release Notes
 -----------------------------
 
+2017-01-24 (1.11.86)
+
+  * Implement waiters() method in LocalDynamoDBClient
+  * Update aws libs to 1.11.86
+  * Enable WARN logging for SQLite
+
+
 2016-05-17_1.0
 
-  * Bug fix for Query validation preventing primary key attributes in query filter expressions 
+  * Bug fix for Query validation preventing primary key attributes in query filter expressions
 
 Running DynamoDB Local
 ---------------------------------------------------------------
