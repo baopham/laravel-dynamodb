@@ -354,7 +354,7 @@ protected $compositeKey = ['customer_id', 'agent_id'];
 * To find a record with a composite key
 
 ```php
-$model->find(['id1' => 'value1', 'id2' => 'value2']);
+$model->find(['customer_id' => 'value1', 'agent_id' => 'value2']);
 ```
 
 Requirements
