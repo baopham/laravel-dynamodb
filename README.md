@@ -263,7 +263,9 @@ Model::find('foo')->removeAttribute('name', 'description', 'nested.foo', 'nested
 For debugging purposes, you can choose to convert to the actual DynamoDb query
 
 ```php
-list($op, $query) = $model->where('count', '>', 10)->toDynamoDbQuery();
+$raw = $model->where('count', '>', 10)->toDynamoDbQuery();
+$op = $raw->op;
+$query = $raw->query;
 ```
 
 where `$op` will be either `Scan` or `Query` and `$query` will be the query body being sent to AWS.

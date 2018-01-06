@@ -297,14 +297,14 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
 
     public function testSetIndexManually()
     {
-        list($op, $query) = $this->testModel
+        $raw = $this->testModel
             ->where('id', 'id1')
             ->where('author', 'BP')
             ->withIndex('id_author_index')
             ->toDynamoDbQuery();
 
-        $this->assertEquals('id_author_index', array_get($query, 'IndexName'));
-        $this->assertEquals('Query', $op);
+        $this->assertEquals('id_author_index', array_get($raw->query, 'IndexName'));
+        $this->assertEquals('Query', $raw->op);
     }
 
     public function testConditionsNotContainingAllCompositeKeys()
