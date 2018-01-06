@@ -39,6 +39,11 @@ class DynamoDbQueryBuilder
     protected $client;
 
     /**
+     * @var Closure
+     */
+    protected $decorator;
+
+    /**
      * Applied global scopes.
      *
      * @var array
@@ -557,6 +562,12 @@ class DynamoDbQueryBuilder
         return $this->getAll($this->model->getKeyNames())->count();
     }
 
+    public function decorate(Closure $closure)
+    {
+        $this->decorator = $closure;
+        return $this;
+    }
+
     protected function getAll(
         $columns = [],
         $limit = DynamoDbQueryBuilder::MAX_LIMIT,
@@ -570,19 +581,23 @@ class DynamoDbQueryBuilder
             }
         }
 
-        list($op, $query) = $this->toDynamoDbQuery($columns, $limit);
+        $raw = $this->toDynamoDbQuery($columns, $limit);
+
+        if ($this->decorator) {
+            call_user_func($this->decorator, $raw);
+        }
 
         if ($useIterator) {
-            $iterator = $this->client->getIterator($op, $query);
+            $iterator = $this->client->getIterator($raw->op, $raw->query);
 
-            if (isset($query['Limit'])) {
-                $iterator = new \LimitIterator($iterator, 0, $query['Limit']);
+            if (isset($raw->query['Limit'])) {
+                $iterator = new \LimitIterator($iterator, 0, $raw->query['Limit']);
             }
         } else {
-            if ($op === 'Scan') {
-                $res = $this->client->scan($query);
+            if ($raw->op === 'Scan') {
+                $res = $this->client->scan($raw->query);
             } else {
-                $res = $this->client->query($query);
+                $res = $this->client->query($raw->query);
             }
 
             $this->lastEvaluatedKey = array_get($res, 'LastEvaluatedKey');
@@ -601,13 +616,22 @@ class DynamoDbQueryBuilder
         return $this->getModel()->newCollection($results);
     }
 
+    /**
+     * Return the raw DynamoDb query
+     *
+     * @param array $columns
+     * @param int $limit
+     * @return RawDynamoDbQuery
+     */
     public function toDynamoDbQuery(
         $columns = [],
         $limit = DynamoDbQueryBuilder::MAX_LIMIT
     ) {
         $this->applyScopes();
 
-        list($op, $query) = $this->buildExpressionQuery();
+        $raw = $this->buildExpressionQuery();
+
+        $query = $raw->query;
 
         $query['TableName'] = $this->model->getTable();
 
@@ -623,8 +647,8 @@ class DynamoDbQueryBuilder
             $query['ExclusiveStartKey'] = $this->lastEvaluatedKey;
         }
 
-        $query = $this->cleanUpQuery($query);
-        return [$op, $query];
+        $raw->query = $this->cleanUpQuery($query);
+        return $raw;
     }
 
     protected function buildExpressionQuery()
@@ -635,7 +659,7 @@ class DynamoDbQueryBuilder
         $query = [];
 
         if (empty($this->wheres)) {
-            return [$op, $query];
+            return new RawDynamoDbQuery($op, $query);
         }
 
         // Index key condition exists, then use Query instead of Scan.
@@ -695,7 +719,7 @@ class DynamoDbQueryBuilder
 
         $query['ExpressionAttributeValues'] = $this->expressionAttributeValues->all();
 
-        return [$op, $query];
+        return new RawDynamoDbQuery($op, $query);
     }
 
     protected function conditionsAreExactSearch()
