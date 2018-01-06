@@ -3,6 +3,7 @@
 namespace BaoPham\DynamoDb\Tests;
 
 use BaoPham\DynamoDb\NotSupportedException;
+use BaoPham\DynamoDb\RawDynamoDbQuery;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
@@ -384,7 +385,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
 
     public function testAfterForQueryOperation()
     {
-        for ($i = 0; $i < 10; $i++) {
+        foreach (range(0, 9) as $i) {
             $this->seed(['count' => ['N' => $i]]);
         }
 
@@ -403,6 +404,29 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         } while ($last);
 
         $this->assertEquals(range(0, 9), $paginationResult->sort()->values()->toArray());
+    }
+
+    public function testDecorateRawQuery()
+    {
+        foreach (range(0, 9) as $i) {
+            $this->seed(['id' => ['S' => 'id'], 'count' => ['N' => $i]]);
+        }
+
+        $query = $this->testModel
+            ->where('id', 'id')
+            ->where('count', '>=', 0);
+
+        $forward = $query->get();
+
+        $this->assertEquals(range(0, 9), $forward->pluck('count')->toArray());
+
+        $query->decorate(function (RawDynamoDbQuery $raw) {
+            $raw->query['ScanIndexForward'] = false;
+        });
+
+        $reverse = $query->get();
+
+        $this->assertEquals(range(9, 0, -1), $reverse->pluck('count')->toArray());
     }
 
     public function seed($attributes = [], $exclude = [])

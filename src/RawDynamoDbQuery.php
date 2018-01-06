@@ -10,11 +10,15 @@ namespace BaoPham\DynamoDb;
 class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
 {
     /**
+     * Either 'Scan', or 'Query'
+     *
      * @var string
      */
     public $op;
 
     /**
+     * The query body being sent to AWS
+     *
      * @var array
      */
     public $query;

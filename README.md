@@ -27,7 +27,8 @@ Supports all key types - primary hash key and composite keys.
   * [findOrFail()](#findorfail)
   * [Query scope](#query-scope)
   * [REMOVE — Deleting Attributes From An Item](#remove--deleting-attributes-from-an-item)
-  * [toSql() style](#tosql-style)
+  * [toSql() Style](#tosql-style)
+  * [Decorate Query](#decorate-query)
 * [Indexes](#indexes)
 * [Composite Keys](#composite-keys)
 * [Requirements](#requirements)
@@ -258,18 +259,48 @@ Model::find('foo')->removeAttribute('name', 'description', 'nested.foo', 'nested
 ```
 
 
-#### toSql() style
+#### toSql() Style
 
 For debugging purposes, you can choose to convert to the actual DynamoDb query
 
 ```php
 $raw = $model->where('count', '>', 10)->toDynamoDbQuery();
+// $op is either "Scan" or "Query"
 $op = $raw->op;
+// The query body being sent to AWS
 $query = $raw->query;
 ```
 
-where `$op` will be either `Scan` or `Query` and `$query` will be the query body being sent to AWS.
+where `$raw` is an instance of [RawDynamoDbQuery](./src/RawDynamoDbQuery.php)
 
+
+#### Decorate Query
+
+Use `decorate` when you want to enhance the query. For example:
+
+To set the order of the sort key:
+
+```php
+$items = $model
+    ->where('hash', 'hash-value')
+    ->where('range', '>', 10)
+    ->decorate(function (RawDynamoDbQuery $raw) {
+        // desc order
+        $raw->query['ScanIndexForward'] = false;
+    })
+    ->get();
+```
+
+To force to use "Query" instead of "Scan" if the library fails to detect the correct operation:
+
+```php
+$items = $model
+    ->where('hash', 'hash-value')
+    ->decorate(function (RawDynamoDbQuery $raw) {
+        $raw->op = 'Query';
+    })
+    ->get();
+```
 
 Indexes
 -----------

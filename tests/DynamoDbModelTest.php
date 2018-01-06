@@ -3,6 +3,7 @@
 namespace BaoPham\DynamoDb\Tests;
 
 use BaoPham\DynamoDb\NotSupportedException;
+use BaoPham\DynamoDb\RawDynamoDbQuery;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
@@ -721,7 +722,7 @@ class DynamoDbModelTest extends ModelTest
 
     public function testAfterForScanOperation()
     {
-        for ($i = 0; $i < 10; $i++) {
+        foreach (range(0, 9) as $i) {
             $this->seed(['count' => ['N' => $i]]);
         }
 
@@ -739,6 +740,28 @@ class DynamoDbModelTest extends ModelTest
         } while ($last);
 
         $this->assertEquals(range(0, 9), $paginationResult->sort()->values()->toArray());
+    }
+
+    public function testDecorateRawQuery()
+    {
+        foreach (range(0, 9) as $i) {
+            $this->seed(['count' => ['N' => $i]]);
+        }
+
+        $items = $this->testModel
+            ->decorate(function (RawDynamoDbQuery $raw) {
+                $raw->op = 'Scan';
+                $raw->query['FilterExpression'] = '#count > :count';
+                $raw->query['ExpressionAttributeNames'] = [
+                    '#count' => 'count'
+                ];
+                $raw->query['ExpressionAttributeValues'] = [
+                    ':count' => ['N' => 0],
+                ];
+            })
+            ->get();
+
+        $this->assertEquals(range(1, 9), $items->pluck('count')->sort()->values()->toArray());
     }
 
     protected function assertRemoveAttributes($item)
