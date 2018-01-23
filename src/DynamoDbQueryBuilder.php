@@ -848,9 +848,9 @@ class DynamoDbQueryBuilder
         $keys = collect($this->model->getKeyNames());
 
         // could be ['id' => 'foo'], ['id1' => 'foo', 'id2' => 'bar']
-        $single = $keys->every(function ($name) use ($id) {
-            return isset($id[$name]);
-        });
+        $single = $keys->first(function ($name) use ($id) {
+            return !isset($id[$name]);
+        }) === null;
 
         if ($single) {
             return false;
