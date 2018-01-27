@@ -44,6 +44,9 @@ Install
     ```bash
     composer require baopham/dynamodb
     ```
+* Lumen - additional steps
+  - set up a `config_path` helper: https://gist.github.com/mabasic/21d13eab12462e596120
+  - install `vendor:publish` command: https://github.com/laravelista/lumen-vendor-publish
 
 * Install service provider:
 
