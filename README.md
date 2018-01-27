@@ -44,7 +44,8 @@ Install
     ```bash
     composer require baopham/dynamodb
     ```
-* Lumen - additional steps
+* For Lumen only - additional steps
+  - enable eloquent support in bootstrap/app.php: uncomment/add `$app->withEloquent()` just after `$app = new Laravel\Lumen\Application ...`
   - set up a `config_path` helper: https://gist.github.com/mabasic/21d13eab12462e596120
   - install `vendor:publish` command: https://github.com/laravelista/lumen-vendor-publish
 
