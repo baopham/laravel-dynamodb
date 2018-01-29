@@ -635,6 +635,11 @@ class DynamoDbQueryBuilder
 
         $query['TableName'] = $this->model->getTable();
 
+        if ($this->index) {
+            // If user specifies the index manually, respect that
+            $query['IndexName'] = $this->index;
+        }
+
         if ($limit !== static::MAX_LIMIT) {
             $query['Limit'] = $limit;
         }
