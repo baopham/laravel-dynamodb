@@ -23,18 +23,10 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
      */
     public $query;
 
-    /**
-     * For backward compatibility, previously we use array to represent the raw query
-     *
-     * @var array
-     */
-    private $array;
-
     public function __construct($op, $query)
     {
         $this->op = $op;
         $this->query = $query;
-        $this->array = [$op, $query];
     }
 
     /**
@@ -51,7 +43,7 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
      */
     public function offsetExists($offset)
     {
-        return isset($this->array[$offset]);
+        return isset($this->internal()[$offset]);
     }
 
     /**
@@ -65,7 +57,7 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
      */
     public function offsetGet($offset)
     {
-        return $this->array[$offset];
+        return $this->internal()[$offset];
     }
 
     /**
@@ -82,7 +74,7 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
      */
     public function offsetSet($offset, $value)
     {
-        $this->array[$offset] = $value;
+        $this->internal()[$offset] = $value;
     }
 
     /**
@@ -96,7 +88,7 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
      */
     public function offsetUnset($offset)
     {
-        unset($this->array[$offset]);
+        unset($this->internal()[$offset]);
     }
 
     /**
@@ -108,7 +100,7 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
      */
     public function getIterator()
     {
-        return new \ArrayObject($this->array);
+        return new \ArrayObject($this->internal());
     }
 
     /**
@@ -122,6 +114,16 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
      */
     public function count()
     {
-        return count($this->array);
+        return count($this->internal());
+    }
+
+    /**
+     * For backward compatibility, previously we use array to represent the raw query
+     *
+     * @var array
+     */
+    private function internal()
+    {
+        return [$this->op, $this->query];
     }
 }
