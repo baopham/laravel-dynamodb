@@ -167,6 +167,29 @@ class DynamoDbQueryBuilder
     }
 
     /**
+     * Similar to after(), but sets the lastEvaluatedKey to the value $key.
+     * Use $model->getKey() to retrieve the value
+     *
+     * @param  mixed  $key
+     *   Examples:
+     *
+     *   For query such as
+     *       $query = $model->where('count', 10)->limit(2);
+     *       $last = $query->all()->last();
+     *   Take the last item of this query result as the next "offset":
+     *       $nextPage = $query->afterKey($last->getKeys())->limit(2)->all();
+     *
+     *   Alternatively, pass in nothing to reset the starting point.
+     *
+     * @return $this
+     */
+    public function afterKey($key = null)
+    {
+        $this->lastEvaluatedKey = is_null($key) ? null : $this->getDynamoDbKey($key);
+        return $this;
+    }
+
+    /**
      * Set the index name manually
      *
      * @param string $index The index name
