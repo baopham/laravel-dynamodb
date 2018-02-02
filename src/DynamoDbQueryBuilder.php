@@ -167,10 +167,10 @@ class DynamoDbQueryBuilder
     }
 
     /**
-     * Similar to after(), but sets the lastEvaluatedKey to the value $key.
-     * Use $model->getKey() to retrieve the value
+     * Similar to after(), but instead of using the model instance, the model's keys are used.
+     * Use $model->getKeys() to retrieve the value
      *
-     * @param  mixed  $key
+     * @param  Array  $key
      *   Examples:
      *
      *   For query such as
@@ -185,7 +185,7 @@ class DynamoDbQueryBuilder
      */
     public function afterKey($key = null)
     {
-        $this->lastEvaluatedKey = is_null($key) ? null : $this->getDynamoDbKey($key);
+        $this->lastEvaluatedKey = empty($key) ? null : $this->getDynamoDbKey($key);
         return $this;
     }
 
