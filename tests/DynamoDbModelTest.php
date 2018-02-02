@@ -742,6 +742,62 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals(range(0, 9), $paginationResult->sort()->values()->toArray());
     }
 
+    public function testAfterKeyForQueryOperation()
+    {
+        for ($i = 0; $i < 10; $i++) {
+            $this->seed(['count' => ['N' => 10]]);
+        }
+
+        // Paginate 2 items at a time
+        $pageSize = 2;
+        $last = null;
+        $paginationResult = collect();
+        $afterKey = null;
+
+        do {
+            if (!empty($items)) {
+                $afterKey = $items->getLastEvaluatedKey();
+            }
+            $items = $this->testModel
+                ->where('count', 10)
+                ->afterKey($afterKey)
+                ->limit($pageSize)->all();
+            $last = $items->last();
+            $paginationResult = $paginationResult->merge($items->pluck('count'));
+        } while ($last);
+
+        $this->assertCount(10, $paginationResult);
+        $paginationResult->each(function ($count) {
+            $this->assertEquals(10, $count);
+        });
+    }
+
+    public function testAfterKeyForScanOperation()
+    {
+        foreach (range(0, 9) as $i) {
+            $this->seed(['count' => ['N' => $i]]);
+        }
+
+        // Paginate 2 items at a time
+        $pageSize = 2;
+        $last = null;
+        $paginationResult = collect();
+        $afterKey = null;
+
+        do {
+            if (!empty($items)) {
+                $afterKey = $items->getLastEvaluatedKey();
+            }
+            $items = $this->testModel
+                ->afterKey($afterKey)
+                ->limit($pageSize)->all();
+            $last = $items->last();
+            $paginationResult = $paginationResult->merge($items->pluck('count'));
+        } while ($last);
+
+        $this->assertEquals(range(0, 9), $paginationResult->sort()->values()->toArray());
+    }
+
     public function testDecorateRawQuery()
     {
         foreach (range(0, 9) as $i) {

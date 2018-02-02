@@ -545,11 +545,6 @@ class DynamoDbQueryBuilder
         return array_get($result, '@metadata.statusCode') === 200;
     }
 
-    public function get($columns = [])
-    {
-        return $this->all($columns);
-    }
-
     public function delete()
     {
         $key = $this->getDynamoDbKey();
@@ -574,10 +569,15 @@ class DynamoDbQueryBuilder
         return array_get($result, '@metadata.statusCode') === 200;
     }
 
+    public function get($columns = [])
+    {
+        return $this->all($columns);
+    }
+
     public function all($columns = [])
     {
         $limit = isset($this->limit) ? $this->limit : static::MAX_LIMIT;
-        return $this->getAll($columns, $limit);
+        return $this->getAll($columns, $limit, !isset($this->limit));
     }
 
     public function count()
@@ -636,7 +636,7 @@ class DynamoDbQueryBuilder
             $results[] = $model;
         }
 
-        return $this->getModel()->newCollection($results);
+        return $this->getModel()->newCollection($results, $this->model->unmarshalItem($this->lastEvaluatedKey ?: []), $this->conditionsContainIndexKey());
     }
 
     /**

@@ -406,6 +406,33 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $this->assertEquals(range(0, 9), $paginationResult->sort()->values()->toArray());
     }
 
+    public function testAfterKeyForQueryOperation()
+    {
+        foreach (range(0, 9) as $i) {
+            $this->seed(['count' => ['N' => $i]]);
+        }
+
+        // Paginate 2 items at a time
+        $pageSize = 2;
+        $last = null;
+        $paginationResult = collect();
+        $afterKey = null;
+        
+        do {
+            if (!empty($items)) {
+                $afterKey = $items->getLastEvaluatedKey();
+            }
+            $items = $this->testModel
+                ->where('count', '>', -1)
+                ->afterKey($afterKey)
+                ->limit($pageSize)->all();
+            $last = $items->last();
+            $paginationResult = $paginationResult->merge($items->pluck('count'));
+        } while ($last);
+
+        $this->assertEquals(range(0, 9), $paginationResult->sort()->values()->toArray());
+    }
+
     public function testDecorateRawQuery()
     {
         foreach (range(0, 9) as $i) {
