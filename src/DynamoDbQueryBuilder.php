@@ -168,16 +168,16 @@ class DynamoDbQueryBuilder
 
     /**
      * Similar to after(), but instead of using the model instance, the model's keys are used.
-     * Use $model->getKeys() to retrieve the value
+     * Use $items->getLastEvaluatedKey() to retrieve the value
      *
      * @param  Array  $key
      *   Examples:
      *
      *   For query such as
      *       $query = $model->where('count', 10)->limit(2);
-     *       $last = $query->all()->last();
+     *       $items = $query->all();
      *   Take the last item of this query result as the next "offset":
-     *       $nextPage = $query->afterKey($last->getKeys())->limit(2)->all();
+     *       $nextPage = $query->afterKey($items->getLastEvaluatedKey())->limit(2)->all();
      *
      *   Alternatively, pass in nothing to reset the starting point.
      *
