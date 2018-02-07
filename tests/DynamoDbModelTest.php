@@ -443,6 +443,16 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals(2, $this->testModel->where('name', 'Foo')->count());
     }
 
+    public function testCountQuery()
+    {
+        $raw = $this->testModel->toDynamoDbQuery(['count(*)']);
+
+        $this->assertEquals([
+            'TableName' => $this->testModel->getTable(),
+            'Select' => 'COUNT',
+        ], $raw->query);
+    }
+
     public function testDifferentQueries()
     {
         $expectedFoo = $this->seed([
