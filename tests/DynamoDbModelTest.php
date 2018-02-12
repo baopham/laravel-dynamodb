@@ -440,7 +440,18 @@ class DynamoDbModelTest extends ModelTest
         $this->seed(['name' => ['S' => 'Foo']]);
 
         $this->assertEquals(3, $this->testModel->count());
+        $this->assertEquals(1, $this->testModel->take(1)->count());
         $this->assertEquals(2, $this->testModel->where('name', 'Foo')->count());
+    }
+
+    public function testCountQuery()
+    {
+        $raw = $this->testModel->toDynamoDbQuery(['count(*)']);
+
+        $this->assertEquals([
+            'TableName' => $this->testModel->getTable(),
+            'Select' => 'COUNT',
+        ], $raw->query);
     }
 
     public function testDifferentQueries()

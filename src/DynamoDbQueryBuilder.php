@@ -582,7 +582,20 @@ class DynamoDbQueryBuilder
 
     public function count()
     {
-        return $this->getAll($this->model->getKeyNames())->count();
+        $limit = isset($this->limit) ? $this->limit : static::MAX_LIMIT;
+        $raw = $this->toDynamoDbQuery(['count(*)'], $limit);
+
+        if ($this->decorator) {
+            call_user_func($this->decorator, $raw);
+        }
+
+        if ($raw->op === 'Scan') {
+            $res = $this->client->scan($raw->query);
+        } else {
+            $res = $this->client->query($raw->query);
+        }
+
+        return $res['Count'];
     }
 
     public function decorate(Closure $closure)
@@ -668,7 +681,12 @@ class DynamoDbQueryBuilder
         }
 
         if (!empty($columns)) {
-            $query['ProjectionExpression'] = $this->projectionExpression->parse($columns);
+            // Either we try to get the count or specific columns
+            if ($columns == ['count(*)']) {
+                $query['Select'] = 'COUNT';
+            } else {
+                $query['ProjectionExpression'] = $this->projectionExpression->parse($columns);
+            }
         }
 
         if (!empty($this->lastEvaluatedKey)) {
