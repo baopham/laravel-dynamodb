@@ -1,0 +1,8 @@
+DynamoDB related?
+  |- Yes
+    |- You want to know how to sort?
+      |- Yes
+        |- See this issue #117
+      |- No
+  |- No
+    |- Hm..., are you sure this is the right place?
