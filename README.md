@@ -57,37 +57,32 @@ Install
     ];
     ``` 
     
-* Laravel
+* Run
 
     ```php
     php artisan vendor:publish
-    ```    
+    ``` 
     
-* Lumen
+* Update DynamoDb config in [config/dynamodb.php](config/dynamodb.php)
+
+**For Lumen**
+
+* Try [this](https://github.com/laravelista/lumen-vendor-publish) to install the `vendor:publish` command
   
-  - Set up a `config_path` helper: https://gist.github.com/mabasic/21d13eab12462e596120
-  
-  - Install `vendor:publish` command: https://github.com/laravelista/lumen-vendor-publish
-  
-  - Run 
-  
-  ```
-    php artisan vendor:publish
-    ```
-  
-  - Load configuration file and enable Eloquent support in `bootstrap/app.php`:
+* Load configuration file and enable Eloquent support in `bootstrap/app.php`:
   
   ```php
-   $app = new Laravel\Lumen\Application ...
+  $app = new Laravel\Lumen\Application(
+      realpath(__DIR__.'/../')
+  );
    
-   //Load dynamodb config file
-   $app->configure('dynamodb');
+  // Load dynamodb config file
+  $app->configure('dynamodb');
    
-   //Enable Eloquent support
-   $app->withEloquent();
+  // Enable Eloquent support
+  $app->withEloquent();
   ```
 
-* Update DynamoDb config in [config/dynamodb.php](config/dynamodb.php)
 
 
 Usage
