@@ -12,7 +12,7 @@ use BaoPham\DynamoDb\DynamoDbServiceProvider;
 abstract class ModelTest extends TestCase
 {
     /**
-     * @var TestModel
+     * @var \BaoPham\DynamoDb\DynamoDbModel
      */
     protected $testModel;
 
