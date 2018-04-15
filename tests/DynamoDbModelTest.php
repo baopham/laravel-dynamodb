@@ -2,6 +2,7 @@
 
 namespace BaoPham\DynamoDb\Tests;
 
+use BaoPham\DynamoDb\DynamoDbModel;
 use BaoPham\DynamoDb\NotSupportedException;
 use BaoPham\DynamoDb\RawDynamoDbQuery;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -15,7 +16,7 @@ class DynamoDbModelTest extends ModelTest
 {
     protected function getTestModel()
     {
-        return new TestModel([]);
+        return new PrimaryKeyWithIndexModel();
     }
 
     public function testCreateRecord()
@@ -82,13 +83,14 @@ class DynamoDbModelTest extends ModelTest
         $seedId = array_get($seed, 'id.S');
         $seedName = array_get($seed, 'name.S');
 
-        $first = $this->testModel
-            ->where('id', $seedId)
-            ->firstOrFail();
+        $query = $this->testModel
+            ->where('id', $seedId);
 
+        $first = $query->firstOrFail();
         $this->assertNotEmpty($first);
         $this->assertEquals($seedId, $first->id);
         $this->assertEquals($seedName, $first->name);
+        $this->assertEquals('Query', $query->toDynamoDbQuery()->op);
     }
 
     public function testFindOrFailRecordFail()
@@ -587,13 +589,15 @@ class DynamoDbModelTest extends ModelTest
 
         $item = $this->testModel->unmarshalItem($item);
 
-        $this->assertEquals([$item], TestModel::all()->toArray());
+        $klass = get_class($this->testModel);
 
-        $this->assertEquals(1, TestModel::where('name', 'Foo')->where('description', 'Bar')->get()->count());
+        $this->assertEquals([$item], $klass::all()->toArray());
 
-        $this->assertEquals($item, TestModel::first()->toArray());
+        $this->assertEquals(1, $klass::where('name', 'Foo')->where('description', 'Bar')->get()->count());
 
-        $this->assertEquals($item, TestModel::find($item['id'])->toArray());
+        $this->assertEquals($item, $klass::first()->toArray());
+
+        $this->assertEquals($item, $klass::find($item['id'])->toArray());
     }
 
     public function testNestedConditions()
@@ -775,6 +779,48 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals(range(1, 9), $items->pluck('count')->sort()->values()->toArray());
     }
 
+    private function assertUsingKeyAndFilterConditions($model)
+    {
+        foreach (range(0, 9) as $i) {
+            $this->seed([
+                'id' => ['S' => "$i"],
+                'count' => ['N' => $i],
+            ]);
+        }
+
+        $query = $model
+            ->where('id', '8')
+            ->where('count', '<=', 8);
+
+        $dynamoDbQuery = $query->toDynamoDbQuery();
+
+        $this->assertEquals('Query', $dynamoDbQuery->op);
+
+        $this->assertEquals(
+            '#id = :a1',
+            $dynamoDbQuery->query['KeyConditionExpression']
+        );
+
+        $this->assertEquals(
+            '#count <= :a2',
+            $dynamoDbQuery->query['FilterExpression']
+        );
+
+        $result = $query->get();
+        $this->assertEquals([8], $result->pluck('count')->toArray());
+        $this->assertEquals(['8'], $result->pluck('id')->toArray());
+    }
+
+    public function testUsingBothKeyAndFilterConditionsForModelWithoutIndex()
+    {
+        $this->assertUsingKeyAndFilterConditions(new PrimaryKeyWithoutIndexModel());
+    }
+
+    public function testUsingBothKeyAndFilterConditionsForModelWithIndex()
+    {
+        $this->assertUsingKeyAndFilterConditions(new PrimaryKeyWithIndexModel());
+    }
+
     protected function assertRemoveAttributes($item)
     {
         $this->assertNull($item->name);
@@ -824,7 +870,7 @@ class DynamoDbModelTest extends ModelTest
 }
 
 // phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
-class TestModel extends \BaoPham\DynamoDb\DynamoDbModel
+class PrimaryKeyWithIndexModel extends DynamoDbModel
 {
     protected $fillable = [
         'name',
@@ -842,5 +888,19 @@ class TestModel extends \BaoPham\DynamoDb\DynamoDbModel
             'hash' => 'count',
         ],
     ];
+}
+
+class PrimaryKeyWithoutIndexModel extends DynamoDbModel
+{
+    protected $fillable = [
+        'name',
+        'description',
+        'count',
+        'author',
+        'nested',
+        'nestedArray',
+    ];
+
+    protected $table = 'test_model';
 }
 // phpcs:enable PSR1.Classes.ClassDeclaration.MultipleClasses

@@ -3,6 +3,7 @@
 namespace BaoPham\DynamoDb;
 
 use BaoPham\DynamoDb\Concerns\HasParsers;
+use BaoPham\DynamoDb\ConditionAnalyzer\Analyzer;
 use Closure;
 use Aws\DynamoDb\DynamoDbClient;
 use Illuminate\Contracts\Support\Arrayable;
@@ -154,9 +155,10 @@ class DynamoDbQueryBuilder
 
         $afterKey = $after->getKeys();
 
-        if ($index = $this->conditionsContainIndexKey()) {
-            $columns = array_values($index['keysInfo']);
-            foreach ($columns as $column) {
+        $analyzer = $this->getConditionAnalyzer();
+
+        if ($index = $analyzer->index()) {
+            foreach ($index->columns() as $column) {
                 $afterKey[$column] = $after->getAttribute($column);
             }
         }
@@ -499,13 +501,14 @@ class DynamoDbQueryBuilder
         $key = $this->getDynamoDbKey();
 
         if (empty($key)) {
-            $conditionValue = $this->conditionsContainKey();
+            $analyzer = $this->getConditionAnalyzer();
 
-            if (!$conditionValue || !$this->conditionsAreExactSearch()) {
+            if (!$analyzer->isExactSearch()) {
                 throw new InvalidQuery('Need to provide the key in your query');
             }
 
-            $this->model->setId($conditionValue);
+            $id = $analyzer->identifierConditionValues();
+            $this->model->setId($id);
             $key = $this->getDynamoDbKey();
         }
 
@@ -586,12 +589,12 @@ class DynamoDbQueryBuilder
         $limit = DynamoDbQueryBuilder::MAX_LIMIT,
         $useIterator = DynamoDbQueryBuilder::DEFAULT_TO_ITERATOR
     ) {
-        if ($conditionValue = $this->conditionsContainKey()) {
-            if ($this->conditionsAreExactSearch()) {
-                $item = $this->find($conditionValue, $columns);
+        $analyzer = $this->getConditionAnalyzer();
 
-                return $this->getModel()->newCollection([$item]);
-            }
+        if ($analyzer->isExactSearch()) {
+            $item = $this->find($analyzer->identifierConditionValues(), $columns);
+
+            return $this->getModel()->newCollection([$item]);
         }
 
         $raw = $this->toDynamoDbQuery($columns, $limit);
@@ -685,57 +688,19 @@ class DynamoDbQueryBuilder
             return new RawDynamoDbQuery($op, $query);
         }
 
-        // Index key condition exists, then use Query instead of Scan.
-        // However, Query only supports a few conditions.
-        if ($index = $this->conditionsContainIndexKey()) {
-            $keysInfo = $index['keysInfo'];
+        $analyzer = $this->getConditionAnalyzer();
 
-            $isCompositeKey = isset($keysInfo['range']);
-
-            $hashKeyCondition = array_first($this->wheres, function ($condition) use ($keysInfo) {
-                return $condition['column'] === $keysInfo['hash'];
-            });
-
-            $isValidQueryOperator = ComparisonOperator::isValidQueryDynamoDbOperator($hashKeyCondition['type']);
-
-            if ($isValidQueryOperator && $isCompositeKey) {
-                $rangeKeyCondition = array_first($this->wheres, function ($condition) use ($keysInfo) {
-                    return $condition['column'] === $keysInfo['range'];
-                });
-
-                $isValidQueryOperator = ComparisonOperator::isValidQueryDynamoDbOperator(
-                    $rangeKeyCondition['type'],
-                    true
-                );
-            }
-
-            if ($isValidQueryOperator) {
-                $op = 'Query';
-
-                $indexes = array_values($keysInfo);
-
-                $keyConditions = array_filter($this->wheres, function ($condition) use ($indexes) {
-                    return in_array($condition['column'], $indexes);
-                });
-
-                $nonKeyConditions = array_filter($this->wheres, function ($condition) use ($indexes) {
-                    return !in_array($condition['column'], $indexes);
-                });
-
-                $query['IndexName'] = $index['name'];
-
-                $query['KeyConditionExpression'] = $this->keyConditionExpression->parse($keyConditions);
-
-                $query['FilterExpression'] = $this->filterExpression->parse($nonKeyConditions);
-            }
-        } elseif ($this->conditionsContainKey()) {
+        if ($keyConditions = $analyzer->keyConditions()) {
             $op = 'Query';
-
-            $query['KeyConditionExpression'] = $this->keyConditionExpression->parse($this->wheres);
+            $query['KeyConditionExpression'] = $this->keyConditionExpression->parse($keyConditions);
         }
 
-        if ($op === 'Scan') {
-            $query['FilterExpression'] = $this->filterExpression->parse($this->wheres);
+        if ($filterConditions = $analyzer->filterConditions()) {
+            $query['FilterExpression'] = $this->filterExpression->parse($filterConditions);
+        }
+
+        if ($index = $analyzer->index()) {
+            $query['IndexName'] = $index->name;
         }
 
         $query['ExpressionAttributeNames'] = $this->expressionAttributeNames->all();
@@ -745,91 +710,15 @@ class DynamoDbQueryBuilder
         return new RawDynamoDbQuery($op, $query);
     }
 
-    protected function conditionsAreExactSearch()
-    {
-        if (empty($this->wheres)) {
-            return false;
-        }
-
-        foreach ($this->wheres as $condition) {
-            if (array_get($condition, 'type') !== ComparisonOperator::EQ) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     /**
-     * Check if conditions "where" contain primary key or composite key.
-     * For composite key, it will return false if the conditions don't have all composite key.
-     *
-     * For example:
-     *   Consider a composite key condition:
-     *     $model->where('partition_key', 'foo')->where('sort_key', 'bar')
-     *   We return ['partition_key' => 'foo', 'sort_key' => 'bar'] since the conditions
-     *   contain all the composite key.
-     *
-     * @return array|bool the condition value
+     * @return Analyzer
      */
-    protected function conditionsContainKey()
+    protected function getConditionAnalyzer()
     {
-        if (empty($this->wheres)) {
-            return false;
-        }
-
-        $conditionKeys = array_pluck($this->wheres, 'column');
-
-        $model = $this->model;
-
-        $keys = $model->getKeyNames();
-
-        $conditionsContainKey = count(array_intersect($conditionKeys, $keys)) === count($keys);
-
-        if (!$conditionsContainKey) {
-            return false;
-        }
-
-        $conditionValue = [];
-
-        foreach ($this->wheres as $condition) {
-            $column = array_get($condition, 'column');
-            if (in_array($column, $keys)) {
-                $conditionValue[$column] = array_get($condition, 'value');
-            }
-        }
-
-        return $conditionValue;
-    }
-
-    /**
-     * Check if conditions "where" contain index key
-     * For composite index key, it will return false if the conditions don't have all composite key.
-     *
-     * @return array|bool false or array
-     *   ['name' => 'index_name', 'keysInfo' => ['hash' => 'hash_key', 'range' => 'range_key']]
-     */
-    protected function conditionsContainIndexKey()
-    {
-        if (empty($this->wheres)) {
-            return false;
-        }
-
-        foreach ($this->model->getDynamoDbIndexKeys() as $name => $keysInfo) {
-            $conditionKeys = array_pluck($this->wheres, 'column');
-            $keys = array_values($keysInfo);
-
-            if (count(array_intersect($conditionKeys, $keys)) === count($keys)) {
-                if ($this->index === $name || !isset($this->index)) {
-                    return [
-                        'name' => $name,
-                        'keysInfo' => $keysInfo
-                    ];
-                }
-            }
-        }
-
-        return false;
+        return with(new Analyzer)
+            ->on($this->model)
+            ->withIndex($this->index)
+            ->analyze($this->wheres);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace BaoPham\DynamoDb\Tests;
 
+use BaoPham\DynamoDb\DynamoDbModel;
 use BaoPham\DynamoDb\NotSupportedException;
 use BaoPham\DynamoDb\RawDynamoDbQuery;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -15,7 +16,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
 {
     protected function getTestModel()
     {
-        return new CompositeTestModel([]);
+        return new CompositeKeyWithIndex();
     }
 
     public function testCreateRecord()
@@ -90,15 +91,16 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $seedId2 = array_get($seed, 'id2.S');
         $seedName = array_get($seed, 'name.S');
 
-        $first = $this->testModel
+        $query = $this->testModel
             ->where('id', $seedId)
-            ->where('id2', $seedId2)
-            ->firstOrFail();
+            ->where('id2', $seedId2);
 
+        $first = $query->firstOrFail();
         $this->assertNotEmpty($first);
         $this->assertEquals($seedId, $first->id);
         $this->assertEquals($seedId2, $first->id2);
         $this->assertEquals($seedName, $first->name);
+        $this->assertEquals('Query', $query->toDynamoDbQuery()->op);
     }
 
     public function testFindOrFailRecordFail()
@@ -193,13 +195,14 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
 
         $item = $this->seed();
 
-        $foundItems = $this->testModel
+        $query = $this->testModel
             ->where('id', $item['id']['S'])
-            ->where('id2', $item['id2']['S'])
-            ->get();
+            ->where('id2', $item['id2']['S']);
 
+        $this->assertEquals('Query', $query->toDynamoDbQuery()->op);
+
+        $foundItems = $query->get();
         $this->assertEquals(1, $foundItems->count());
-
         $this->assertEquals($this->testModel->unmarshalItem($item), $foundItems->first()->toArray());
     }
 
@@ -219,11 +222,15 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
             'id2' => ['S' => 'foo_1']
         ]);
 
-        $foundItems = $this->testModel
+        $query = $this->testModel
             ->where('id', $partitionKey)
-            ->where('id2', 'begins_with', 'bar')
-            ->get();
+            ->where('id2', 'begins_with', 'bar');
 
+        $dynamoDbQuery = $query->toDynamoDbQuery();
+        $this->assertEquals('Query', $dynamoDbQuery->op);
+        $this->assertArrayNotHasKey('FilterExpression', $dynamoDbQuery->query);
+
+        $foundItems = $query->get();
         $this->assertEquals(2, $foundItems->count());
         $this->assertEquals($this->testModel->unmarshalItem($item1), $foundItems->first()->toArray());
         $this->assertEquals($this->testModel->unmarshalItem($item2), $foundItems->last()->toArray());
@@ -235,13 +242,15 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
 
         $item = $this->testModel->unmarshalItem($item);
 
-        $this->assertEquals([$item], CompositeTestModel::all()->toArray());
+        $klass = get_class($this->testModel);
 
-        $this->assertEquals(1, CompositeTestModel::where('name', 'Foo')->where('description', 'Bar')->get()->count());
+        $this->assertEquals([$item], $klass::all()->toArray());
 
-        $this->assertEquals($item, CompositeTestModel::first()->toArray());
+        $this->assertEquals(1, $klass::where('name', 'Foo')->where('description', 'Bar')->get()->count());
 
-        $this->assertEquals($item, CompositeTestModel::find([
+        $this->assertEquals($item, $klass::first()->toArray());
+
+        $this->assertEquals($item, $klass::find([
             'id' => $item['id'],
             'id2' => $item['id2']
         ])->toArray());
@@ -271,28 +280,38 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         ]);
 
         // Test condition contains all composite keys with valid operator
-        $foundItems = $this->testModel
+        $query = $this->testModel
             ->where('id', 'id1')
-            ->where('count', '>=', 10) // Test range key support comparison operator other than EQ
-            ->get();
+            // Test range key support comparison operator other than EQ
+            ->where('count', '>=', 10);
+
+        $dynamoDbQuery = $query->toDynamoDbQuery();
+        $this->assertEquals('Query', $dynamoDbQuery->op);
+        $this->assertEquals('#id = :a1 AND #count >= :a2', $dynamoDbQuery->query['KeyConditionExpression']);
+
+        $foundItems = $query->get();
+        $this->assertEquals(2, $foundItems->count());
 
         // If id_count_index is used, $bazItem must be the first found item
         $expectedItem = $this->testModel->unmarshalItem($bazItem);
-
-        $this->assertEquals(2, $foundItems->count());
         $this->assertEquals($expectedItem, $foundItems->first()->toArray());
 
         // Test condition contains all composite keys with invalid operator
-        $foundItems = $this->testModel
-            ->where('id', 'begins_with', 'id') // Invalid operator for hash key
-            ->where('count', '>', 0)
-            ->get();
+        $query = $this->testModel
+            // Invalid operator for hash key
+            ->where('id', 'begins_with', 'id')
+            ->where('count', '>', 0);
+
+        $dynamoDbQuery = $query->toDynamoDbQuery();
+        $this->assertEquals('Scan', $dynamoDbQuery->op);
+        $this->assertEquals('begins_with(#id, :a1) AND #count > :a2', $dynamoDbQuery->query['FilterExpression']);
+
+        $foundItems = $query->get();
+        $this->assertEquals(3, $foundItems->count());
 
         // id_count_index is not used because of invalid operator for hash key
         // A normal Scan operation is used, results are sorted by id2
         $expectedItem = $this->testModel->unmarshalItem($barItem);
-
-        $this->assertEquals(3, $foundItems->count());
         $this->assertEquals($expectedItem, $foundItems->first()->toArray());
     }
 
@@ -429,6 +448,92 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $this->assertEquals(range(9, 0, -1), $reverse->pluck('count')->toArray());
     }
 
+    public function testUsingBothKeyAndFilterConditionsForModelWithoutIndex()
+    {
+        foreach (range(0, 9) as $i) {
+            $this->seed([
+                'id' => ['S' => 'id'],
+                'id2' => ['S' => "$i"],
+                'count' => ['N' => $i],
+            ]);
+        }
+
+        $query = with(new CompositeKeyWithoutIndex())
+            ->where('id', 'id')
+            ->where('id2', '>', '4')
+            ->where('count', '<=', 8);
+
+        $dynamoDbQuery = $query->toDynamoDbQuery();
+
+        $this->assertEquals('Query', $dynamoDbQuery->op);
+
+        $this->assertEquals(
+            '#id = :a1 AND #id2 > :a2',
+            $dynamoDbQuery->query['KeyConditionExpression']
+        );
+
+        $this->assertEquals(
+            '#count <= :a3',
+            $dynamoDbQuery->query['FilterExpression']
+        );
+
+        $result = $query->get();
+        $expected = range(5, 8);
+
+        $this->assertEquals(
+            $expected,
+            $result->pluck('count')->toArray()
+        );
+
+        $this->assertEquals(
+            array_map('strval', $expected),
+            $result->pluck('id2')->toArray()
+        );
+    }
+
+    public function testUsingBothKeyAndFilterConditionsForModelWithIndex()
+    {
+        foreach (range(0, 9) as $i) {
+            $this->seed([
+                'id' => ['S' => 'id'],
+                'id2' => ['S' => "$i"],
+                'count' => ['N' => $i],
+            ]);
+        }
+
+        $query = with(new CompositeKeyWithIndex())
+            ->where('id', 'id')
+            ->where('id2', '>', '4')
+            ->where('count', '<=', 8);
+
+        $dynamoDbQuery = $query->toDynamoDbQuery();
+
+        $this->assertEquals('Query', $dynamoDbQuery->op);
+
+        $this->assertEquals(
+            '#id = :a1 AND #count <= :a2',
+            $dynamoDbQuery->query['KeyConditionExpression']
+        );
+
+        $this->assertEquals(
+            '#id2 > :a3',
+            $dynamoDbQuery->query['FilterExpression']
+        );
+
+        $result = $query->get();
+        $expected = range(5, 8);
+
+        $this->assertEquals(
+            $expected,
+            $result->pluck('count')->toArray()
+        );
+
+        $this->assertEquals(
+            array_map('strval', $expected),
+            $result->pluck('id2')->toArray()
+        );
+    }
+
     public function seed($attributes = [], $exclude = [])
     {
         $item = [
@@ -466,7 +571,7 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
 }
 
 // phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
-class CompositeTestModel extends \BaoPham\DynamoDb\DynamoDbModel
+class CompositeKeyWithIndex extends DynamoDbModel
 {
     protected $fillable = [
         'name',
@@ -492,5 +597,21 @@ class CompositeTestModel extends \BaoPham\DynamoDb\DynamoDbModel
             'range' => 'author',
         ],
     ];
+}
+
+class CompositeKeyWithoutIndex extends DynamoDbModel
+{
+    protected $fillable = [
+        'name',
+        'description',
+        'count',
+        'author',
+        'nested',
+        'nestedArray',
+    ];
+
+    protected $table = 'composite_test_model';
+
+    protected $compositeKey = ['id', 'id2'];
 }
 // phpcs:enable PSR1.Classes.ClassDeclaration.MultipleClasses
