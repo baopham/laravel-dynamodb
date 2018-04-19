@@ -192,6 +192,21 @@ abstract class DynamoDbModel extends Model
         return $instance->newQuery()->get($columns);
     }
 
+    public function refresh()
+    {
+        if (! $this->exists) {
+            return $this;
+        }
+
+        $query = $this->newQuery();
+
+        $refreshed = $query->find($this->getKeys());
+
+        $this->setRawAttributes($refreshed->toArray());
+
+        return $this;
+    }
+
     /**
      * @return DynamoDbQueryBuilder
      */

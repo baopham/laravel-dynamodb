@@ -821,6 +821,24 @@ class DynamoDbModelTest extends ModelTest
         $this->assertUsingKeyAndFilterConditions(new PrimaryKeyWithIndexModel());
     }
 
+    public function testRefresh()
+    {
+        $this->seed();
+
+        $model = $this->testModel->first();
+
+        $originalId = $model->id;
+        $originalName = $model->name;
+
+        $model->name = 'Modified Name';
+
+        $refreshed = $model->refresh();
+
+        $this->assertEquals($originalName, $model->name);
+        $this->assertEquals($originalName, $model->name);
+        $this->assertEquals($refreshed, $model);
+    }
+
     protected function assertRemoveAttributes($item)
     {
         $this->assertNull($item->name);

@@ -25,6 +25,7 @@ Supports all key types - primary hash key and composite keys.
   * [limit() and take()](#limit-and-take)
   * [firstOrFail()](#firstorfail)
   * [findOrFail()](#findorfail)
+  * [refresh()](#refresh)
   * [Query scope](#query-scope)
   * [REMOVE — Deleting Attributes From An Item](#remove--deleting-attributes-from-an-item)
   * [toSql() Style](#tosql-style)
@@ -229,6 +230,13 @@ $model->where('id', 'foo')->where('id2', 'bar')->firstOrFail();
 $model->findOrFail('foo');
 // for composite key
 $model->findOrFail(['id' => 'foo', 'id2' => 'bar']);
+```
+
+#### refresh()
+
+```php
+$model = Model::first();
+$model->refresh();
 ```
 
 #### Query Scope

@@ -534,6 +534,26 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         );
     }
 
+    public function testRefresh()
+    {
+        $this->seed();
+
+        $model = $this->testModel->first();
+
+        $originalHash = $model->id;
+        $originalRange = $model->id2;
+        $originalName = $model->name;
+
+        $model->name = 'Modified Name';
+
+        $refreshed = $model->refresh();
+
+        $this->assertEquals($originalName, $model->name);
+        $this->assertEquals($originalHash, $model->id);
+        $this->assertEquals($originalRange, $model->id2);
+        $this->assertEquals($refreshed, $model);
+    }
+
     public function seed($attributes = [], $exclude = [])
     {
         $item = [
