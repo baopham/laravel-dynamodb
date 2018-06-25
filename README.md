@@ -136,7 +136,11 @@ $model->where('description', 'not_contains', 'foo')->get();
 $model->where('name', 'foo')
     ->where(function ($query) {
         $query->where('count', 10)->orWhere('count', 20);
-    });
+    })
+    ->get();
+
+// Nested attributes
+$model->where('nestedMap.foo', 'bar')->where('list[0]', 'baz')->get();
 ```
 
 ##### whereNull() and whereNotNull()
