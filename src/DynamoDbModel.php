@@ -304,7 +304,7 @@ abstract class DynamoDbModel extends Model
     }
 
     /**
-     * Get the primary for the model.
+     * Get the primary key for the model.
      *
      * @return string
      */

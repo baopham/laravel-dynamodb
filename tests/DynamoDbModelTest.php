@@ -779,6 +779,37 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals(range(1, 9), $items->pluck('count')->sort()->values()->toArray());
     }
 
+    public function testToDynamoDbQueryWithDecorate()
+    {
+        $queryWithoutDecorate = $this->testModel->where('foo', 'bar');
+
+        $this->assertEquals(
+            [
+                'FilterExpression' => '#foo = :a1',
+                'ExpressionAttributeNames' => ['#foo' => 'foo'],
+                'ExpressionAttributeValues' => [':a1' => ['S' => 'bar']],
+                'TableName' => $this->testModel->getTable(),
+            ],
+            $queryWithoutDecorate->toDynamoDbQuery()->query
+        );
+
+        $queryWithDecorate = $queryWithoutDecorate->clone()
+            ->decorate(function (RawDynamoDbQuery $raw) {
+                $raw->query['FilterExpression'] .= ' AND extra_col = :extra_col_val';
+                $raw->query['ExpressionAttributeValues'][':extra_col_val'] = ['N' => 0];
+            });
+
+        $this->assertEquals(
+            [
+                'FilterExpression' => '#foo = :a1 AND extra_col = :extra_col_val',
+                'ExpressionAttributeNames' => ['#foo' => 'foo'],
+                'ExpressionAttributeValues' => [':a1' => ['S' => 'bar'], ':extra_col_val' => ['N' => 0]],
+                'TableName' => $this->testModel->getTable(),
+            ],
+            $queryWithDecorate->toDynamoDbQuery()->query
+        );
+    }
+
     private function assertUsingKeyAndFilterConditions($model)
     {
         foreach (range(0, 9) as $i) {

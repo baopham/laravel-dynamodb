@@ -674,6 +674,11 @@ class DynamoDbQueryBuilder
         }
 
         $raw->query = $this->cleanUpQuery($query);
+
+        if ($this->decorator) {
+            call_user_func($this->decorator, $raw);
+        }
+
         return $raw;
     }
 
