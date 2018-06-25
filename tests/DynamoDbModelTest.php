@@ -839,6 +839,39 @@ class DynamoDbModelTest extends ModelTest
         $this->assertEquals($refreshed, $model);
     }
 
+    public function testQueryNestedAttributes()
+    {
+        $item = $this->seed([
+            'nested' => [
+                'M' => [
+                    'foo' => ['S' => 'bar'],
+                ],
+            ],
+            'nestedArray' => [
+                'L' => [
+                    ['S' => 'first'],
+                    [
+                        'M' => [
+                            'foo' => ['S' => 'bar'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $results = $this->testModel->where('nested.foo', 'bar')->all();
+        $this->assertCount(1, $results);
+        $this->assertEquals($item['id']['S'], $results->first()->id);
+
+        $results = $this->testModel->where('nestedArray[0]', 'first')->all();
+        $this->assertCount(1, $results);
+        $this->assertEquals($item['id']['S'], $results->first()->id);
+
+        $results = $this->testModel->where('nestedArray[1].foo', 'bar')->all();
+        $this->assertCount(1, $results);
+        $this->assertEquals($item['id']['S'], $results->first()->id);
+    }
+
     protected function assertRemoveAttributes($item)
     {
         $this->assertNull($item->name);

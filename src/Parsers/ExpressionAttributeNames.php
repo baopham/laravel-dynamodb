@@ -39,6 +39,15 @@ class ExpressionAttributeNames
         return $this->mapping[$placeholder];
     }
 
+    public function placeholder($name)
+    {
+        $placeholder = "{$this->prefix}{$name}";
+        if (isset($this->mapping[$placeholder])) {
+            return $placeholder;
+        }
+        return $name;
+    }
+
     public function all()
     {
         return $this->mapping;
@@ -59,6 +68,6 @@ class ExpressionAttributeNames
 
     private function isNested($name)
     {
-        return strpos($name, '.') !== false || strpos($name, '[') !== false;
+        return strpos($name, '.') !== false || (strpos($name, '[') !== false && strpos($name, ']') !== false);
     }
 }
