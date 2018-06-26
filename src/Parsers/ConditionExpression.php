@@ -124,7 +124,7 @@ class ConditionExpression
         $operators = $this->getSupportedOperators();
 
         if (empty($operators[$operator])) {
-            throw new NotSupportedException("$operator is not supported for KeyConditionExpression");
+            throw new NotSupportedException("$operator is not supported");
         }
 
         $template = $operators[$operator];
