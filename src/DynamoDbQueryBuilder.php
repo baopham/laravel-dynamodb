@@ -565,10 +565,6 @@ class DynamoDbQueryBuilder
         $limit = isset($this->limit) ? $this->limit : static::MAX_LIMIT;
         $raw = $this->toDynamoDbQuery(['count(*)'], $limit);
 
-        if ($this->decorator) {
-            call_user_func($this->decorator, $raw);
-        }
-
         if ($raw->op === 'Scan') {
             $res = $this->client->scan($raw->query);
         } else {
@@ -598,10 +594,6 @@ class DynamoDbQueryBuilder
         }
 
         $raw = $this->toDynamoDbQuery($columns, $limit);
-
-        if ($this->decorator) {
-            call_user_func($this->decorator, $raw);
-        }
 
         if ($useIterator) {
             $iterator = $this->client->getIterator($raw->op, $raw->query);
