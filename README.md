@@ -91,6 +91,7 @@ Usage
 -----
 * Extends your model with `BaoPham\DynamoDb\DynamoDbModel`, then you can use Eloquent methods that are supported. The idea here is that you can switch back to Eloquent without changing your queries.  
 * Or if you want to sync your DB table with a DynamoDb table, use trait `BaoPham\DynamoDb\ModelTrait`, it will call a `PutItem` after the model is saved.
+* Alternatively, you can use the [query builder](#query-builder) facade to build more complex queries.
 
 ### Supported features:
 
