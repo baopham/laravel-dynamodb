@@ -3,7 +3,6 @@
 namespace BaoPham\DynamoDb\Facades;
 
 use Aws\DynamoDb\DynamoDbClient;
-use BaoPham\DynamoDb\DynamoDb\Connection;
 use BaoPham\DynamoDb\DynamoDb\DynamoDbManager;
 use BaoPham\DynamoDb\DynamoDb\QueryBuilder;
 use Illuminate\Support\Facades\Facade;
@@ -18,7 +17,6 @@ use Illuminate\Support\Facades\Facade;
  * @method static mixed unmarshalValue($value)
  *
  * @see DynamoDbManager
- * @see Connection
  */
 class DynamoDb extends Facade
 {
