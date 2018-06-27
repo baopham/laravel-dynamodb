@@ -387,6 +387,33 @@ DynamoDb::newQuery()
 DynamoDb::client();
 ```
 
+The query builder methods are in the form of `set<key_name>`, where `<key_name>` is the key name of the query body to be sent.  
+
+For example, to build an [`UpdateTable`](https://docs.aws.amazon.com/aws-sdk-php/v3/api/api-dynamodb-2012-08-10.html#updatetable) query:
+
+```php
+[
+    'AttributeDefinitions' => ...,
+    'GlobalSecondaryIndexUpdates' => ...
+    'TableName' => ...
+]
+```
+
+Do:
+
+```php
+$query = DynamoDb::table('articles')
+    ->setAttributeDefinitions(...)
+    ->setGlobalSecondaryIndexUpdates(...)
+    ->setTableName(...);
+```
+
+And when ready:
+
+```php
+$query->prepare()->updateTable();
+```
+
 Indexes
 -----------
 If your table has indexes, make sure to declare them in your model class like so

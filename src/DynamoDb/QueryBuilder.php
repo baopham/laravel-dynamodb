@@ -5,6 +5,48 @@ namespace BaoPham\DynamoDb\DynamoDb;
 use BadMethodCallException;
 use BaoPham\DynamoDb\RawDynamoDbQuery;
 
+/**
+ * Class QueryBuilder
+ *
+ * @package BaoPham\DynamoDb\DynamoDb
+ *
+ * Methods are in the form of `set<key_name>`, where `<key_name>`
+ * is the key name of the query body to be sent.
+ *
+ * For example, to build a query:
+ * [
+ *     'AttributeDefinitions' => ...,
+ *     'GlobalSecondaryIndexUpdates' => ...
+ *     'TableName' => ...
+ * ]
+ *
+ * Do:
+ *
+ * $query = $query->setAttributeDefinitions(...)->setGlobalSecondaryIndexUpdates(...)->setTableName(...);
+ *
+ * When ready:
+ *
+ * $query->prepare()->updateTable();
+ *
+ * Common methods:
+ *
+ * @method QueryBuilder setExpressionAttributeNames(array $mapping)
+ * @method QueryBuilder setExpressionAttributeValues(array $mapping)
+ * @method QueryBuilder setFilterExpression(string $expression)
+ * @method QueryBuilder setKeyConditionExpression(string $expression)
+ * @method QueryBuilder setProjectionExpression(string $expression)
+ * @method QueryBuilder setUpdateExpression(string $expression)
+ * @method QueryBuilder setAttributeUpdates(array $updates)
+ * @method QueryBuilder setScanIndexForward(bool $forward)
+ * @method QueryBuilder setExclusiveStartKey(mixed $key)
+ * @method QueryBuilder setReturnValues(string $type)
+ * @method QueryBuilder setTableName(string $table)
+ * @method QueryBuilder setIndexName(string $index)
+ * @method QueryBuilder setSelect(string $select)
+ * @method QueryBuilder setItem(array $item)
+ * @method QueryBuilder setLimit(int $limit)
+ * @method QueryBuilder setKey(array $item)
+ */
 class QueryBuilder
 {
     /**
