@@ -30,6 +30,7 @@ Supports all key types - primary hash key and composite keys.
   * [REMOVE — Deleting Attributes From An Item](#remove--deleting-attributes-from-an-item)
   * [toSql() Style](#tosql-style)
   * [Decorate Query](#decorate-query)
+* [Query Builder](#query-builder)
 * [Indexes](#indexes)
 * [Composite Keys](#composite-keys)
 * [Requirements](#requirements)
@@ -331,6 +332,53 @@ $items = $model
         $raw->op = 'Query';
     })
     ->get();
+```
+
+Query Builder
+-------------
+
+Use `DynamoDb` facade to build raw queries
+
+```php
+use BaoPham\DynamoDb\Facades\DynamoDb;
+
+DynamoDb::table('articles')
+    // call set<key_name> to build the query body to be sent to AWS
+    ->setFilterExpression('#name = :name')
+    ->setExpressionAttributeNames(['#name' => 'author_name'])
+    ->setExpressionAttributeValues([':name' => DynamoDb::marshalValue('Bao')])
+    // the query body will be sent upon calling this.
+    ->scan(); // supports any DynamoDbClient methods (e.g. batchWriteItem, batchGetItem, etc.)
+  
+DynamoDb::table('articles')
+    ->setIndex('author_name')
+    ->setKeyConditionExpression('#name = :name')
+    ->setProjectionExpression('id, author_name')
+    // Can set the attribute mapping one by one instead
+    ->setExpressionAttributeName('#name', 'author_name')
+    ->setExpressionAttributeValue(':name', DynamoDb::marshalValue('Bao'))
+    ->query();
+
+DynamoDb::table('articles')
+    ->setKey(DynamoDb::marshalItem(['id' => 'ae025ed8']))
+    ->setUpdateExpression('REMOVE #c, #t')
+    ->setExpressionAttributeName('#c', 'comments')
+    ->setExpressionAttributeName('#t', 'tags')
+    ->updateItem();
+
+DynamoDb::table('articles')
+    ->setKey(DynamoDb::marshalItem(['id' => 'ae025ed8']))
+    ->deleteItem();
+
+DynamoDb::table('articles')
+    ->setItem(DynamoDb::marshalItem(['id' => 'ae025ed8', 'author_name' => 'New Name']))
+    ->putItem();
+
+DynamoDb::newQuery()
+    ->setTableName('articles')
+
+// Or access the DynamoDbClient instance directly
+DynamoDb::client();
 ```
 
 Indexes

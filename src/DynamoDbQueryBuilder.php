@@ -4,6 +4,7 @@ namespace BaoPham\DynamoDb;
 
 use BaoPham\DynamoDb\Concerns\HasParsers;
 use BaoPham\DynamoDb\ConditionAnalyzer\Analyzer;
+use BaoPham\DynamoDb\Facades\DynamoDb;
 use Closure;
 use Aws\DynamoDb\DynamoDbClient;
 use Illuminate\Contracts\Support\Arrayable;
@@ -35,6 +36,7 @@ class DynamoDbQueryBuilder
     protected $model;
 
     /**
+     * @deprecated
      * @var DynamoDbClient
      */
     protected $client;
@@ -77,7 +79,7 @@ class DynamoDbQueryBuilder
     public function __construct(DynamoDbModel $model)
     {
         $this->model = $model;
-        $this->client = $model->getClient();
+        $this->client = DynamoDb::client();
         $this->setupExpressions();
     }
 
@@ -421,19 +423,15 @@ class DynamoDbQueryBuilder
 
         $this->model->setId($id);
 
-        $key = $this->getDynamoDbKey();
-
-        $query = [
-            'ConsistentRead' => true,
-            'TableName' => $this->model->getTable(),
-            'Key' => $key,
-        ];
+        $query = DynamoDb::table($this->model->getTable())
+            ->setKey($this->getDynamoDbKey())
+            ->setConsistentRead(true);
 
         if (!empty($columns)) {
-            $query['ProjectionExpression'] = $this->projectionExpression->parse($columns);
+            $query->setProjectionExpression($this->projectionExpression->parse($columns));
         }
 
-        $item = $this->client->getItem($query);
+        $item = $query->getItem();
 
         $item = array_get($item->toArray(), 'Item');
 
@@ -441,7 +439,7 @@ class DynamoDbQueryBuilder
             return;
         }
 
-        $item = $this->model->unmarshalItem($item);
+        $item = DynamoDb::unmarshalItem($item);
 
         $model = $this->model->newInstance([], true);
 
@@ -514,13 +512,11 @@ class DynamoDbQueryBuilder
 
         $this->resetExpressions();
 
-        $query = [
-            'TableName' => $this->model->getTable(),
-            'Key' => $key,
-            'UpdateExpression' => $this->updateExpression->remove($attributes),
-            'ExpressionAttributeNames' => $this->expressionAttributeNames->all(),
-        ];
-        $result = $this->client->updateItem($this->cleanUpQuery($query));
+        $result = DynamoDb::table($this->model->getTable())
+            ->setKey($key)
+            ->setUpdateExpression($this->updateExpression->remove($attributes))
+            ->setExpressionAttributeNames($this->expressionAttributeNames->all())
+            ->updateItem();
 
         return array_get($result, '@metadata.statusCode') === 200;
     }
@@ -532,24 +528,18 @@ class DynamoDbQueryBuilder
 
     public function delete()
     {
-        $key = $this->getDynamoDbKey();
-
-        $query = [
-            'TableName' => $this->model->getTable(),
-            'Key' => $key,
-        ];
-
-        $result = $this->client->deleteItem($query);
+        $result = DynamoDb::table($this->model->getTable())
+            ->setKey($this->getDynamoDbKey())
+            ->deleteItem();
 
         return array_get($result->toArray(), '@metadata.statusCode') === 200;
     }
 
     public function save()
     {
-        $result = $this->client->putItem([
-            'TableName' => $this->model->getTable(),
-            'Item' => $this->model->marshalItem($this->model->getAttributes()),
-        ]);
+        $result = DynamoDb::table($this->model->getTable())
+            ->setItem(DynamoDb::marshalItem($this->model->getAttributes()))
+            ->putItem();
 
         return array_get($result, '@metadata.statusCode') === 200;
     }
@@ -564,11 +554,12 @@ class DynamoDbQueryBuilder
     {
         $limit = isset($this->limit) ? $this->limit : static::MAX_LIMIT;
         $raw = $this->toDynamoDbQuery(['count(*)'], $limit);
+        $query = DynamoDb::newQuery()->hydrate($raw->query);
 
         if ($raw->op === 'Scan') {
-            $res = $this->client->scan($raw->query);
+            $res = $query->scan();
         } else {
-            $res = $this->client->query($raw->query);
+            $res = $query->query();
         }
 
         return $res['Count'];
@@ -594,18 +585,19 @@ class DynamoDbQueryBuilder
         }
 
         $raw = $this->toDynamoDbQuery($columns, $limit);
+        $query = DynamoDb::newQuery()->hydrate($raw->query);
 
         if ($useIterator) {
-            $iterator = $this->client->getIterator($raw->op, $raw->query);
+            $iterator = DynamoDb::client()->getIterator($raw->op, $raw->query);
 
             if (isset($raw->query['Limit'])) {
                 $iterator = new \LimitIterator($iterator, 0, $raw->query['Limit']);
             }
         } else {
             if ($raw->op === 'Scan') {
-                $res = $this->client->scan($raw->query);
+                $res = $query->scan();
             } else {
-                $res = $this->client->query($raw->query);
+                $res = $query->query();
             }
 
             $this->lastEvaluatedKey = array_get($res, 'LastEvaluatedKey');
@@ -615,7 +607,7 @@ class DynamoDbQueryBuilder
         $results = [];
 
         foreach ($iterator as $item) {
-            $item = $this->model->unmarshalItem($item);
+            $item = DynamoDb::unmarshalItem($item);
             $model = $this->model->newInstance([], true);
             $model->setRawAttributes($item, true);
             $results[] = $model;
@@ -639,33 +631,33 @@ class DynamoDbQueryBuilder
 
         $raw = $this->buildExpressionQuery();
 
-        $query = $raw->query;
-
-        $query['TableName'] = $this->model->getTable();
+        $queryBuilder = DynamoDb::newQuery()->hydrate($raw->query);
 
         if ($this->index) {
             // If user specifies the index manually, respect that
-            $query['IndexName'] = $this->index;
+            $queryBuilder->setIndexName($this->index);
         }
 
         if ($limit !== static::MAX_LIMIT) {
-            $query['Limit'] = $limit;
+            $queryBuilder->setLimit($limit);
         }
 
         if (!empty($columns)) {
             // Either we try to get the count or specific columns
             if ($columns == ['count(*)']) {
-                $query['Select'] = 'COUNT';
+                $queryBuilder->setSelect('COUNT');
             } else {
-                $query['ProjectionExpression'] = $this->projectionExpression->parse($columns);
+                $queryBuilder->setProjectionExpression($this->projectionExpression->parse($columns));
             }
         }
 
         if (!empty($this->lastEvaluatedKey)) {
-            $query['ExclusiveStartKey'] = $this->lastEvaluatedKey;
+            $queryBuilder->setExclusiveStartKey($this->lastEvaluatedKey);
         }
 
-        $raw->query = $this->cleanUpQuery($query);
+        $raw->query = $queryBuilder->query;
+
+        $raw->finalize();
 
         if ($this->decorator) {
             call_user_func($this->decorator, $raw);
@@ -679,32 +671,32 @@ class DynamoDbQueryBuilder
         $this->resetExpressions();
 
         $op = 'Scan';
-        $query = [];
+        $queryBuilder = DynamoDb::table($this->model->getTable());
 
         if (empty($this->wheres)) {
-            return new RawDynamoDbQuery($op, $query);
+            return new RawDynamoDbQuery($op, $queryBuilder->query);
         }
 
         $analyzer = $this->getConditionAnalyzer();
 
         if ($keyConditions = $analyzer->keyConditions()) {
             $op = 'Query';
-            $query['KeyConditionExpression'] = $this->keyConditionExpression->parse($keyConditions);
+            $queryBuilder->setKeyConditionExpression($this->keyConditionExpression->parse($keyConditions));
         }
 
         if ($filterConditions = $analyzer->filterConditions()) {
-            $query['FilterExpression'] = $this->filterExpression->parse($filterConditions);
+            $queryBuilder->setFilterExpression($this->filterExpression->parse($filterConditions));
         }
 
         if ($index = $analyzer->index()) {
-            $query['IndexName'] = $index->name;
+            $queryBuilder->setIndexName($index->name);
         }
 
-        $query['ExpressionAttributeNames'] = $this->expressionAttributeNames->all();
+        $queryBuilder
+            ->setExpressionAttributeNames($this->expressionAttributeNames->all())
+            ->setExpressionAttributeValues($this->expressionAttributeValues->all());
 
-        $query['ExpressionAttributeValues'] = $this->expressionAttributeValues->all();
-
-        return new RawDynamoDbQuery($op, $query);
+        return new RawDynamoDbQuery($op, $queryBuilder->query);
     }
 
     /**
@@ -746,7 +738,7 @@ class DynamoDbQueryBuilder
             if (is_null($value)) {
                 continue;
             }
-            $keys[$key] = $this->model->marshalValue($value);
+            $keys[$key] = DynamoDb::marshalValue($value);
         }
 
         return $keys;
@@ -769,11 +761,6 @@ class DynamoDbQueryBuilder
         return $this->model->hasCompositeKey() ? is_array(array_first($id)) : is_array($id);
     }
 
-    private function cleanUpQuery($query)
-    {
-        return array_filter($query);
-    }
-
     /**
      * @return DynamoDbModel
      */
@@ -783,6 +770,7 @@ class DynamoDbQueryBuilder
     }
 
     /**
+     * @deprecated
      * @return DynamoDbClient
      */
     public function getClient()

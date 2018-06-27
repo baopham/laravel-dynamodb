@@ -30,6 +30,20 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
     }
 
     /**
+     * Perform any final clean up.
+     *
+     * @return $this
+     */
+    public function finalize()
+    {
+        $this->query = array_filter($this->query, function ($value) {
+            return !empty($value) || is_bool($value) || is_numeric($value);
+        });
+
+        return $this;
+    }
+
+    /**
      * Whether a offset exists
      * @link http://php.net/manual/en/arrayaccess.offsetexists.php
      * @param mixed $offset <p>
