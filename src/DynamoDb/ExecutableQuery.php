@@ -19,14 +19,14 @@ class ExecutableQuery
     private $connection;
 
     /**
-     * @var RawDynamoDbQuery
+     * @var array
      */
-    private $raw;
+    private $query;
 
-    public function __construct(Connection $connection, RawDynamoDbQuery $raw)
+    public function __construct(Connection $connection, array $query)
     {
         $this->connection = $connection;
-        $this->raw = $raw;
+        $this->query = $query;
     }
 
     /**
@@ -36,6 +36,8 @@ class ExecutableQuery
      */
     public function __call($method, $parameters)
     {
-        return $this->connection->{$method}($this->raw);
+        $op = ucfirst($method);
+        $raw = new RawDynamoDbQuery($op, $this->query);
+        return $this->connection->{$method}($raw->finalize());
     }
 }

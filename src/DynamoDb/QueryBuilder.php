@@ -3,7 +3,6 @@
 namespace BaoPham\DynamoDb\DynamoDb;
 
 use BadMethodCallException;
-use BaoPham\DynamoDb\RawDynamoDbQuery;
 
 /**
  * Class QueryBuilder
@@ -89,10 +88,7 @@ class QueryBuilder
 
     public function prepare()
     {
-        return new ExecutableQuery(
-            $this->connection,
-            with(new RawDynamoDbQuery(null, $this->query))->finalize()
-        );
+        return new ExecutableQuery($this->connection, $this->query);
     }
 
     /**
