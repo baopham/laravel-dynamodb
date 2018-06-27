@@ -895,23 +895,23 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
             ->take(1)
             ->get($columns);
 
-        $this->assertEquals($results->first()->toArray(), $expected);
+        $this->assertEquals($expected, $results->first()->toArray());
 
         $results = $this->testModel
             ->where('id', 'foo')
             ->get($columns);
 
-        $this->assertEquals($results->first()->toArray(), $expected);
+        $this->assertEquals($expected, $results->first()->toArray());
 
         $result = $this->testModel
             ->first($columns);
 
-        $this->assertEquals($result->toArray(), $expected);
+        $this->assertEquals($expected, $result->toArray());
 
         $result = $this->testModel
             ->firstOrFail($columns);
 
-        $this->assertEquals($result->toArray(), $expected);
+        $this->assertEquals($expected, $result->toArray());
     }
 
     public function testFindWithColumns()
@@ -938,7 +938,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
         $result = $this->testModel
             ->find('foo', $columns);
 
-        $this->assertEquals($result->toArray(), $expected);
+        $this->assertEquals($expected, $result->toArray());
     }
 
     public function testQueryNestedAttributes()

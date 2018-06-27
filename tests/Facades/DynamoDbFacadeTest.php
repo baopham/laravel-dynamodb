@@ -23,4 +23,24 @@ class DynamoDbFacadeTest extends DynamoDbTestCase
     {
         $this->assertInstanceOf(QueryBuilder::class, DynamoDb::newQuery());
     }
+
+    public function testStaticMarshalItem()
+    {
+        $this->assertEquals(['id' => ['S' => 'hello']], DynamoDb::marshalItem(['id' => 'hello']));
+    }
+
+    public function testStaticUnmarshalItem()
+    {
+        $this->assertEquals(['id' => 'hello'], DynamoDb::unmarshalItem(['id' => ['S' => 'hello']]));
+    }
+
+    public function testStaticMarshalValue()
+    {
+        $this->assertEquals(['S' => 'hello'], DynamoDb::marshalValue('hello'));
+    }
+
+    public function testStaticUnmarshalValue()
+    {
+        $this->assertEquals('hello', DynamoDb::unmarshalValue(['S' => 'hello']));
+    }
 }

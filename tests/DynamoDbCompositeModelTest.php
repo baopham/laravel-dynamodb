@@ -579,7 +579,7 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         $result = $this->testModel
             ->find(['id' => 'foo', 'id2' => 'bar'], $columns);
 
-        $this->assertEquals($result->toArray(), $expected);
+        $this->assertEquals($expected, $result->toArray());
     }
 
     public function seed($attributes = [], $exclude = [])
