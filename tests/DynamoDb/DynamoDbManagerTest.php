@@ -3,6 +3,7 @@
 namespace BaoPham\DynamoDb\Tests\DynamoDb;
 
 use Aws\DynamoDb\DynamoDbClient;
+use Aws\DynamoDb\Marshaler;
 use BaoPham\DynamoDb\DynamoDbClientInterface;
 use BaoPham\DynamoDb\Tests\DynamoDbTestCase;
 use BaoPham\DynamoDb\Tests\TestCase;
@@ -25,15 +26,17 @@ class DynamoDbManagerTest extends DynamoDbTestCase
     {
         parent::setUp();
 
-        $this->manager = with(new DynamoDbManager(app(DynamoDbClientInterface::class)));
-
         $this->mockedClient = $this
             ->getMockBuilder(DynamoDbClient::class)
             ->disableOriginalConstructor()
             ->setMethods(['putItem', 'updateItem', 'deleteItem', 'scan', 'query', 'batchWriteItem'])
             ->getMock();
 
-        $this->manager->connection()->client = $this->mockedClient;
+        $clientWrapper = $this->getMockBuilder(DynamoDbClientInterface::class)->getMock();
+        $clientWrapper->method('getMarshaler')->willReturn(new Marshaler());
+        $clientWrapper->method('getClient')->willReturn($this->mockedClient);
+
+        $this->manager = with(new DynamoDbManager($clientWrapper));
     }
 
     public function testPutItem()

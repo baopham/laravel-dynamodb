@@ -10,7 +10,7 @@ namespace BaoPham\DynamoDb;
 class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
 {
     /**
-     * Either 'Scan', or 'Query'
+     * 'Scan', 'Query', etc.
      *
      * @var string
      */

@@ -18,11 +18,11 @@ class DynamoDbManager
     private $wrapper;
 
     /**
-     * The active connection instances.
+     * The active client instances.
      *
      * @var array
      */
-    private $connections = [];
+    private $clients = [];
 
     /**
      * @var Marshaler
@@ -56,27 +56,18 @@ class DynamoDbManager
     }
 
     /**
-     * @param string|null $name
-     * @return Connection
-     */
-    public function connection($name = null)
-    {
-        $name = $name ?: config('dynamodb.default');
-
-        if (! isset($this->connections[$name])) {
-            $this->connections[$name] = new Connection($this->wrapper->getClient($name));
-        }
-
-        return $this->connections[$name];
-    }
-
-    /**
      * @param string|null $connection
      * @return \Aws\DynamoDb\DynamoDbClient
      */
     public function client($connection = null)
     {
-        return $this->connection($connection)->client;
+        $connection = $connection ?: config('dynamodb.default');
+
+        if (! isset($this->clients[$connection])) {
+            $this->clients[$connection] = $this->wrapper->getClient($connection);
+        }
+
+        return $this->clients[$connection];
     }
 
     /**
@@ -84,7 +75,7 @@ class DynamoDbManager
      */
     public function newQuery()
     {
-        return $this->connection()->newQuery();
+        return new QueryBuilder($this->client());
     }
 
     /**
@@ -93,6 +84,6 @@ class DynamoDbManager
      */
     public function table($table)
     {
-        return $this->connection()->table($table);
+        return $this->newQuery()->setTableName($table);
     }
 }
