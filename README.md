@@ -347,6 +347,7 @@ DynamoDb::table('articles')
     ->setFilterExpression('#name = :name')
     ->setExpressionAttributeNames(['#name' => 'author_name'])
     ->setExpressionAttributeValues([':name' => DynamoDb::marshalValue('Bao')])
+    ->prepare()
     // the query body will be sent upon calling this.
     ->scan(); // supports any DynamoDbClient methods (e.g. batchWriteItem, batchGetItem, etc.)
   
@@ -357,6 +358,7 @@ DynamoDb::table('articles')
     // Can set the attribute mapping one by one instead
     ->setExpressionAttributeName('#name', 'author_name')
     ->setExpressionAttributeValue(':name', DynamoDb::marshalValue('Bao'))
+    ->prepare()
     ->query();
 
 DynamoDb::table('articles')
@@ -364,16 +366,20 @@ DynamoDb::table('articles')
     ->setUpdateExpression('REMOVE #c, #t')
     ->setExpressionAttributeName('#c', 'comments')
     ->setExpressionAttributeName('#t', 'tags')
+    ->prepare()
     ->updateItem();
 
 DynamoDb::table('articles')
     ->setKey(DynamoDb::marshalItem(['id' => 'ae025ed8']))
+    ->prepare()
     ->deleteItem();
 
 DynamoDb::table('articles')
     ->setItem(DynamoDb::marshalItem(['id' => 'ae025ed8', 'author_name' => 'New Name']))
+    ->prepare()
     ->putItem();
 
+// Or, instead of ::table()
 DynamoDb::newQuery()
     ->setTableName('articles')
 

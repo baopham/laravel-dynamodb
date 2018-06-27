@@ -435,7 +435,7 @@ class DynamoDbQueryBuilder
                 ->setExpressionAttributeNames($this->expressionAttributeNames->all());
         }
 
-        $item = $query->getItem();
+        $item = $query->prepare()->getItem();
 
         $item = array_get($item->toArray(), 'Item');
 
@@ -520,6 +520,7 @@ class DynamoDbQueryBuilder
             ->setKey($key)
             ->setUpdateExpression($this->updateExpression->remove($attributes))
             ->setExpressionAttributeNames($this->expressionAttributeNames->all())
+            ->prepare()
             ->updateItem();
 
         return array_get($result, '@metadata.statusCode') === 200;
@@ -534,6 +535,7 @@ class DynamoDbQueryBuilder
     {
         $result = DynamoDb::table($this->model->getTable())
             ->setKey($this->getDynamoDbKey())
+            ->prepare()
             ->deleteItem();
 
         return array_get($result->toArray(), '@metadata.statusCode') === 200;
@@ -543,6 +545,7 @@ class DynamoDbQueryBuilder
     {
         $result = DynamoDb::table($this->model->getTable())
             ->setItem(DynamoDb::marshalItem($this->model->getAttributes()))
+            ->prepare()
             ->putItem();
 
         return array_get($result, '@metadata.statusCode') === 200;
@@ -561,9 +564,9 @@ class DynamoDbQueryBuilder
         $query = DynamoDb::newQuery()->hydrate($raw->query);
 
         if ($raw->op === 'Scan') {
-            $res = $query->scan();
+            $res = $query->prepare()->scan();
         } else {
-            $res = $query->query();
+            $res = $query->prepare()->query();
         }
 
         return $res['Count'];
@@ -599,9 +602,9 @@ class DynamoDbQueryBuilder
             }
         } else {
             if ($raw->op === 'Scan') {
-                $res = $query->scan();
+                $res = $query->prepare()->scan();
             } else {
-                $res = $query->query();
+                $res = $query->prepare()->query();
             }
 
             $this->lastEvaluatedKey = array_get($res, 'LastEvaluatedKey');

@@ -11,6 +11,9 @@ use PHPUnit\Framework\MockObject\MockObject;
 
 class DynamoDbManagerTest extends DynamoDbTestCase
 {
+    /**
+     * @var DynamoDbManager
+     */
     protected $manager;
 
     /**
@@ -47,6 +50,7 @@ class DynamoDbManagerTest extends DynamoDbTestCase
 
         $this->manager->table('articles')
             ->setItem($this->manager->marshalItem(['id' => 'ae025ed8', 'author_name' => 'Bao']))
+            ->prepare()
             ->putItem();
     }
 
@@ -66,6 +70,7 @@ class DynamoDbManagerTest extends DynamoDbTestCase
             ->setUpdateExpression('REMOVE #c, #t')
             ->setExpressionAttributeName('#c', 'comments')
             ->setExpressionAttributeName('#t', 'tags')
+            ->prepare()
             ->updateItem();
     }
 
@@ -80,6 +85,7 @@ class DynamoDbManagerTest extends DynamoDbTestCase
 
         $this->manager->table('articles')
             ->setKey($this->manager->marshalItem(['id' => 'ae025ed8']))
+            ->prepare()
             ->deleteItem();
     }
 
@@ -105,6 +111,7 @@ class DynamoDbManagerTest extends DynamoDbTestCase
             ->setExpressionAttributeName('#t', 'tags')
             ->setExpressionAttributeValue(':count', $this->manager->marshalValue(2))
             ->setExpressionAttributeValue(':tags', $this->manager->marshalValue(['a', 'b']))
+            ->prepare()
             ->scan();
     }
 
@@ -129,6 +136,7 @@ class DynamoDbManagerTest extends DynamoDbTestCase
             ->setKeyConditionExpression('#name = :name')
             ->setExpressionAttributeName('#name', 'author_name')
             ->setExpressionAttributeValue(':name', $this->manager->marshalValue('Bao'))
+            ->prepare()
             ->query();
     }
 
@@ -140,6 +148,7 @@ class DynamoDbManagerTest extends DynamoDbTestCase
 
         $this->manager->newQuery()
             ->setRequestItems(['articles' => []])
+            ->prepare()
             ->batchWriteItem();
     }
 

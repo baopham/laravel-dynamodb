@@ -15,19 +15,14 @@ class DynamoDbManager
     /**
      * @var DynamoDbClientInterface
      */
-    protected $wrapper;
+    private $wrapper;
 
     /**
      * The active connection instances.
      *
      * @var array
      */
-    protected $connections = [];
-
-    /**
-     * @var bool
-     */
-    public $debug = false;
+    private $connections = [];
 
     /**
      * @var Marshaler
@@ -38,13 +33,6 @@ class DynamoDbManager
     {
         $this->wrapper = $wrapper;
         $this->marshaler = $wrapper->getMarshaler();
-    }
-
-    public function debug($on = true)
-    {
-        $this->debug = $on;
-
-        return $this;
     }
 
     public function marshalItem($item)
@@ -79,28 +67,32 @@ class DynamoDbManager
             $this->connections[$name] = new Connection($this->wrapper->getClient($name));
         }
 
-        return $this->connections[$name]->debug($this->debug);
+        return $this->connections[$name];
     }
 
+    /**
+     * @param string|null $connection
+     * @return \Aws\DynamoDb\DynamoDbClient
+     */
     public function client($connection = null)
     {
         return $this->connection($connection)->client;
     }
 
+    /**
+     * @return QueryBuilder
+     */
     public function newQuery()
     {
         return $this->connection()->newQuery();
     }
 
     /**
-     * Dynamically pass methods to the default connection.
-     *
-     * @param  string $method
-     * @param  array  $parameters
-     * @return mixed
+     * @param string $table
+     * @return QueryBuilder
      */
-    public function __call($method, $parameters)
+    public function table($table)
     {
-        return $this->connection()->$method(...$parameters);
+        return $this->connection()->table($table);
     }
 }

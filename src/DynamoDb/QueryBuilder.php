@@ -2,6 +2,7 @@
 
 namespace BaoPham\DynamoDb\DynamoDb;
 
+use BadMethodCallException;
 use BaoPham\DynamoDb\RawDynamoDbQuery;
 
 class QueryBuilder
@@ -44,18 +45,12 @@ class QueryBuilder
         return $this;
     }
 
-    public function scan()
+    public function prepare()
     {
-        $raw = new RawDynamoDbQuery('Scan', $this->query);
-
-        return $this->connection->scan($raw->finalize());
-    }
-
-    public function query()
-    {
-        $raw = new RawDynamoDbQuery('Query', $this->query);
-
-        return $this->connection->query($raw->finalize());
+        return new ExecutableQuery(
+            $this->connection,
+            with(new RawDynamoDbQuery(null, $this->query))->finalize()
+        );
     }
 
     /**
@@ -66,13 +61,13 @@ class QueryBuilder
     public function __call($method, $parameters)
     {
         if (starts_with($method, 'set')) {
-            $this->query[str_after($method, 'set')] = $parameters[0];
+            $this->query[str_after($method, 'set')] = current($parameters);
 
             return $this;
         }
 
-        $raw = new RawDynamoDbQuery(null, $this->query);
-
-        return $this->connection->{$method}($raw->finalize());
+        throw new BadMethodCallException(sprintf(
+            'Method %s::%s does not exist.', static::class, $method
+        ));
     }
 }
