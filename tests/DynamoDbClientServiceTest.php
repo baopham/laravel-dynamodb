@@ -4,6 +4,7 @@ namespace BaoPham\DynamoDb\Tests;
 
 use BaoPham\DynamoDb\DynamoDbClientInterface;
 use BaoPham\DynamoDb\DynamoDbModel;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class DynamoDbClientServiceTest

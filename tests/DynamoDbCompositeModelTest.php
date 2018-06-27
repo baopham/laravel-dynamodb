@@ -12,7 +12,7 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
  *
  * @package BaoPham\DynamoDb\Tests
  */
-class DynamoDbCompositeModelTest extends DynamoDbModelTest
+class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
 {
     protected function getTestModel()
     {

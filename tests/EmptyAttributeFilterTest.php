@@ -2,6 +2,8 @@
 
 namespace BaoPham\DynamoDb\Tests;
 
+use PHPUnit\Framework\TestCase;
+
 /**
  * Class EmptyAttributeFilterTest
  *

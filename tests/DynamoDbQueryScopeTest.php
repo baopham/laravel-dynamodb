@@ -10,7 +10,7 @@ use BaoPham\DynamoDb\DynamoDbQueryBuilder;
  *
  * @package BaoPham\DynamoDb\Tests
  */
-class DynamoDbQueryScopeTest extends ModelTest
+class DynamoDbQueryScopeTest extends DynamoDbModelTest
 {
     protected function getTestModel()
     {

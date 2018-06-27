@@ -9,7 +9,7 @@ use Carbon\Carbon;
  *
  * @package BaoPham\DynamoDb\Tests
  */
-class DynamoDbTimestampTest extends ModelTest
+class DynamoDbTimestampTest extends DynamoDbModelTest
 {
     protected function getTestModel()
     {
