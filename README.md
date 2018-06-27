@@ -404,8 +404,7 @@ Do:
 ```php
 $query = DynamoDb::table('articles')
     ->setAttributeDefinitions(...)
-    ->setGlobalSecondaryIndexUpdates(...)
-    ->setTableName(...);
+    ->setGlobalSecondaryIndexUpdates(...);
 ```
 
 And when ready:
