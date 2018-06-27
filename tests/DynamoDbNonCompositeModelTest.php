@@ -870,6 +870,77 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
         $this->assertEquals($refreshed, $model);
     }
 
+    public function testQueryWithColumns()
+    {
+        $this->seed([
+            'id' => ['S' => 'foo'],
+            'name' => ['S' => 'bar'],
+            'nested' => [
+                'M' => [
+                    'key1' => ['S' => 'value1'],
+                    'key2' => ['S' => 'value2'],
+                ],
+            ],
+        ]);
+
+        $columns = ['id', 'name', 'nested.key1'];
+
+        $expected = [
+            'id' => 'foo',
+            'name' => 'bar',
+            'nested' => ['key1' => 'value1'],
+        ];
+
+        $results = $this->testModel
+            ->take(1)
+            ->get($columns);
+
+        $this->assertEquals($results->first()->toArray(), $expected);
+
+        $results = $this->testModel
+            ->where('id', 'foo')
+            ->get($columns);
+
+        $this->assertEquals($results->first()->toArray(), $expected);
+
+        $result = $this->testModel
+            ->first($columns);
+
+        $this->assertEquals($result->toArray(), $expected);
+
+        $result = $this->testModel
+            ->firstOrFail($columns);
+
+        $this->assertEquals($result->toArray(), $expected);
+    }
+
+    public function testFindWithColumns()
+    {
+        $this->seed([
+            'id' => ['S' => 'foo'],
+            'name' => ['S' => 'bar'],
+            'nested' => [
+                'M' => [
+                    'key1' => ['S' => 'value1'],
+                    'key2' => ['S' => 'value2'],
+                ],
+            ],
+        ]);
+
+        $columns = ['id', 'name', 'nested.key1'];
+
+        $expected = [
+            'id' => 'foo',
+            'name' => 'bar',
+            'nested' => ['key1' => 'value1'],
+        ];
+
+        $result = $this->testModel
+            ->find('foo', $columns);
+
+        $this->assertEquals($result->toArray(), $expected);
+    }
+
     public function testQueryNestedAttributes()
     {
         $item = $this->seed([

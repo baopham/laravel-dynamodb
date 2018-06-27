@@ -554,6 +554,34 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         $this->assertEquals($refreshed, $model);
     }
 
+    public function testFindWithColumns()
+    {
+        $this->seed([
+            'id' => ['S' => 'foo'],
+            'id2' => ['S' => 'bar'],
+            'name' => ['S' => 'baz'],
+            'nested' => [
+                'M' => [
+                    'key1' => ['S' => 'value1'],
+                    'key2' => ['S' => 'value2'],
+                ],
+            ],
+        ]);
+
+        $columns = ['id', 'name', 'nested.key1'];
+
+        $expected = [
+            'id' => 'foo',
+            'name' => 'baz',
+            'nested' => ['key1' => 'value1'],
+        ];
+
+        $result = $this->testModel
+            ->find(['id' => 'foo', 'id2' => 'bar'], $columns);
+
+        $this->assertEquals($result->toArray(), $expected);
+    }
+
     public function seed($attributes = [], $exclude = [])
     {
         $item = [

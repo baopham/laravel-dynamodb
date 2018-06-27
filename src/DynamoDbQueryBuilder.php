@@ -421,6 +421,8 @@ class DynamoDbQueryBuilder
             return $this->findMany($id, $columns);
         }
 
+        $this->resetExpressions();
+
         $this->model->setId($id);
 
         $query = DynamoDb::table($this->model->getTable())
@@ -428,7 +430,9 @@ class DynamoDbQueryBuilder
             ->setConsistentRead(true);
 
         if (!empty($columns)) {
-            $query->setProjectionExpression($this->projectionExpression->parse($columns));
+            $query
+                ->setProjectionExpression($this->projectionExpression->parse($columns))
+                ->setExpressionAttributeNames($this->expressionAttributeNames->all());
         }
 
         $item = $query->getItem();
@@ -629,9 +633,27 @@ class DynamoDbQueryBuilder
     ) {
         $this->applyScopes();
 
-        $raw = $this->buildExpressionQuery();
+        $this->resetExpressions();
 
-        $queryBuilder = DynamoDb::newQuery()->hydrate($raw->query);
+        $op = 'Scan';
+        $queryBuilder = DynamoDb::table($this->model->getTable());
+
+        if (!empty($this->wheres)) {
+            $analyzer = $this->getConditionAnalyzer();
+
+            if ($keyConditions = $analyzer->keyConditions()) {
+                $op = 'Query';
+                $queryBuilder->setKeyConditionExpression($this->keyConditionExpression->parse($keyConditions));
+            }
+
+            if ($filterConditions = $analyzer->filterConditions()) {
+                $queryBuilder->setFilterExpression($this->filterExpression->parse($filterConditions));
+            }
+
+            if ($index = $analyzer->index()) {
+                $queryBuilder->setIndexName($index->name);
+            }
+        }
 
         if ($this->index) {
             // If user specifies the index manually, respect that
@@ -655,48 +677,17 @@ class DynamoDbQueryBuilder
             $queryBuilder->setExclusiveStartKey($this->lastEvaluatedKey);
         }
 
-        $raw->query = $queryBuilder->query;
+        $queryBuilder
+            ->setExpressionAttributeNames($this->expressionAttributeNames->all())
+            ->setExpressionAttributeValues($this->expressionAttributeValues->all());
 
-        $raw->finalize();
+        $raw = with(new RawDynamoDbQuery($op, $queryBuilder->query))->finalize();
 
         if ($this->decorator) {
             call_user_func($this->decorator, $raw);
         }
 
         return $raw;
-    }
-
-    protected function buildExpressionQuery()
-    {
-        $this->resetExpressions();
-
-        $op = 'Scan';
-        $queryBuilder = DynamoDb::table($this->model->getTable());
-
-        if (empty($this->wheres)) {
-            return new RawDynamoDbQuery($op, $queryBuilder->query);
-        }
-
-        $analyzer = $this->getConditionAnalyzer();
-
-        if ($keyConditions = $analyzer->keyConditions()) {
-            $op = 'Query';
-            $queryBuilder->setKeyConditionExpression($this->keyConditionExpression->parse($keyConditions));
-        }
-
-        if ($filterConditions = $analyzer->filterConditions()) {
-            $queryBuilder->setFilterExpression($this->filterExpression->parse($filterConditions));
-        }
-
-        if ($index = $analyzer->index()) {
-            $queryBuilder->setIndexName($index->name);
-        }
-
-        $queryBuilder
-            ->setExpressionAttributeNames($this->expressionAttributeNames->all())
-            ->setExpressionAttributeValues($this->expressionAttributeValues->all());
-
-        return new RawDynamoDbQuery($op, $queryBuilder->query);
     }
 
     /**
