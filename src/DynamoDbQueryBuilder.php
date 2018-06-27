@@ -641,7 +641,7 @@ class DynamoDbQueryBuilder
         $op = 'Scan';
         $queryBuilder = DynamoDb::table($this->model->getTable());
 
-        if (!empty($this->wheres)) {
+        if (! empty($this->wheres)) {
             $analyzer = $this->getConditionAnalyzer();
 
             if ($keyConditions = $analyzer->keyConditions()) {

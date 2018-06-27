@@ -31,6 +31,7 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
 
     /**
      * Perform any final clean up.
+     * Remove any empty values to avoid errors.
      *
      * @return $this
      */
