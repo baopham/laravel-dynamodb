@@ -2,7 +2,6 @@
 
 namespace BaoPham\DynamoDb\DynamoDb;
 
-use Aws\DynamoDb\Marshaler;
 use BaoPham\DynamoDb\DynamoDbClientInterface;
 
 /**
@@ -18,7 +17,7 @@ class DynamoDbManager
     private $service;
 
     /**
-     * @var Marshaler
+     * @var \Aws\DynamoDb\Marshaler
      */
     public $marshaler;
 

@@ -6,10 +6,8 @@ use BaoPham\DynamoDb\Concerns\HasParsers;
 use BaoPham\DynamoDb\ConditionAnalyzer\Analyzer;
 use BaoPham\DynamoDb\Facades\DynamoDb;
 use Closure;
-use Aws\DynamoDb\DynamoDbClient;
 use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Database\Eloquent\Collection;
-use \Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Scope;
 
 class DynamoDbQueryBuilder
@@ -37,7 +35,7 @@ class DynamoDbQueryBuilder
     protected $model;
 
     /**
-     * @var DynamoDbClient
+     * @var \Aws\DynamoDb\DynamoDbClient
      */
     protected $client;
 
@@ -418,7 +416,7 @@ class DynamoDbQueryBuilder
     /**
      * @param $id
      * @param array $columns
-     * @return DynamoDbModel|Collection|null
+     * @return DynamoDbModel|\Illuminate\Database\Eloquent\Collection|null
      */
     public function find($id, array $columns = [])
     {
@@ -460,7 +458,7 @@ class DynamoDbQueryBuilder
     /**
      * @param $ids
      * @param array $columns
-     * @return Collection
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function findMany($ids, array $columns = [])
     {
@@ -809,7 +807,7 @@ class DynamoDbQueryBuilder
     }
 
     /**
-     * @return DynamoDbClient
+     * @return \Aws\DynamoDb\DynamoDbClient
      */
     public function getClient()
     {

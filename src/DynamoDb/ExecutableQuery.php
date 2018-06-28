@@ -3,7 +3,6 @@
 namespace BaoPham\DynamoDb\DynamoDb;
 
 use Aws\DynamoDb\DynamoDbClient;
-use BaoPham\DynamoDb\RawDynamoDbQuery;
 
 /**
  * Class ExecutableQuery
