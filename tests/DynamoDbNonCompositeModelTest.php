@@ -8,7 +8,7 @@ use BaoPham\DynamoDb\RawDynamoDbQuery;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
- * Class DynamoDbModelTest
+ * Class DynamoDbNonCompositeModelTest
  *
  * @package BaoPham\DynamoDb\Tests
  */
