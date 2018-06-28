@@ -16,7 +16,7 @@ class DynamoDbFacadeTest extends DynamoDbTestCase
 
     public function testStaticClientMethod()
     {
-        $this->assertInstanceOf(DynamoDbClient::class, DynamoDb::client());
+        $this->assertInstanceOf(DynamoDbClient::class, DynamoDb::client('test'));
     }
 
     public function testStaticNewQuery()

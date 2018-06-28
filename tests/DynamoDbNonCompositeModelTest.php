@@ -1036,6 +1036,8 @@ class PrimaryKeyWithIndexModel extends DynamoDbModel
 
     protected $table = 'test_model';
 
+    protected $connection = 'test';
+
     protected $dynamoDbIndexKeys = [
         'count_index' => [
             'hash' => 'count',
@@ -1055,5 +1057,7 @@ class PrimaryKeyWithoutIndexModel extends DynamoDbModel
     ];
 
     protected $table = 'test_model';
+
+    protected $connection = 'test';
 }
 // phpcs:enable PSR1.Classes.ClassDeclaration.MultipleClasses

@@ -147,6 +147,8 @@ class ModelWithQueryScopes extends \BaoPham\DynamoDb\DynamoDbModel
 
     protected $table = 'test_model';
 
+    protected $connection = 'test';
+
     public $timestamps = true;
 
     protected $dynamoDbIndexKeys = [

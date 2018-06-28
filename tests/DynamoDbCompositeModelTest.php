@@ -632,6 +632,8 @@ class CompositeKeyWithIndex extends DynamoDbModel
 
     protected $table = 'composite_test_model';
 
+    protected $connection = 'test';
+
     protected $compositeKey = ['id', 'id2'];
 
     protected $dynamoDbIndexKeys = [
@@ -659,6 +661,8 @@ class CompositeKeyWithoutIndex extends DynamoDbModel
     ];
 
     protected $table = 'composite_test_model';
+
+    protected $connection = 'test';
 
     protected $compositeKey = ['id', 'id2'];
 }
