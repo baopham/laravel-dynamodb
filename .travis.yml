@@ -13,5 +13,9 @@ before_script:
   - sleep 2
   - composer self-update
   - composer install
+  - ./vendor/bin/phpcs --config-set ignore_warnings_on_exit 1
 
-script: phpunit
+script:
+  - ./vendor/bin/phpcs ./src/*
+  - ./vendor/bin/phpcs ./tests/*
+  - phpunit
