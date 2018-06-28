@@ -5,6 +5,7 @@ laravel-dynamodb
 [![Total Downloads](https://poser.pugx.org/baopham/dynamodb/downloads)](https://packagist.org/packages/baopham/dynamodb)
 [![Latest Unstable Version](https://poser.pugx.org/baopham/dynamodb/v/unstable)](https://packagist.org/packages/baopham/dynamodb)
 [![Build Status](https://travis-ci.org/baopham/laravel-dynamodb.svg?branch=master)](https://travis-ci.org/baopham/laravel-dynamodb)
+[![Code Coverage](https://scrutinizer-ci.com/g/baopham/laravel-dynamodb/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/baopham/laravel-dynamodb/?branch=master)
 [![License](https://poser.pugx.org/baopham/dynamodb/license)](https://packagist.org/packages/baopham/dynamodb)
 
 Supports all key types - primary hash key and composite keys.
