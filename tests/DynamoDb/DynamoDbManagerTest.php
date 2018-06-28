@@ -6,9 +6,7 @@ use Aws\DynamoDb\DynamoDbClient;
 use Aws\DynamoDb\Marshaler;
 use BaoPham\DynamoDb\DynamoDbClientInterface;
 use BaoPham\DynamoDb\Tests\DynamoDbTestCase;
-use BaoPham\DynamoDb\Tests\TestCase;
 use BaoPham\DynamoDb\DynamoDb\DynamoDbManager;
-use PHPUnit\Framework\MockObject\MockObject;
 
 class DynamoDbManagerTest extends DynamoDbTestCase
 {
@@ -18,7 +16,7 @@ class DynamoDbManagerTest extends DynamoDbTestCase
     protected $manager;
 
     /**
-     * @var MockObject
+     * @var \PHPUnit\Framework\MockObject\MockObject
      */
     protected $mockedClient;
 

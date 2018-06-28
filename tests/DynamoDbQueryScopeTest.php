@@ -2,7 +2,6 @@
 
 namespace BaoPham\DynamoDb\Tests;
 
-use Carbon\Carbon;
 use BaoPham\DynamoDb\DynamoDbQueryBuilder;
 
 /**

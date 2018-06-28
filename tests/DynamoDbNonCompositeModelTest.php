@@ -3,7 +3,6 @@
 namespace BaoPham\DynamoDb\Tests;
 
 use BaoPham\DynamoDb\DynamoDbModel;
-use BaoPham\DynamoDb\NotSupportedException;
 use BaoPham\DynamoDb\RawDynamoDbQuery;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
