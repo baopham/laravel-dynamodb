@@ -53,7 +53,7 @@ class QueryBuilder
     /**
      * @var DynamoDbClientInterface
      */
-    private $wrapper;
+    private $service;
 
     /**
      * Query body to be sent to AWS
@@ -62,9 +62,9 @@ class QueryBuilder
      */
     public $query = [];
 
-    public function __construct(DynamoDbClientInterface $wrapper)
+    public function __construct(DynamoDbClientInterface $service)
     {
-        $this->wrapper = $wrapper;
+        $this->service = $service;
     }
 
     public function hydrate(array $query)
@@ -94,7 +94,7 @@ class QueryBuilder
      */
     public function prepare(DynamoDbClient $client = null)
     {
-        return new ExecutableQuery($client ?: $this->wrapper->getClient(), $this->query);
+        return new ExecutableQuery($client ?: $this->service->getClient(), $this->query);
     }
 
     /**

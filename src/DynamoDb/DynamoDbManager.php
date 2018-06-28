@@ -15,17 +15,17 @@ class DynamoDbManager
     /**
      * @var DynamoDbClientInterface
      */
-    private $wrapper;
+    private $service;
 
     /**
      * @var Marshaler
      */
     public $marshaler;
 
-    public function __construct(DynamoDbClientInterface $wrapper)
+    public function __construct(DynamoDbClientInterface $service)
     {
-        $this->wrapper = $wrapper;
-        $this->marshaler = $wrapper->getMarshaler();
+        $this->service = $service;
+        $this->marshaler = $service->getMarshaler();
     }
 
     public function marshalItem($item)
@@ -54,7 +54,7 @@ class DynamoDbManager
      */
     public function client($connection = null)
     {
-        return $this->wrapper->getClient($connection);
+        return $this->service->getClient($connection);
     }
 
     /**
@@ -62,7 +62,7 @@ class DynamoDbManager
      */
     public function newQuery()
     {
-        return new QueryBuilder($this->wrapper);
+        return new QueryBuilder($this->service);
     }
 
     /**

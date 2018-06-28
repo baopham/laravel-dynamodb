@@ -32,11 +32,11 @@ class DynamoDbManagerTest extends DynamoDbTestCase
             ->setMethods(['putItem', 'updateItem', 'deleteItem', 'scan', 'query', 'batchWriteItem'])
             ->getMock();
 
-        $clientWrapper = $this->getMockBuilder(DynamoDbClientInterface::class)->getMock();
-        $clientWrapper->method('getMarshaler')->willReturn(new Marshaler());
-        $clientWrapper->method('getClient')->willReturn($this->mockedClient);
+        $service = $this->getMockBuilder(DynamoDbClientInterface::class)->getMock();
+        $service->method('getMarshaler')->willReturn(new Marshaler());
+        $service->method('getClient')->willReturn($this->mockedClient);
 
-        $this->manager = with(new DynamoDbManager($clientWrapper));
+        $this->manager = with(new DynamoDbManager($service));
     }
 
     public function testPutItem()
