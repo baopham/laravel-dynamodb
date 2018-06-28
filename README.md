@@ -485,7 +485,7 @@ For example, to build an [`UpdateTable`](https://docs.aws.amazon.com/aws-sdk-php
 ```php
 [
     'AttributeDefinitions' => ...,
-    'GlobalSecondaryIndexUpdates' => ...
+    'GlobalSecondaryIndexUpdates' => ...,
     'TableName' => ...
 ]
 ```
