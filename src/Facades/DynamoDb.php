@@ -2,15 +2,12 @@
 
 namespace BaoPham\DynamoDb\Facades;
 
-use Aws\DynamoDb\DynamoDbClient;
-use BaoPham\DynamoDb\DynamoDb\DynamoDbManager;
-use BaoPham\DynamoDb\DynamoDb\QueryBuilder;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static DynamoDbClient client()
- * @method static QueryBuilder table($name)
- * @method static QueryBuilder newQuery()
+ * @method static \Aws\DynamoDb\DynamoDbClient client()
+ * @method static \BaoPham\DynamoDb\DynamoDb\QueryBuilder table($name)
+ * @method static \BaoPham\DynamoDb\DynamoDb\QueryBuilder newQuery()
  * @method static array marshalItem($item)
  * @method static array marshalValue($value)
  * @method static mixed unmarshalItem($value)
