@@ -5,6 +5,7 @@ namespace BaoPham\DynamoDb\DynamoDb;
 use Aws\DynamoDb\DynamoDbClient;
 use BadMethodCallException;
 use BaoPham\DynamoDb\DynamoDbClientInterface;
+use BaoPham\DynamoDb\RawDynamoDbQuery;
 
 /**
  * Class QueryBuilder
@@ -41,12 +42,14 @@ use BaoPham\DynamoDb\DynamoDbClientInterface;
  * @method QueryBuilder setScanIndexForward(bool $forward)
  * @method QueryBuilder setExclusiveStartKey(mixed $key)
  * @method QueryBuilder setReturnValues(string $type)
+ * @method QueryBuilder setRequestItems(array $items)
  * @method QueryBuilder setTableName(string $table)
  * @method QueryBuilder setIndexName(string $index)
  * @method QueryBuilder setSelect(string $select)
  * @method QueryBuilder setItem(array $item)
+ * @method QueryBuilder setKeys(array $keys)
  * @method QueryBuilder setLimit(int $limit)
- * @method QueryBuilder setKey(array $item)
+ * @method QueryBuilder setKey(array $key)
  */
 class QueryBuilder
 {
@@ -94,7 +97,8 @@ class QueryBuilder
      */
     public function prepare(DynamoDbClient $client = null)
     {
-        return new ExecutableQuery($client ?: $this->service->getClient(), $this->query);
+        $raw = new RawDynamoDbQuery(null, $this->query);
+        return new ExecutableQuery($client ?: $this->service->getClient(), $raw->finalize()->query);
     }
 
     /**

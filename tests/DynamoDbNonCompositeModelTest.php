@@ -54,8 +54,23 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
 
     public function testFindMultiple()
     {
-        $this->expectException(NotSupportedException::class);
-        $this->testModel->find(['bar', 'foo']);
+        $ids = ['foo', 'bar'];
+        $this->seed(['id' => ['S' => $ids[0]]]);
+        $this->seed(['id' => ['S' => $ids[1]]]);
+
+        $assert = function ($results) use ($ids) {
+            $this->assertCount(2, $results);
+            $this->assertContains($results->first()->id, $ids);
+            $this->assertContains($results->last()->id, $ids);
+        };
+
+        $results = $this->testModel->find($ids);
+
+        $assert($results);
+
+        $results = $this->testModel->findMany($ids);
+
+        $assert($results);
     }
 
     public function testFindOrFailRecordPass()
@@ -73,8 +88,15 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
 
     public function testFindOrFailMultiple()
     {
-        $this->expectException(NotSupportedException::class);
-        $this->testModel->findOrFail(['bar', 'foo']);
+        $ids = ['foo', 'bar'];
+        $this->seed(['id' => ['S' => $ids[0]]]);
+        $this->seed(['id' => ['S' => $ids[1]]]);
+
+        $results = $this->testModel->findOrFail($ids);
+
+        $this->assertCount(2, $results);
+        $this->assertContains($results->first()->id, $ids);
+        $this->assertContains($results->last()->id, $ids);
     }
 
     public function testFirstOrFailRecordPass()

@@ -3,6 +3,7 @@
 namespace BaoPham\DynamoDb\Tests;
 
 use BaoPham\DynamoDb\DynamoDbModel;
+use BaoPham\DynamoDb\Facades\DynamoDb;
 use BaoPham\DynamoDb\NotSupportedException;
 use BaoPham\DynamoDb\RawDynamoDbQuery;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -59,8 +60,30 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
 
     public function testFindMultiple()
     {
-        $this->expectException(NotSupportedException::class);
-        $this->testModel->find([['id1' => 'bar', 'id2' => 'foo']]);
+        $hash = ['foo', 'foo1'];
+        $range = ['bar', 'bar2'];
+        $ids = [
+            ['id' => $hash[0], 'id2' => $range[0]],
+            ['id' => $hash[1], 'id2' => $range[1]],
+        ];
+        $this->seed(DynamoDb::marshalItem($ids[0]));
+        $this->seed(DynamoDb::marshalItem($ids[1]));
+
+        $assert = function ($results) use ($hash, $range) {
+            $this->assertCount(2, $results);
+            $this->assertContains($results->first()->id, $hash);
+            $this->assertContains($results->first()->id2, $range);
+            $this->assertContains($results->last()->id, $hash);
+            $this->assertContains($results->last()->id2, $range);
+        };
+
+        $results = $this->testModel->find($ids);
+
+        $assert($results);
+
+        $results = $this->testModel->findMany($ids);
+
+        $assert($results);
     }
 
     public function testFindOrFailRecordPass()
@@ -80,8 +103,22 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
 
     public function testFindOrFailMultiple()
     {
-        $this->expectException(NotSupportedException::class);
-        $this->testModel->findOrFail([['id' => 'bar', 'id2' => 'foo']]);
+        $hash = ['foo', 'foo1'];
+        $range = ['bar', 'bar2'];
+        $ids = [
+            ['id' => $hash[0], 'id2' => $range[0]],
+            ['id' => $hash[1], 'id2' => $range[1]],
+        ];
+        $this->seed(DynamoDb::marshalItem($ids[0]));
+        $this->seed(DynamoDb::marshalItem($ids[1]));
+
+        $results = $this->testModel->find($ids);
+
+        $this->assertCount(2, $results);
+        $this->assertContains($results->first()->id, $hash);
+        $this->assertContains($results->first()->id2, $range);
+        $this->assertContains($results->last()->id, $hash);
+        $this->assertContains($results->last()->id2, $range);
     }
 
     public function testFirstOrFailRecordPass()

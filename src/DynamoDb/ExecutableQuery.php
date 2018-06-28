@@ -94,8 +94,6 @@ class ExecutableQuery
      */
     public function __call($method, $parameters)
     {
-        $op = ucfirst($method);
-        $raw = new RawDynamoDbQuery($op, $this->query);
-        return $this->client->{$method}($raw->finalize()->query);
+        return $this->client->{$method}($this->query);
     }
 }

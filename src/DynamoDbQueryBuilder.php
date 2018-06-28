@@ -8,6 +8,7 @@ use BaoPham\DynamoDb\Facades\DynamoDb;
 use Closure;
 use Aws\DynamoDb\DynamoDbClient;
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Database\Eloquent\Collection;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Scope;
 
@@ -86,7 +87,7 @@ class DynamoDbQueryBuilder
      * Alias to set the "limit" value of the query.
      *
      * @param  int  $value
-     * @return DynamoDbQueryBuilder\static
+     * @return DynamoDbQueryBuilder
      */
     public function take($value)
     {
@@ -257,7 +258,7 @@ class DynamoDbQueryBuilder
     /**
      * Add another query builder as a nested where to the query builder.
      *
-     * @param  DynamoDbQueryBuilder|static $query
+     * @param  DynamoDbQueryBuilder $query
      * @param  string  $boolean
      * @return $this
      */
@@ -414,6 +415,11 @@ class DynamoDbQueryBuilder
         }
     }
 
+    /**
+     * @param $id
+     * @param array $columns
+     * @return DynamoDbModel|Collection|null
+     */
     public function find($id, array $columns = [])
     {
         if ($this->isMultipleIds($id)) {
@@ -439,7 +445,7 @@ class DynamoDbQueryBuilder
         $item = array_get($item->toArray(), 'Item');
 
         if (empty($item)) {
-            return;
+            return null;
         }
 
         $item = DynamoDb::unmarshalItem($item);
@@ -451,9 +457,51 @@ class DynamoDbQueryBuilder
         return $model;
     }
 
+    /**
+     * @param $ids
+     * @param array $columns
+     * @return Collection
+     */
     public function findMany($ids, array $columns = [])
     {
-        throw new NotSupportedException('Finding by multiple ids is not supported');
+        $collection = $this->model->newCollection();
+
+        if (empty($ids)) {
+            return $collection;
+        }
+
+        $this->resetExpressions();
+
+        $table = $this->model->getTable();
+
+        $keys = collect($ids)->map(function ($id) {
+            if (! is_array($id)) {
+                $id = [$this->model->getKeyName() => $id];
+            }
+
+            return DynamoDb::marshalItem($id);
+        });
+
+        $subQuery = DynamoDb::newQuery()
+            ->setKeys($keys->toArray())
+            ->setProjectionExpression($this->projectionExpression->parse($columns))
+            ->setExpressionAttributeNames($this->expressionAttributeNames->all())
+            ->prepare($this->client)
+            ->query;
+
+        $results = DynamoDb::newQuery()
+            ->setRequestItems([$table => $subQuery])
+            ->prepare($this->client)
+            ->batchGetItem();
+
+        foreach ($results['Responses'][$table] as $item) {
+            $item = DynamoDb::unmarshalItem($item);
+            $model = $this->model->newInstance([], true);
+            $model->setRawAttributes($item, true);
+            $collection->add($model);
+        }
+
+        return $collection;
     }
 
     public function findOrFail($id, $columns = [])
