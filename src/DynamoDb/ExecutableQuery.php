@@ -79,7 +79,7 @@ class ExecutableQuery
     /**
      * @var array
      */
-    private $query;
+    public $query;
 
     public function __construct(DynamoDbClient $client, array $query)
     {

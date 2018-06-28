@@ -53,7 +53,7 @@ class QueryBuilder
     /**
      * @var DynamoDbClientInterface
      */
-    public $wrapper;
+    private $wrapper;
 
     /**
      * Query body to be sent to AWS
