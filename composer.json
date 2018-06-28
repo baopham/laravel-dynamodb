@@ -23,7 +23,8 @@
     "require-dev": {
         "orchestra/testbench": "~3.0",
         "dealerdirect/phpcodesniffer-composer-installer": "^0.4.4",
-        "sirbrillig/phpcs-variable-analysis": "^2.1"
+        "sirbrillig/phpcs-variable-analysis": "^2.1",
+        "slevomat/coding-standard": "^4.6"
     },
     "scripts": {
         "test": "phpunit",
