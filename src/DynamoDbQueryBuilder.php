@@ -729,7 +729,7 @@ class DynamoDbQueryBuilder
             ->setExpressionAttributeNames($this->expressionAttributeNames->all())
             ->setExpressionAttributeValues($this->expressionAttributeValues->all());
 
-        $raw = with(new RawDynamoDbQuery($op, $queryBuilder->query))->finalize();
+        $raw = new RawDynamoDbQuery($op, $queryBuilder->prepare($this->client)->query);
 
         if ($this->decorator) {
             call_user_func($this->decorator, $raw);
