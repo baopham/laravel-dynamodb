@@ -36,7 +36,6 @@ class DynamoDbQueryBuilder
     protected $model;
 
     /**
-     * @deprecated
      * @var DynamoDbClient
      */
     protected $client;
@@ -79,7 +78,7 @@ class DynamoDbQueryBuilder
     public function __construct(DynamoDbModel $model)
     {
         $this->model = $model;
-        $this->client = DynamoDb::client();
+        $this->client = $model->getClient();
         $this->setupExpressions();
     }
 
@@ -435,7 +434,7 @@ class DynamoDbQueryBuilder
                 ->setExpressionAttributeNames($this->expressionAttributeNames->all());
         }
 
-        $item = $query->prepare()->getItem();
+        $item = $query->prepare($this->client)->getItem();
 
         $item = array_get($item->toArray(), 'Item');
 
@@ -520,7 +519,7 @@ class DynamoDbQueryBuilder
             ->setKey($key)
             ->setUpdateExpression($this->updateExpression->remove($attributes))
             ->setExpressionAttributeNames($this->expressionAttributeNames->all())
-            ->prepare()
+            ->prepare($this->client)
             ->updateItem();
 
         return array_get($result, '@metadata.statusCode') === 200;
@@ -535,7 +534,7 @@ class DynamoDbQueryBuilder
     {
         $result = DynamoDb::table($this->model->getTable())
             ->setKey($this->getDynamoDbKey())
-            ->prepare()
+            ->prepare($this->client)
             ->deleteItem();
 
         return array_get($result->toArray(), '@metadata.statusCode') === 200;
@@ -545,7 +544,7 @@ class DynamoDbQueryBuilder
     {
         $result = DynamoDb::table($this->model->getTable())
             ->setItem(DynamoDb::marshalItem($this->model->getAttributes()))
-            ->prepare()
+            ->prepare($this->client)
             ->putItem();
 
         return array_get($result, '@metadata.statusCode') === 200;
@@ -561,12 +560,11 @@ class DynamoDbQueryBuilder
     {
         $limit = isset($this->limit) ? $this->limit : static::MAX_LIMIT;
         $raw = $this->toDynamoDbQuery(['count(*)'], $limit);
-        $query = DynamoDb::newQuery()->hydrate($raw->query);
 
         if ($raw->op === 'Scan') {
-            $res = $query->prepare()->scan();
+            $res = $this->client->scan($raw->query);
         } else {
-            $res = $query->prepare()->query();
+            $res = $this->client->query($raw->query);
         }
 
         return $res['Count'];
@@ -592,19 +590,18 @@ class DynamoDbQueryBuilder
         }
 
         $raw = $this->toDynamoDbQuery($columns, $limit);
-        $query = DynamoDb::newQuery()->hydrate($raw->query);
 
         if ($useIterator) {
-            $iterator = DynamoDb::client()->getIterator($raw->op, $raw->query);
+            $iterator = $this->client->getIterator($raw->op, $raw->query);
 
             if (isset($raw->query['Limit'])) {
                 $iterator = new \LimitIterator($iterator, 0, $raw->query['Limit']);
             }
         } else {
             if ($raw->op === 'Scan') {
-                $res = $query->prepare()->scan();
+                $res = $this->client->scan($raw->query);
             } else {
-                $res = $query->prepare()->query();
+                $res = $this->client->query($raw->query);
             }
 
             $this->lastEvaluatedKey = array_get($res, 'LastEvaluatedKey');
@@ -764,7 +761,6 @@ class DynamoDbQueryBuilder
     }
 
     /**
-     * @deprecated
      * @return DynamoDbClient
      */
     public function getClient()

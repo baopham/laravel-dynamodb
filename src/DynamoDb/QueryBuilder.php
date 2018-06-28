@@ -4,6 +4,7 @@ namespace BaoPham\DynamoDb\DynamoDb;
 
 use Aws\DynamoDb\DynamoDbClient;
 use BadMethodCallException;
+use BaoPham\DynamoDb\DynamoDbClientInterface;
 
 /**
  * Class QueryBuilder
@@ -50,9 +51,9 @@ use BadMethodCallException;
 class QueryBuilder
 {
     /**
-     * @var DynamoDbClient
+     * @var DynamoDbClientInterface
      */
-    public $client;
+    public $wrapper;
 
     /**
      * Query body to be sent to AWS
@@ -61,9 +62,9 @@ class QueryBuilder
      */
     public $query = [];
 
-    public function __construct(DynamoDbClient $client)
+    public function __construct(DynamoDbClientInterface $wrapper)
     {
-        $this->client = $client;
+        $this->wrapper = $wrapper;
     }
 
     public function hydrate(array $query)
@@ -87,9 +88,13 @@ class QueryBuilder
         return $this;
     }
 
-    public function prepare()
+    /**
+     * @param DynamoDbClient|null $client
+     * @return ExecutableQuery
+     */
+    public function prepare(DynamoDbClient $client = null)
     {
-        return new ExecutableQuery($this->client, $this->query);
+        return new ExecutableQuery($client ?: $this->wrapper->getClient(), $this->query);
     }
 
     /**

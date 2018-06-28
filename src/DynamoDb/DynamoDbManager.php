@@ -18,13 +18,6 @@ class DynamoDbManager
     private $wrapper;
 
     /**
-     * The active client instances.
-     *
-     * @var array
-     */
-    private $clients = [];
-
-    /**
      * @var Marshaler
      */
     public $marshaler;
@@ -61,13 +54,7 @@ class DynamoDbManager
      */
     public function client($connection = null)
     {
-        $connection = $connection ?: config('dynamodb.default');
-
-        if (! isset($this->clients[$connection])) {
-            $this->clients[$connection] = $this->wrapper->getClient($connection);
-        }
-
-        return $this->clients[$connection];
+        return $this->wrapper->getClient($connection);
     }
 
     /**
@@ -75,7 +62,7 @@ class DynamoDbManager
      */
     public function newQuery()
     {
-        return new QueryBuilder($this->client());
+        return new QueryBuilder($this->wrapper);
     }
 
     /**

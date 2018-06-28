@@ -274,7 +274,6 @@ abstract class DynamoDbModel extends Model
     }
 
     /**
-     * @deprecated
      * @return \Aws\DynamoDb\DynamoDbClient
      */
     public function getClient()
