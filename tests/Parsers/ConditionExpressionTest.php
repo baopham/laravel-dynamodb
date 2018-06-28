@@ -8,7 +8,7 @@ use BaoPham\DynamoDb\Parsers\ConditionExpression;
 use BaoPham\DynamoDb\Parsers\ExpressionAttributeNames;
 use BaoPham\DynamoDb\Parsers\ExpressionAttributeValues;
 use BaoPham\DynamoDb\Parsers\Placeholder;
-use BaoPham\DynamoDb\Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
 class ConditionExpressionTest extends TestCase
 {

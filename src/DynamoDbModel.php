@@ -24,11 +24,13 @@ abstract class DynamoDbModel extends Model
     protected static $dynamoDb;
 
     /**
+     * @deprecated
      * @var \Aws\DynamoDb\Marshaler
      */
     protected $marshaler;
 
     /**
+     * @deprecated
      * @var \BaoPham\DynamoDb\EmptyAttributeFilter
      */
     protected $attributeFilter;
@@ -226,16 +228,31 @@ abstract class DynamoDbModel extends Model
         return !empty($this->compositeKey);
     }
 
+    /**
+     * @deprecated
+     * @param $item
+     * @return array
+     */
     public function marshalItem($item)
     {
         return $this->marshaler->marshalItem($item);
     }
 
+    /**
+     * @deprecated
+     * @param $value
+     * @return array
+     */
     public function marshalValue($value)
     {
         return $this->marshaler->marshalValue($value);
     }
 
+    /**
+     * @deprecated
+     * @param $item
+     * @return array|\stdClass
+     */
     public function unmarshalItem($item)
     {
         return $this->marshaler->unmarshalItem($item);
@@ -340,6 +357,7 @@ abstract class DynamoDbModel extends Model
     }
 
     /**
+     * @deprecated
      * @return \Aws\DynamoDb\Marshaler
      */
     public function getMarshaler()

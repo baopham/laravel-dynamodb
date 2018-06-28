@@ -10,7 +10,7 @@ use BaoPham\DynamoDb\DynamoDbQueryBuilder;
  *
  * @package BaoPham\DynamoDb\Tests
  */
-class DynamoDbQueryScopeTest extends ModelTest
+class DynamoDbQueryScopeTest extends DynamoDbModelTest
 {
     protected function getTestModel()
     {
@@ -146,6 +146,8 @@ class ModelWithQueryScopes extends \BaoPham\DynamoDb\DynamoDbModel
     protected $fillable = ['name', 'description', 'count'];
 
     protected $table = 'test_model';
+
+    protected $connection = 'test';
 
     public $timestamps = true;
 

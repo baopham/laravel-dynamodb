@@ -4,6 +4,7 @@ namespace BaoPham\DynamoDb\Tests;
 
 use BaoPham\DynamoDb\DynamoDbClientInterface;
 use BaoPham\DynamoDb\DynamoDbModel;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class DynamoDbClientServiceTest
@@ -12,6 +13,13 @@ use BaoPham\DynamoDb\DynamoDbModel;
  */
 class DynamoDbClientServiceTest extends TestCase
 {
+    public function setUp()
+    {
+        parent::setUp();
+
+        DynamoDbModel::unsetDynamoDbClientService();
+    }
+
     /**
      * Test that the dynamoDbClientService is not initialized without the service provider being called.
      *

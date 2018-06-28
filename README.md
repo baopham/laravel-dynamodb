@@ -32,6 +32,7 @@ Supports all key types - primary hash key and composite keys.
   * [Decorate Query](#decorate-query)
 * [Indexes](#indexes)
 * [Composite Keys](#composite-keys)
+* [Query Builder](#query-builder)
 * [Requirements](#requirements)
 * [Migrate from v1 to v2](#migrate-from-v1-to-v2)
 * [FAQ](#faq)
@@ -90,6 +91,7 @@ Usage
 -----
 * Extends your model with `BaoPham\DynamoDb\DynamoDbModel`, then you can use Eloquent methods that are supported. The idea here is that you can switch back to Eloquent without changing your queries.  
 * Or if you want to sync your DB table with a DynamoDb table, use trait `BaoPham\DynamoDb\ModelTrait`, it will call a `PutItem` after the model is saved.
+* Alternatively, you can use the [query builder](#query-builder) facade to build more complex queries.
 
 ### Supported features:
 
@@ -419,6 +421,87 @@ protected $compositeKey = ['customer_id', 'agent_id'];
 
 ```php
 $model->find(['customer_id' => 'value1', 'agent_id' => 'value2']);
+```
+
+Query Builder
+-------------
+
+Use `DynamoDb` facade to build raw queries
+
+```php
+use BaoPham\DynamoDb\Facades\DynamoDb;
+
+DynamoDb::table('articles')
+    // call set<key_name> to build the query body to be sent to AWS
+    ->setFilterExpression('#name = :name')
+    ->setExpressionAttributeNames(['#name' => 'author_name'])
+    ->setExpressionAttributeValues([':name' => DynamoDb::marshalValue('Bao')])
+    ->prepare()
+    // the query body will be sent upon calling this.
+    ->scan(); // supports any DynamoDbClient methods (e.g. batchWriteItem, batchGetItem, etc.)
+  
+DynamoDb::table('articles')
+    ->setIndex('author_name')
+    ->setKeyConditionExpression('#name = :name')
+    ->setProjectionExpression('id, author_name')
+    // Can set the attribute mapping one by one instead
+    ->setExpressionAttributeName('#name', 'author_name')
+    ->setExpressionAttributeValue(':name', DynamoDb::marshalValue('Bao'))
+    ->prepare()
+    ->query();
+
+DynamoDb::table('articles')
+    ->setKey(DynamoDb::marshalItem(['id' => 'ae025ed8']))
+    ->setUpdateExpression('REMOVE #c, #t')
+    ->setExpressionAttributeName('#c', 'comments')
+    ->setExpressionAttributeName('#t', 'tags')
+    ->prepare()
+    ->updateItem();
+
+DynamoDb::table('articles')
+    ->setKey(DynamoDb::marshalItem(['id' => 'ae025ed8']))
+    ->prepare()
+    ->deleteItem();
+
+DynamoDb::table('articles')
+    ->setItem(DynamoDb::marshalItem(['id' => 'ae025ed8', 'author_name' => 'New Name']))
+    ->prepare()
+    ->putItem();
+
+// Or, instead of ::table()
+DynamoDb::newQuery()
+    ->setTableName('articles')
+
+// Or access the DynamoDbClient instance directly
+DynamoDb::client();
+// pass in the connection name to get a different client instance other than the default.
+DynamoDb::client('test');
+```
+
+The query builder methods are in the form of `set<key_name>`, where `<key_name>` is the key name of the query body to be sent.  
+
+For example, to build an [`UpdateTable`](https://docs.aws.amazon.com/aws-sdk-php/v3/api/api-dynamodb-2012-08-10.html#updatetable) query:
+
+```php
+[
+    'AttributeDefinitions' => ...,
+    'GlobalSecondaryIndexUpdates' => ...,
+    'TableName' => ...
+]
+```
+
+Do:
+
+```php
+$query = DynamoDb::table('articles')
+    ->setAttributeDefinitions(...)
+    ->setGlobalSecondaryIndexUpdates(...);
+```
+
+And when ready:
+
+```php
+$query->prepare()->updateTable();
 ```
 
 Requirements

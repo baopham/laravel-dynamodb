@@ -10,7 +10,7 @@ namespace BaoPham\DynamoDb;
 class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
 {
     /**
-     * Either 'Scan', or 'Query'
+     * 'Scan', 'Query', etc.
      *
      * @var string
      */
@@ -27,6 +27,21 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
     {
         $this->op = $op;
         $this->query = $query;
+    }
+
+    /**
+     * Perform any final clean up.
+     * Remove any empty values to avoid errors.
+     *
+     * @return $this
+     */
+    public function finalize()
+    {
+        $this->query = array_filter($this->query, function ($value) {
+            return !empty($value) || is_bool($value) || is_numeric($value);
+        });
+
+        return $this;
     }
 
     /**
@@ -94,7 +109,7 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
     /**
      * Retrieve an external iterator
      * @link http://php.net/manual/en/iteratoraggregate.getiterator.php
-     * @return Traversable An instance of an object implementing <b>Iterator</b> or
+     * @return \Traversable An instance of an object implementing <b>Iterator</b> or
      * <b>Traversable</b>
      * @since 5.0.0
      */

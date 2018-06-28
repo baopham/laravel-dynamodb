@@ -9,7 +9,7 @@ use Carbon\Carbon;
  *
  * @package BaoPham\DynamoDb\Tests
  */
-class DynamoDbTimestampTest extends ModelTest
+class DynamoDbTimestampTest extends DynamoDbModelTest
 {
     protected function getTestModel()
     {
@@ -90,6 +90,8 @@ class TimestampModel extends \BaoPham\DynamoDb\DynamoDbModel
     protected $fillable = ['name', 'description', 'count'];
 
     protected $table = 'test_model';
+
+    protected $connection = 'test';
 
     public $timestamps = true;
 

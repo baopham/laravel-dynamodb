@@ -3,6 +3,7 @@
 namespace BaoPham\DynamoDb\Tests;
 
 use BaoPham\DynamoDb\DynamoDbModel;
+use BaoPham\DynamoDb\Facades\DynamoDb;
 use BaoPham\DynamoDb\NotSupportedException;
 use BaoPham\DynamoDb\RawDynamoDbQuery;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -12,7 +13,7 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
  *
  * @package BaoPham\DynamoDb\Tests
  */
-class DynamoDbCompositeModelTest extends DynamoDbModelTest
+class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
 {
     protected function getTestModel()
     {
@@ -59,8 +60,30 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
 
     public function testFindMultiple()
     {
-        $this->expectException(NotSupportedException::class);
-        $this->testModel->find([['id1' => 'bar', 'id2' => 'foo']]);
+        $hash = ['foo', 'foo1'];
+        $range = ['bar', 'bar2'];
+        $ids = [
+            ['id' => $hash[0], 'id2' => $range[0]],
+            ['id' => $hash[1], 'id2' => $range[1]],
+        ];
+        $this->seed(DynamoDb::marshalItem($ids[0]));
+        $this->seed(DynamoDb::marshalItem($ids[1]));
+
+        $assert = function ($results) use ($hash, $range) {
+            $this->assertCount(2, $results);
+            $this->assertContains($results->first()->id, $hash);
+            $this->assertContains($results->first()->id2, $range);
+            $this->assertContains($results->last()->id, $hash);
+            $this->assertContains($results->last()->id2, $range);
+        };
+
+        $results = $this->testModel->find($ids);
+
+        $assert($results);
+
+        $results = $this->testModel->findMany($ids);
+
+        $assert($results);
     }
 
     public function testFindOrFailRecordPass()
@@ -80,8 +103,22 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
 
     public function testFindOrFailMultiple()
     {
-        $this->expectException(NotSupportedException::class);
-        $this->testModel->findOrFail([['id' => 'bar', 'id2' => 'foo']]);
+        $hash = ['foo', 'foo1'];
+        $range = ['bar', 'bar2'];
+        $ids = [
+            ['id' => $hash[0], 'id2' => $range[0]],
+            ['id' => $hash[1], 'id2' => $range[1]],
+        ];
+        $this->seed(DynamoDb::marshalItem($ids[0]));
+        $this->seed(DynamoDb::marshalItem($ids[1]));
+
+        $results = $this->testModel->find($ids);
+
+        $this->assertCount(2, $results);
+        $this->assertContains($results->first()->id, $hash);
+        $this->assertContains($results->first()->id2, $range);
+        $this->assertContains($results->last()->id, $hash);
+        $this->assertContains($results->last()->id2, $range);
     }
 
     public function testFirstOrFailRecordPass()
@@ -554,6 +591,34 @@ class DynamoDbCompositeModelTest extends DynamoDbModelTest
         $this->assertEquals($refreshed, $model);
     }
 
+    public function testFindWithColumns()
+    {
+        $this->seed([
+            'id' => ['S' => 'foo'],
+            'id2' => ['S' => 'bar'],
+            'name' => ['S' => 'baz'],
+            'nested' => [
+                'M' => [
+                    'key1' => ['S' => 'value1'],
+                    'key2' => ['S' => 'value2'],
+                ],
+            ],
+        ]);
+
+        $columns = ['id', 'name', 'nested.key1'];
+
+        $expected = [
+            'id' => 'foo',
+            'name' => 'baz',
+            'nested' => ['key1' => 'value1'],
+        ];
+
+        $result = $this->testModel
+            ->find(['id' => 'foo', 'id2' => 'bar'], $columns);
+
+        $this->assertEquals($expected, $result->toArray());
+    }
+
     public function seed($attributes = [], $exclude = [])
     {
         $item = [
@@ -604,6 +669,8 @@ class CompositeKeyWithIndex extends DynamoDbModel
 
     protected $table = 'composite_test_model';
 
+    protected $connection = 'test';
+
     protected $compositeKey = ['id', 'id2'];
 
     protected $dynamoDbIndexKeys = [
@@ -631,6 +698,8 @@ class CompositeKeyWithoutIndex extends DynamoDbModel
     ];
 
     protected $table = 'composite_test_model';
+
+    protected $connection = 'test';
 
     protected $compositeKey = ['id', 'id2'];
 }
