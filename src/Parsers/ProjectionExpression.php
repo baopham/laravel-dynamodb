@@ -12,10 +12,10 @@ class ProjectionExpression
     }
 
     /**
-     * @param array|string $columns
+     * @param array $columns
      * @return string
      */
-    public function parse($columns)
+    public function parse(array $columns)
     {
         foreach ($columns as $column) {
             $this->names->set($column);

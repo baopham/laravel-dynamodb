@@ -357,6 +357,7 @@ abstract class DynamoDbModel extends Model
     }
 
     /**
+     * @deprecated
      * @return \Aws\DynamoDb\Marshaler
      */
     public function getMarshaler()

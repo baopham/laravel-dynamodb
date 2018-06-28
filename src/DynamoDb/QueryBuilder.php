@@ -39,6 +39,7 @@ use BaoPham\DynamoDb\RawDynamoDbQuery;
  * @method QueryBuilder setProjectionExpression(string $expression)
  * @method QueryBuilder setUpdateExpression(string $expression)
  * @method QueryBuilder setAttributeUpdates(array $updates)
+ * @method QueryBuilder setConsistentRead(bool $consistent)
  * @method QueryBuilder setScanIndexForward(bool $forward)
  * @method QueryBuilder setExclusiveStartKey(mixed $key)
  * @method QueryBuilder setReturnValues(string $type)
