@@ -474,6 +474,8 @@ DynamoDb::newQuery()
 
 // Or access the DynamoDbClient instance directly
 DynamoDb::client();
+// pass in the connection name to get a different client instance other than the default.
+DynamoDb::client('test');
 ```
 
 The query builder methods are in the form of `set<key_name>`, where `<key_name>` is the key name of the query body to be sent.  
