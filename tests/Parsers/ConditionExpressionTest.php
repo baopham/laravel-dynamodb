@@ -8,7 +8,7 @@ use BaoPham\DynamoDb\Parsers\ConditionExpression;
 use BaoPham\DynamoDb\Parsers\ExpressionAttributeNames;
 use BaoPham\DynamoDb\Parsers\ExpressionAttributeValues;
 use BaoPham\DynamoDb\Parsers\Placeholder;
-use BaoPham\DynamoDb\Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
 class ConditionExpressionTest extends TestCase
 {
@@ -163,5 +163,36 @@ class ConditionExpressionTest extends TestCase
         foreach ($columns as $column) {
             $this->assertEquals($column, $this->names->get("#{$column}"));
         }
+    }
+
+    public function testNestedAttributes()
+    {
+        $where = [
+            [
+                'column' => 'nested.foo',
+                'type' => ComparisonOperator::EQ,
+                'value' => 'bar',
+                'boolean' => 'and',
+            ],
+            [
+                'column' => 'nestedArray[0]',
+                'type' => ComparisonOperator::EQ,
+                'value' => 'bar',
+                'boolean' => 'and',
+            ],
+            [
+                'column' => 'nested.array[0]',
+                'type' => ComparisonOperator::EQ,
+                'value' => 'bar',
+                'boolean' => 'and',
+            ],
+        ];
+
+        $this->assertEquals(
+            'nested.foo = :a1 AND nestedArray[0] = :a2 AND nested.array[0] = :a3',
+            $this->parser->parse($where)
+        );
+
+        $this->assertEmpty($this->names->all());
     }
 }

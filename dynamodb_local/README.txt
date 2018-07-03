@@ -8,6 +8,11 @@ For an overview of DynamoDB Local please refer to the documentation at http://do
 Release Notes
 -----------------------------
 
+2017-04-13 (1.11.119)
+
+  * Add TTL implementation
+  * Update aws libs to 1.11.119
+
 2017-01-24 (1.11.86)
 
   * Implement waiters() method in LocalDynamoDBClient

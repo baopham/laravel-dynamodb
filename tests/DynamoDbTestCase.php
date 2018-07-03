@@ -3,26 +3,20 @@
 namespace BaoPham\DynamoDb\Tests;
 
 use BaoPham\DynamoDb\DynamoDbServiceProvider;
+use Orchestra\Testbench\TestCase;
 
 /**
- * Class ModelTest
+ * Class DynamoDbTestCase
  *
  * @package BaoPham\DynamoDb\Tests
  */
-abstract class ModelTest extends TestCase
+abstract class DynamoDbTestCase extends TestCase
 {
-    /**
-     * @var TestModel
-     */
-    protected $testModel;
-
     public function setUp()
     {
         parent::setUp();
 
         $this->setUpDatabase();
-
-        $this->testModel = $this->getTestModel();
     }
 
     protected function getPackageProviders($app)
@@ -38,7 +32,6 @@ abstract class ModelTest extends TestCase
      */
     protected function getEnvironmentSetUp($app)
     {
-        $app['config']->set('dynamodb.default', 'test');
         $app['config']->set('dynamodb.connections.test', [
             'credentials' => [
                 'key' => 'dynamodb_local',
@@ -49,15 +42,8 @@ abstract class ModelTest extends TestCase
         ]);
     }
 
-    abstract protected function getTestModel();
-
     protected function setUpDatabase()
     {
         copy(dirname(__FILE__) . '/../dynamodb_local_init.db', dirname(__FILE__) . '/../dynamodb_local_test.db');
-    }
-
-    protected function getClient()
-    {
-        return $this->testModel->getClient();
     }
 }

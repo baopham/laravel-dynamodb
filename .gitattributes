@@ -1,0 +1,5 @@
+dynamodb_local export-ignore
+dynamodb_local_init.db export-ignore
+dynamodb_local_schema.js export-ignore
+dynamodb_local_test.db export-ignore
+tests export-ignore

@@ -9,19 +9,19 @@ use BaoPham\DynamoDb\NotSupportedException;
 class ConditionExpression
 {
     const OPERATORS = [
-        ComparisonOperator::EQ => '#%s = :%s',
-        ComparisonOperator::LE => '#%s <= :%s',
-        ComparisonOperator::LT => '#%s < :%s',
-        ComparisonOperator::GE => '#%s >= :%s',
-        ComparisonOperator::GT => '#%s > :%s',
-        ComparisonOperator::BEGINS_WITH => 'begins_with(#%s, :%s)',
-        ComparisonOperator::BETWEEN => '(#%s BETWEEN :%s AND :%s)',
-        ComparisonOperator::CONTAINS => 'contains(#%s, :%s)',
-        ComparisonOperator::NOT_CONTAINS => 'NOT contains(#%s, :%s)',
-        ComparisonOperator::NULL => 'attribute_not_exists(#%s)',
-        ComparisonOperator::NOT_NULL => 'attribute_exists(#%s)',
-        ComparisonOperator::NE => '#%s <> :%s',
-        ComparisonOperator::IN => '#%s IN (%s)',
+        ComparisonOperator::EQ => '%s = :%s',
+        ComparisonOperator::LE => '%s <= :%s',
+        ComparisonOperator::LT => '%s < :%s',
+        ComparisonOperator::GE => '%s >= :%s',
+        ComparisonOperator::GT => '%s > :%s',
+        ComparisonOperator::BEGINS_WITH => 'begins_with(%s, :%s)',
+        ComparisonOperator::BETWEEN => '(%s BETWEEN :%s AND :%s)',
+        ComparisonOperator::CONTAINS => 'contains(%s, :%s)',
+        ComparisonOperator::NOT_CONTAINS => 'NOT contains(%s, :%s)',
+        ComparisonOperator::NULL => 'attribute_not_exists(%s)',
+        ComparisonOperator::NOT_NULL => 'attribute_exists(%s)',
+        ComparisonOperator::NE => '%s <> :%s',
+        ComparisonOperator::IN => '%s IN (%s)',
     ];
 
     /**
@@ -124,7 +124,7 @@ class ConditionExpression
         $operators = $this->getSupportedOperators();
 
         if (empty($operators[$operator])) {
-            throw new NotSupportedException("$operator is not supported for KeyConditionExpression");
+            throw new NotSupportedException("$operator is not supported");
         }
 
         $template = $operators[$operator];
@@ -147,7 +147,7 @@ class ConditionExpression
 
         $this->values->set($placeholder, $this->marshaler->marshalValue($value));
 
-        return sprintf($template, $name, $placeholder);
+        return sprintf($template, $this->names->placeholder($name), $placeholder);
     }
 
     protected function parseBetweenCondition($name, $value, $template)
@@ -160,7 +160,7 @@ class ConditionExpression
 
         $this->values->set($second, $this->marshaler->marshalValue($value[1]));
 
-        return sprintf($template, $name, $first, $second);
+        return sprintf($template, $this->names->placeholder($name), $first, $second);
     }
 
     protected function parseInCondition($name, $value, $template)
@@ -175,11 +175,11 @@ class ConditionExpression
             $this->values->set($placeholder, $this->marshaler->marshalValue($item));
         }
 
-        return sprintf($template, $name, implode(', ', $valuePlaceholders));
+        return sprintf($template, $this->names->placeholder($name), implode(', ', $valuePlaceholders));
     }
 
     protected function parseNullCondition($name, $template)
     {
-        return sprintf($template, $name);
+        return sprintf($template, $this->names->placeholder($name));
     }
 }

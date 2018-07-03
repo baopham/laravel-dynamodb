@@ -4,12 +4,23 @@ namespace BaoPham\DynamoDb\Parsers;
 
 class ProjectionExpression
 {
+    protected $names;
+
+    public function __construct(ExpressionAttributeNames $names)
+    {
+        $this->names = $names;
+    }
+
     /**
-     * @param array|string $columns
+     * @param array $columns
      * @return string
      */
-    public function parse($columns)
+    public function parse(array $columns)
     {
-        return join(', ', $columns);
+        foreach ($columns as $column) {
+            $this->names->set($column);
+        }
+
+        return join(', ', $this->names->placeholders());
     }
 }

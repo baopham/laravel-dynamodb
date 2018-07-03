@@ -2,6 +2,9 @@
 
 namespace BaoPham\DynamoDb;
 
+use Exception;
+use Illuminate\Support\Facades\Log;
+
 /**
  * Class ModelObserver.
  */
