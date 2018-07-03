@@ -6,28 +6,17 @@ use Illuminate\Database\Eloquent\Collection;
 
 class DynamoDbCollection extends Collection
 {
-    protected $lastEvaluatedKey = null;
-    protected $conditionIndexKeys = null;
-    protected $model = null;
+    private $conditionIndexes = null;
 
-    public function __construct(array $models = [], $lastEvaluatedKey = null, $conditionIndexKeys = null)
+    public function __construct(array $items = [], $conditionIndexes = null)
     {
-        parent::__construct($models);
-        $this->lastEvaluatedKey = $lastEvaluatedKey;
-        $this->conditionIndexKeys = $conditionIndexKeys;
+        parent::__construct($items);
 
-        if (!$this->isEmpty()) {
-            $class = get_class($this->first());
-            $this->model = new $class;
-        }
+        $this->conditionIndexes = $conditionIndexes;
     }
 
     public function getLastEvaluatedKey()
     {
-        if (!empty($this->lastEvaluatedKey)) {
-            return $this->lastEvaluatedKey;
-        }
-
         $after = $this->last();
 
         if (empty($after)) {
@@ -36,47 +25,12 @@ class DynamoDbCollection extends Collection
 
         $afterKey = $after->getKeys();
 
-        if ($this->conditionIndexKeys) {
-            $columns = array_values($conditionIndexKeys['keysInfo']);
-            foreach ($columns as $column) {
-                $afterKey[$column] = $after->getAttribute($column);
-            }
+        $conditionIndexes = $this->conditionIndexes ?: [];
+
+        foreach ($conditionIndexes as $index) {
+            $afterKey[$index] = $after->getAttribute($index);
         }
 
-        return $this->model->unmarshalValue($this->getDynamoDbKey($afterKey));
-    }
-
-    /**
-     * Return key for DynamoDb query.
-     *
-     * @param array|null $modelKeys
-     * @return array
-     *
-     * e.g.
-     * [
-     *   'id' => ['S' => 'foo'],
-     * ]
-     *
-     * or
-     *
-     * [
-     *   'id' => ['S' => 'foo'],
-     *   'id2' => ['S' => 'bar'],
-     * ]
-     */
-    protected function getDynamoDbKey($modelKeys = null)
-    {
-        $modelKeys = $modelKeys ?: $this->model->getKeys();
-
-        $keys = [];
-
-        foreach ($modelKeys as $key => $value) {
-            if (is_null($value)) {
-                continue;
-            }
-            $keys[$key] = $this->model->marshalValue($value);
-        }
-
-        return $keys;
+        return $afterKey;
     }
 }

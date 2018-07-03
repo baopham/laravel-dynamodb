@@ -786,21 +786,17 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
  
         // Paginate 2 items at a time
         $pageSize = 2;
-        $last = null;
         $paginationResult = collect();
         $afterKey = null;
  
         do {
-            if (!empty($items)) {
-                $afterKey = $items->getLastEvaluatedKey();
-            }
             $items = $this->testModel
                 ->where('count', 10)
                 ->afterKey($afterKey)
                 ->limit($pageSize)->all();
-            $last = $items->last();
             $paginationResult = $paginationResult->merge($items->pluck('count'));
-        } while ($last);
+            $afterKey = $items->getLastEvaluatedKey();
+        } while ($afterKey);
  
         $this->assertCount(10, $paginationResult);
         $paginationResult->each(function ($count) {
@@ -816,20 +812,16 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
  
         // Paginate 2 items at a time
         $pageSize = 2;
-        $last = null;
         $paginationResult = collect();
         $afterKey = null;
  
         do {
-            if (!empty($items)) {
-                $afterKey = $items->getLastEvaluatedKey();
-            }
             $items = $this->testModel
                 ->afterKey($afterKey)
                 ->limit($pageSize)->all();
-            $last = $items->last();
+            $afterKey = $items->getLastEvaluatedKey();
             $paginationResult = $paginationResult->merge($items->pluck('count'));
-        } while ($last);
+        } while ($afterKey);
  
         $this->assertEquals(range(0, 9), $paginationResult->sort()->values()->toArray());
     }

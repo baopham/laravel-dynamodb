@@ -187,7 +187,7 @@ class DynamoDbQueryBuilder
      */
     public function afterKey($key = null)
     {
-        $this->lastEvaluatedKey = empty($key) ? null : $this->getDynamoDbKey($key);
+        $this->lastEvaluatedKey = empty($key) ? null : DynamoDb::marshalItem($key);
         return $this;
     }
 
@@ -686,7 +686,12 @@ class DynamoDbQueryBuilder
             $results[] = $model;
         }
 
-        return $this->getModel()->newCollection($results, $this->model->unmarshalItem($this->lastEvaluatedKey ?: []), $this->conditionsContainIndexKey());
+        $conditionIndex = $analyzer->index();
+
+        return $this->getModel()->newCollection(
+            $results,
+            $conditionIndex ? $conditionIndex->columns() : null
+        );
     }
 
     /**

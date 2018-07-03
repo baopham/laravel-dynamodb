@@ -469,21 +469,17 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
 
         // Paginate 2 items at a time
         $pageSize = 2;
-        $last = null;
         $paginationResult = collect();
         $afterKey = null;
         
         do {
-            if (!empty($items)) {
-                $afterKey = $items->getLastEvaluatedKey();
-            }
             $items = $this->testModel
                 ->where('count', '>', -1)
                 ->afterKey($afterKey)
                 ->limit($pageSize)->all();
-            $last = $items->last();
             $paginationResult = $paginationResult->merge($items->pluck('count'));
-        } while ($last);
+            $afterKey = $items->getLastEvaluatedKey();
+        } while ($afterKey);
 
         $this->assertEquals(range(0, 9), $paginationResult->sort()->values()->toArray());
     }
