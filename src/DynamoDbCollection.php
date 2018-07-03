@@ -15,7 +15,7 @@ class DynamoDbCollection extends Collection
         $this->conditionIndexes = $conditionIndexes;
     }
 
-    public function getLastEvaluatedKey()
+    public function lastKey()
     {
         $after = $this->last();
 

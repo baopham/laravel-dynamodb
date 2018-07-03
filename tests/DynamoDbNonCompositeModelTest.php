@@ -795,7 +795,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
                 ->afterKey($afterKey)
                 ->limit($pageSize)->all();
             $paginationResult = $paginationResult->merge($items->pluck('count'));
-            $afterKey = $items->getLastEvaluatedKey();
+            $afterKey = $items->lastKey();
         } while ($afterKey);
  
         $this->assertCount(10, $paginationResult);
@@ -819,7 +819,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
             $items = $this->testModel
                 ->afterKey($afterKey)
                 ->limit($pageSize)->all();
-            $afterKey = $items->getLastEvaluatedKey();
+            $afterKey = $items->lastKey();
             $paginationResult = $paginationResult->merge($items->pluck('count'));
         } while ($afterKey);
  
