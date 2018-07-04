@@ -2,6 +2,8 @@
 
 namespace BaoPham\DynamoDb\Tests;
 
+use Aws\DynamoDb\Marshaler;
+
 /**
  * Class DynamoDbModelTest
  *
@@ -14,11 +16,17 @@ abstract class DynamoDbModelTest extends DynamoDbTestCase
      */
     protected $testModel;
 
+    /**
+     * @var \Aws\DynamoDb\Marshaler
+     */
+    protected $marshaler;
+
     public function setUp()
     {
         parent::setUp();
 
         $this->testModel = $this->getTestModel();
+        $this->marshaler = new Marshaler();
     }
 
     abstract protected function getTestModel();

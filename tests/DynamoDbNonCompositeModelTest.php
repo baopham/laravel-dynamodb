@@ -431,7 +431,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
 
         $this->assertEquals(1, $foundItems->count());
 
-        $this->assertEquals($this->testModel->unmarshalItem($firstItem), $foundItems->first()->toArray());
+        $this->assertEquals($this->marshaler->unmarshalItem($firstItem), $foundItems->first()->toArray());
 
         $foundItems = $this->testModel
             ->where('name', $secondItem['name']['S'])
@@ -440,7 +440,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
 
         $this->assertEquals(1, $foundItems->count());
 
-        $this->assertEquals($this->testModel->unmarshalItem($secondItem), $foundItems->first()->toArray());
+        $this->assertEquals($this->marshaler->unmarshalItem($secondItem), $foundItems->first()->toArray());
     }
 
     public function testLookUpByKey()
@@ -453,7 +453,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
 
         $this->assertEquals(1, $foundItems->count());
 
-        $this->assertEquals($this->testModel->unmarshalItem($item), $foundItems->first()->toArray());
+        $this->assertEquals($this->marshaler->unmarshalItem($item), $foundItems->first()->toArray());
     }
 
     public function testCount()
@@ -492,8 +492,8 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
 
         $this->assertEquals(1, $fooQuery->count());
         $this->assertEquals(1, $barQuery->count());
-        $this->assertEquals($this->testModel->unmarshalItem($expectedFoo), $fooQuery->first()->toArray());
-        $this->assertEquals($this->testModel->unmarshalItem($expectedBar), $barQuery->first()->toArray());
+        $this->assertEquals($this->marshaler->unmarshalItem($expectedFoo), $fooQuery->first()->toArray());
+        $this->assertEquals($this->marshaler->unmarshalItem($expectedBar), $barQuery->first()->toArray());
     }
 
     public function testWhereIn()
@@ -608,7 +608,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
     {
         $item = $this->seed(['name' => ['S' => 'Foo'], 'description' => ['S' => 'Bar']]);
 
-        $item = $this->testModel->unmarshalItem($item);
+        $item = $this->marshaler->unmarshalItem($item);
 
         $klass = get_class($this->testModel);
 
@@ -653,7 +653,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
             'count' => ['N' => 10],
         ]);
 
-        $expectedItem = $this->testModel->unmarshalItem($item);
+        $expectedItem = $this->marshaler->unmarshalItem($item);
 
         $foundItems = $this->testModel
             ->where('count', 10)
@@ -666,7 +666,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
 
     public function testSerialize()
     {
-        $item = $this->testModel->unmarshalItem($this->seed());
+        $item = $this->marshaler->unmarshalItem($this->seed());
         $serializedItems = serialize($this->testModel->all());
         $unserializedItems = unserialize($serializedItems);
 

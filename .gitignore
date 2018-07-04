@@ -4,3 +4,5 @@ dynamodb_local_test.db
 /nbproject
 *.log
 .php_cs.cache
+
+.phpunit.result.cache

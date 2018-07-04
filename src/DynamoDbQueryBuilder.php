@@ -163,7 +163,7 @@ class DynamoDbQueryBuilder
             }
         }
 
-        $this->lastEvaluatedKey = $this->getDynamoDbKey($afterKey);
+        $this->lastEvaluatedKey = DynamoDb::marshalItem($afterKey);
 
         return $this;
     }
@@ -452,7 +452,7 @@ class DynamoDbQueryBuilder
         $this->model->setId($id);
 
         $query = DynamoDb::table($this->model->getTable())
-            ->setKey($this->getDynamoDbKey())
+            ->setKey(DynamoDb::marshalItem($this->model->getKeys()))
             ->setConsistentRead(true);
 
         if (!empty($columns)) {
@@ -568,9 +568,9 @@ class DynamoDbQueryBuilder
      */
     public function removeAttribute(...$attributes)
     {
-        $key = $this->getDynamoDbKey();
+        $keySet = !empty(array_filter($this->model->getKeys()));
 
-        if (empty($key)) {
+        if (!$keySet) {
             $analyzer = $this->getConditionAnalyzer();
 
             if (!$analyzer->isExactSearch()) {
@@ -579,8 +579,9 @@ class DynamoDbQueryBuilder
 
             $id = $analyzer->identifierConditionValues();
             $this->model->setId($id);
-            $key = $this->getDynamoDbKey();
         }
+
+        $key = DynamoDb::marshalItem($this->model->getKeys());
 
         $this->resetExpressions();
 
@@ -597,7 +598,7 @@ class DynamoDbQueryBuilder
     public function delete()
     {
         $result = DynamoDb::table($this->model->getTable())
-            ->setKey($this->getDynamoDbKey())
+            ->setKey(DynamoDb::marshalItem($this->model->getKeys()))
             ->prepare($this->client)
             ->deleteItem();
 
@@ -773,40 +774,6 @@ class DynamoDbQueryBuilder
             ->on($this->model)
             ->withIndex($this->index)
             ->analyze($this->wheres);
-    }
-
-    /**
-     * Return key for DynamoDb query.
-     *
-     * @param array|null $modelKeys
-     * @return array
-     *
-     * e.g.
-     * [
-     *   'id' => ['S' => 'foo'],
-     * ]
-     *
-     * or
-     *
-     * [
-     *   'id' => ['S' => 'foo'],
-     *   'id2' => ['S' => 'bar'],
-     * ]
-     */
-    protected function getDynamoDbKey($modelKeys = null)
-    {
-        $modelKeys = $modelKeys ?: $this->model->getKeys();
-
-        $keys = [];
-
-        foreach ($modelKeys as $key => $value) {
-            if (is_null($value)) {
-                continue;
-            }
-            $keys[$key] = DynamoDb::marshalValue($value);
-        }
-
-        return $keys;
     }
 
     protected function isMultipleIds($id)

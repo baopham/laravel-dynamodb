@@ -239,7 +239,7 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
 
         $foundItems = $query->get();
         $this->assertEquals(1, $foundItems->count());
-        $this->assertEquals($this->testModel->unmarshalItem($item), $foundItems->first()->toArray());
+        $this->assertEquals($this->marshaler->unmarshalItem($item), $foundItems->first()->toArray());
     }
 
     public function testSearchByHashAndSortKey()
@@ -268,15 +268,15 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
 
         $foundItems = $query->get();
         $this->assertEquals(2, $foundItems->count());
-        $this->assertEquals($this->testModel->unmarshalItem($item1), $foundItems->first()->toArray());
-        $this->assertEquals($this->testModel->unmarshalItem($item2), $foundItems->last()->toArray());
+        $this->assertEquals($this->marshaler->unmarshalItem($item1), $foundItems->first()->toArray());
+        $this->assertEquals($this->marshaler->unmarshalItem($item2), $foundItems->last()->toArray());
     }
 
     public function testStaticMethods()
     {
         $item = $this->seed(['name' => ['S' => 'Foo'], 'description' => ['S' => 'Bar']]);
 
-        $item = $this->testModel->unmarshalItem($item);
+        $item = $this->marshaler->unmarshalItem($item);
 
         $klass = get_class($this->testModel);
 
@@ -329,7 +329,7 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         $this->assertEquals(2, $foundItems->count());
 
         // If id_count_index is used, $bazItem must be the first found item
-        $expectedItem = $this->testModel->unmarshalItem($bazItem);
+        $expectedItem = $this->marshaler->unmarshalItem($bazItem);
         $this->assertEquals($expectedItem, $foundItems->first()->toArray());
 
         // Test condition contains all composite keys with invalid operator
@@ -347,7 +347,7 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
 
         // id_count_index is not used because of invalid operator for hash key
         // A normal Scan operation is used, results are sorted by id2
-        $expectedItem = $this->testModel->unmarshalItem($barItem);
+        $expectedItem = $this->marshaler->unmarshalItem($barItem);
         $this->assertEquals($expectedItem, $foundItems->first()->toArray());
     }
 
@@ -385,7 +385,7 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
 
         // id_count_index is not used because conditions don't have all composite keys
         // A normal Scan operation is used, results are sorted by id2
-        $expectedItem = $this->testModel->unmarshalItem($barItem);
+        $expectedItem = $this->marshaler->unmarshalItem($barItem);
 
         $this->assertEquals(2, $foundItems->count());
         $this->assertEquals($expectedItem, $foundItems->first()->toArray());
