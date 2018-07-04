@@ -463,25 +463,36 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
 
     public function testAfterKeyForQueryOperation()
     {
-        foreach (range(0, 9) as $i) {
-            $this->seed(['count' => ['N' => $i]]);
+        for ($i = 0; $i < 10; $i++) {
+            $this->seed(['id' => ['S' => 'id'], 'id2' => ['S' => "$i"]]);
         }
 
-        // Paginate 2 items at a time
-        $pageSize = 2;
-        $paginationResult = collect();
-        $afterKey = null;
-        
-        do {
-            $items = $this->testModel
-                ->where('count', '>', -1)
-                ->afterKey($afterKey)
-                ->limit($pageSize)->all();
-            $paginationResult = $paginationResult->merge($items->pluck('count'));
-            $afterKey = $items->lastKey();
-        } while ($afterKey);
+        $assert = function (callable $getKey) {
+            $paginationResult = collect();
+            $afterKey = null;
+            $query = $this->testModel->where('id', 'id')->where('id2', '>', '-1');
 
-        $this->assertEquals(range(0, 9), $paginationResult->sort()->values()->toArray());
+            $this->assertEquals('Query', $query->toDynamoDbQuery()->op);
+    
+            do {
+                $items = $query->afterKey($afterKey)->limit(2)->all();
+                $paginationResult = $paginationResult->merge($items->pluck('id2'));
+                $afterKey = $getKey($items);
+            } while ($afterKey);
+    
+            $this->assertCount(10, $paginationResult);
+            $paginationResult->each(function ($id) {
+                $this->assertGreaterThan('-1', $id);
+            });
+        };
+
+        $assert(function ($items) {
+            return $items->lastKey();
+        });
+
+        $assert(function ($items) {
+            return !$items->isEmpty() ? $items->last()->getKeys() : null;
+        });
     }
 
     public function testDecorateRawQuery()

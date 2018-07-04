@@ -170,7 +170,7 @@ class DynamoDbQueryBuilder
 
     /**
      * Similar to after(), but instead of using the model instance, the model's keys are used.
-     * Use $items->lastKey() to retrieve the value
+     * Use $collection->lastKey() or $model->getKeys() to retrieve the value.
      *
      * @param  Array  $key
      *   Examples:
