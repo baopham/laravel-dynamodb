@@ -3,16 +3,20 @@
 namespace BaoPham\DynamoDb;
 
 use Illuminate\Database\Eloquent\Collection;
+use BaoPham\DynamoDb\ConditionAnalyzer\Index;
 
 class DynamoDbCollection extends Collection
 {
-    private $conditionIndexes = null;
+    /**
+     * @var \BaoPham\DynamoDb\ConditionAnalyzer\Index
+     */
+    private $conditionIndex = null;
 
-    public function __construct(array $items = [], $conditionIndexes = null)
+    public function __construct(array $items = [], Index $conditionIndex = null)
     {
         parent::__construct($items);
 
-        $this->conditionIndexes = $conditionIndexes;
+        $this->conditionIndex = $conditionIndex;
     }
 
     public function lastKey()
@@ -25,10 +29,10 @@ class DynamoDbCollection extends Collection
 
         $afterKey = $after->getKeys();
 
-        $conditionIndexes = $this->conditionIndexes ?: [];
+        $attributes = $this->conditionIndex ? $this->conditionIndex->columns() : [];
 
-        foreach ($conditionIndexes as $index) {
-            $afterKey[$index] = $after->getAttribute($index);
+        foreach ($attributes as $attribute) {
+            $afterKey[$attribute] = $after->getAttribute($attribute);
         }
 
         return $afterKey;

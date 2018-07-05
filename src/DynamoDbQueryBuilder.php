@@ -687,12 +687,7 @@ class DynamoDbQueryBuilder
             $results[] = $model;
         }
 
-        $conditionIndex = $analyzer->index();
-
-        return $this->getModel()->newCollection(
-            $results,
-            $conditionIndex ? $conditionIndex->columns() : null
-        );
+        return $this->getModel()->newCollection($results, $analyzer->index());
     }
 
     /**
