@@ -49,8 +49,6 @@ trait HasParsers
 
     public function setupExpressions()
     {
-        $marshaler = $this->model->getMarshaler();
-
         $this->placeholder = new Placeholder();
 
         $this->expressionAttributeNames = new ExpressionAttributeNames();
@@ -59,14 +57,12 @@ trait HasParsers
 
         $this->keyConditionExpression = new KeyConditionExpression(
             $this->placeholder,
-            $marshaler,
             $this->expressionAttributeValues,
             $this->expressionAttributeNames
         );
 
         $this->filterExpression = new FilterExpression(
             $this->placeholder,
-            $marshaler,
             $this->expressionAttributeValues,
             $this->expressionAttributeNames
         );

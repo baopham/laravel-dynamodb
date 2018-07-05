@@ -2,7 +2,6 @@
 
 namespace BaoPham\DynamoDb\Tests\Parsers;
 
-use Aws\DynamoDb\Marshaler;
 use BaoPham\DynamoDb\ComparisonOperator;
 use BaoPham\DynamoDb\Parsers\ConditionExpression;
 use BaoPham\DynamoDb\Parsers\ExpressionAttributeNames;
@@ -34,7 +33,6 @@ class ConditionExpressionTest extends TestCase
         $this->values = new ExpressionAttributeValues();
         $this->parser = new ConditionExpression(
             new Placeholder(),
-            new Marshaler(),
             $this->values,
             $this->names
         );

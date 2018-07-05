@@ -2,9 +2,9 @@
 
 namespace BaoPham\DynamoDb\Parsers;
 
-use Aws\DynamoDb\Marshaler;
 use BaoPham\DynamoDb\ComparisonOperator;
 use BaoPham\DynamoDb\NotSupportedException;
+use BaoPham\DynamoDb\Facades\DynamoDb;
 
 class ConditionExpression
 {
@@ -39,19 +39,12 @@ class ConditionExpression
      */
     protected $placeholder;
 
-    /**
-     * @var Marshaler
-     */
-    protected $marshaler;
-
     public function __construct(
         Placeholder $placeholder,
-        Marshaler $marshaler,
         ExpressionAttributeValues $values,
         ExpressionAttributeNames $names
     ) {
         $this->placeholder = $placeholder;
-        $this->marshaler = $marshaler;
         $this->values = $values;
         $this->names = $names;
     }
@@ -145,7 +138,7 @@ class ConditionExpression
 
         $placeholder = $this->placeholder->next();
 
-        $this->values->set($placeholder, $this->marshaler->marshalValue($value));
+        $this->values->set($placeholder, DynamoDb::marshalValue($value));
 
         return sprintf($template, $this->names->placeholder($name), $placeholder);
     }
@@ -156,9 +149,9 @@ class ConditionExpression
 
         $second = $this->placeholder->next();
 
-        $this->values->set($first, $this->marshaler->marshalValue($value[0]));
+        $this->values->set($first, DynamoDb::marshalValue($value[0]));
 
-        $this->values->set($second, $this->marshaler->marshalValue($value[1]));
+        $this->values->set($second, DynamoDb::marshalValue($value[1]));
 
         return sprintf($template, $this->names->placeholder($name), $first, $second);
     }
@@ -172,7 +165,7 @@ class ConditionExpression
 
             $valuePlaceholders[] = ":" . $placeholder;
 
-            $this->values->set($placeholder, $this->marshaler->marshalValue($item));
+            $this->values->set($placeholder, DynamoDb::marshalValue($item));
         }
 
         return sprintf($template, $this->names->placeholder($name), implode(', ', $valuePlaceholders));
