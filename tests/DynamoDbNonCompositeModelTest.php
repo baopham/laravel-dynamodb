@@ -778,6 +778,60 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
         $this->assertEquals(range(0, 9), $paginationResult->sort()->values()->toArray());
     }
 
+    public function testAfterKeyForQueryOperation()
+    {
+        for ($i = 0; $i < 10; $i++) {
+            $this->seed(['count' => ['N' => 10]]);
+        }
+
+        $paginationResult = collect();
+        $afterKey = null;
+
+        do {
+            $items = $this->testModel
+                ->where('count', 10)
+                ->afterKey($afterKey)
+                ->limit(2)->all();
+            $paginationResult = $paginationResult->merge($items->pluck('count'));
+            $afterKey = $items->lastKey();
+        } while ($afterKey);
+
+        $this->assertCount(10, $paginationResult);
+        $paginationResult->each(function ($count) {
+            $this->assertEquals(10, $count);
+        });
+    }
+ 
+    public function testAfterKeyForScanOperation()
+    {
+        foreach (range(0, 9) as $i) {
+            $this->seed(['count' => ['N' => $i]]);
+        }
+
+        $assert = function (callable $getKey) {
+            $paginationResult = collect();
+            $afterKey = null;
+    
+            do {
+                $items = $this->testModel
+                    ->afterKey($afterKey)
+                    ->limit(2)->all();
+                $afterKey = $getKey($items);
+                $paginationResult = $paginationResult->merge($items->pluck('count'));
+            } while ($afterKey);
+    
+            $this->assertEquals(range(0, 9), $paginationResult->sort()->values()->toArray());
+        };
+ 
+        $assert(function ($items) {
+            return $items->lastKey();
+        });
+
+        $assert(function ($items) {
+            return !$items->isEmpty() ? $items->last()->getKeys() : null;
+        });
+    }
+
     public function testDecorateRawQuery()
     {
         foreach (range(0, 9) as $i) {

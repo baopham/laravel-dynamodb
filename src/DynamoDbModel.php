@@ -115,6 +115,11 @@ abstract class DynamoDbModel extends Model
         $this->attributeFilter = static::$dynamoDb->getAttributeFilter();
     }
 
+    public function newCollection(array $models = [], $index = null)
+    {
+        return new DynamoDbCollection($models, $index);
+    }
+
     public function save(array $options = [])
     {
         $create = !$this->exists;

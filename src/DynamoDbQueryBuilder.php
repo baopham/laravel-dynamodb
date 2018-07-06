@@ -169,6 +169,29 @@ class DynamoDbQueryBuilder
     }
 
     /**
+     * Similar to after(), but instead of using the model instance, the model's keys are used.
+     * Use $collection->lastKey() or $model->getKeys() to retrieve the value.
+     *
+     * @param  Array  $key
+     *   Examples:
+     *
+     *   For query such as
+     *       $query = $model->where('count', 10)->limit(2);
+     *       $items = $query->all();
+     *   Take the last item of this query result as the next "offset":
+     *       $nextPage = $query->afterKey($items->lastKey())->limit(2)->all();
+     *
+     *   Alternatively, pass in nothing to reset the starting point.
+     *
+     * @return $this
+     */
+    public function afterKey($key = null)
+    {
+        $this->lastEvaluatedKey = empty($key) ? null : DynamoDb::marshalItem($key);
+        return $this;
+    }
+
+    /**
      * Set the index name manually
      *
      * @param string $index The index name
@@ -572,11 +595,6 @@ class DynamoDbQueryBuilder
         return array_get($result, '@metadata.statusCode') === 200;
     }
 
-    public function get($columns = [])
-    {
-        return $this->all($columns);
-    }
-
     public function delete()
     {
         $result = DynamoDb::table($this->model->getTable())
@@ -597,10 +615,15 @@ class DynamoDbQueryBuilder
         return array_get($result, '@metadata.statusCode') === 200;
     }
 
+    public function get($columns = [])
+    {
+        return $this->all($columns);
+    }
+
     public function all($columns = [])
     {
         $limit = isset($this->limit) ? $this->limit : static::MAX_LIMIT;
-        return $this->getAll($columns, $limit);
+        return $this->getAll($columns, $limit, !isset($this->limit));
     }
 
     public function count()
@@ -664,7 +687,7 @@ class DynamoDbQueryBuilder
             $results[] = $model;
         }
 
-        return $this->getModel()->newCollection($results);
+        return $this->getModel()->newCollection($results, $analyzer->index());
     }
 
     /**

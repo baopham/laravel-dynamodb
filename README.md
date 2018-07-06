@@ -177,13 +177,18 @@ For query such as:
 
 ```php
 $query = $model->where('count', 10)->limit(2);
-$last = $query->all()->last();
+$items = $query->all();
+$last = $items->last();
 ```
 
 Take the last item of this query result as the next "offset":
 
 ```php
 $nextPage = $query->after($last)->limit(2)->all();
+// or
+$nextPage = $query->afterKey($items->lastKey())->limit(2)->all();
+// or (for query without index condition only)
+$nextPage = $query->afterKey($last->getKeys())->limit(2)->all();
 ```
 
 #### update()
