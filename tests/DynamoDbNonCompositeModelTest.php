@@ -933,7 +933,6 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
 
         $model = $this->testModel->first();
 
-        $originalId = $model->id;
         $originalName = $model->name;
 
         $model->name = 'Modified Name';

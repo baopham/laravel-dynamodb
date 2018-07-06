@@ -41,26 +41,27 @@ class DynamoDbTimestampTest extends DynamoDbModelTest
     public function testUpdateRecord()
     {
         Carbon::setTestNow(Carbon::create(2017, 03, 01, 8, 30, 0));
-        $now = new Carbon;
+        $now = new Carbon();
         $seed = $this->seed();
         $seedId = array_get($seed, 'id.S');
 
         $newName = 'New Name';
-        $this->testModel = $this->testModel->find($seedId);
-        $updated = $this->testModel->update(['name' => $newName]);
+        $model = $this->testModel->find($seedId);
+        $updated = $model->update(['name' => $newName]);
 
         $this->assertTrue($updated);
 
         $query = [
-            'TableName' => $this->testModel->getTable(),
+            'TableName' => $model->getTable(),
             'Key' => [
                 'id' => ['S' => $seedId]
             ],
         ];
 
-        $record = $this->getClient()->getItem($query)->toArray();
+        $record = $this->marshaler->unmarshalItem($this->getClient()->getItem($query)->get('Item'));
 
-        $this->assertEquals($this->testModel->updated_at, $now);
+        $this->assertEquals($now, $model->updated_at);
+        $this->assertEquals($now, Carbon::parse($record['updated_at']));
     }
 
     public function seed($attributes = [])
