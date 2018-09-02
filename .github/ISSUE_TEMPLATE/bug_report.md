@@ -21,3 +21,8 @@ Show the query that you're having trouble with by copy-pasting the result of:
 ```php
 print_r($query->toDynamoDbQuery());
 ```
+
+**Version info**
+
+* Laravel: 5.5
+* Library: latest
