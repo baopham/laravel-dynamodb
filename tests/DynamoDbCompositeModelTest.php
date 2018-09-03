@@ -42,6 +42,29 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         $this->assertEquals($this->testModel->id2, $record['Item']['id2']['S']);
     }
 
+    public function testCreateAsyncRecord()
+    {
+        $this->testModel->id = 'id1';
+        $this->testModel->id2 = str_random(36);
+        $this->testModel->name = 'Test Create Async';
+        $this->testModel->count = 1;
+        $this->testModel->saveAsync()->wait();
+
+        $query = [
+            'TableName' => $this->testModel->getTable(),
+            'Key' => [
+                'id' => ['S' => $this->testModel->id],
+                'id2' => ['S' => $this->testModel->id2],
+            ],
+        ];
+
+        $record = $this->getClient()->getItem($query)->toArray();
+
+        $this->assertArrayHasKey('Item', $record);
+        $this->assertEquals($this->testModel->id, $record['Item']['id']['S']);
+        $this->assertEquals($this->testModel->id2, $record['Item']['id2']['S']);
+    }
+
     public function testFindRecord()
     {
         $seed = $this->seed();
@@ -179,6 +202,29 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         $this->assertEquals($newName, array_get($record, 'Item.name.S'));
     }
 
+    public function testUpdateAsyncRecord()
+    {
+        $seed = $this->seed();
+        $seedId = array_get($seed, 'id.S');
+        $seedId2 = array_get($seed, 'id2.S');
+
+        $newName = 'New Name';
+        $this->testModel = $this->testModel->find(['id' => $seedId, 'id2' => $seedId2]);
+        $this->testModel->updateAsync(['name' => $newName])->wait();
+
+        $query = [
+            'TableName' => $this->testModel->getTable(),
+            'Key' => [
+                'id' => ['S' => $seedId],
+                'id2' => ['S' => $seedId2],
+            ],
+        ];
+
+        $record = $this->getClient()->getItem($query)->toArray();
+
+        $this->assertEquals($newName, array_get($record, 'Item.name.S'));
+    }
+
     public function testSaveRecord()
     {
         $seed = $this->seed();
@@ -204,6 +250,31 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         $this->assertEquals($newName, array_get($record, 'Item.name.S'));
     }
 
+    public function testSaveAsyncRecord()
+    {
+        $seed = $this->seed();
+        $seedId = array_get($seed, 'id.S');
+        $seedId2 = array_get($seed, 'id2.S');
+
+        $newName = 'New Name to be saved asynchronously';
+        $this->testModel = $this->testModel->find(['id' => $seedId, 'id2' => $seedId2]);
+        $this->testModel->name = $newName;
+
+        $this->testModel->saveAsync()->wait();
+
+        $query = [
+            'TableName' => $this->testModel->getTable(),
+            'Key' => [
+                'id' => ['S' => $seedId],
+                'id2' => ['S' => $seedId2]
+            ],
+        ];
+
+        $record = $this->getClient()->getItem($query)->toArray();
+
+        $this->assertEquals($newName, array_get($record, 'Item.name.S'));
+    }
+
     public function testDeleteRecord()
     {
         $seed = $this->seed();
@@ -211,6 +282,27 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         $seedId2 = array_get($seed, 'id2.S');
 
         $this->testModel->find(['id' => $seedId, 'id2' => $seedId2])->delete();
+
+        $query = [
+            'TableName' => $this->testModel->getTable(),
+            'Key' => [
+                'id' => ['S' => $seedId],
+                'id2' => ['S' => $seedId2]
+            ],
+        ];
+
+        $record = $this->getClient()->getItem($query)->toArray();
+
+        $this->assertArrayNotHasKey('Item', $record);
+    }
+
+    public function testDeleteAsyncRecord()
+    {
+        $seed = $this->seed();
+        $seedId = array_get($seed, 'id.S');
+        $seedId2 = array_get($seed, 'id2.S');
+
+        $this->testModel->find(['id' => $seedId, 'id2' => $seedId2])->deleteAsync()->wait();
 
         $query = [
             'TableName' => $this->testModel->getTable(),
