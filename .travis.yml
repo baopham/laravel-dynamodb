@@ -25,5 +25,5 @@ jobs:
     - stage: linter
       php: 7.2
       before_script: source ./scripts/dev-setup.sh
-      script: phpcs {src/*,tests/*}
+      script: phpcs -s {src/*,tests/*}
 

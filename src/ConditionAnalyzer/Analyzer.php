@@ -4,6 +4,7 @@ namespace BaoPham\DynamoDb\ConditionAnalyzer;
 
 use BaoPham\DynamoDb\ComparisonOperator;
 use BaoPham\DynamoDb\DynamoDbModel;
+use BaoPham\DynamoDb\H;
 
 /**
  * Class ConditionAnalyzer
@@ -143,7 +144,7 @@ class Analyzer
      */
     private function getCondition($column)
     {
-        return array_first($this->conditions, function ($condition) use ($column) {
+        return H::array_first($this->conditions, function ($condition) use ($column) {
             return $condition['column'] === $column;
         });
     }
