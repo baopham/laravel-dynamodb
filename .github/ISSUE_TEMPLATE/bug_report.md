@@ -25,4 +25,4 @@ print_r($query->toDynamoDbQuery());
 **Version info**
 
 * Laravel: 5.5
-* Library: latest
+* laravel-dynamodb: latest
