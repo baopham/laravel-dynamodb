@@ -606,6 +606,16 @@ class DynamoDbQueryBuilder
         return array_get($result->toArray(), '@metadata.statusCode') === 200;
     }
 
+    public function deleteAsync()
+    {
+        $promise = DynamoDb::table($this->model->getTable())
+            ->setKey(DynamoDb::marshalItem($this->model->getKeys()))
+            ->prepare($this->client)
+            ->deleteItemAsync();
+
+        return $promise;
+    }
+
     public function save()
     {
         $result = DynamoDb::table($this->model->getTable())
@@ -614,6 +624,16 @@ class DynamoDbQueryBuilder
             ->putItem();
 
         return array_get($result, '@metadata.statusCode') === 200;
+    }
+
+    public function saveAsync()
+    {
+        $promise = DynamoDb::table($this->model->getTable())
+            ->setItem(DynamoDb::marshalItem($this->model->getAttributes()))
+            ->prepare($this->client)
+            ->putItemAsync();
+
+        return $promise;
     }
 
     public function get($columns = [])

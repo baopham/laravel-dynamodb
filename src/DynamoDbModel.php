@@ -155,9 +155,54 @@ abstract class DynamoDbModel extends Model
         return $saved;
     }
 
+    /**
+     * Saves the model to DynamoDb asynchronously and returns a promise
+     * @param array $options
+     * @return bool|\GuzzleHttp\Promise\Promise
+     */
+    public function saveAsync(array $options = [])
+    {
+        $create = !$this->exists;
+
+        if ($this->fireModelEvent('saving') === false) {
+            return false;
+        }
+
+        if ($create && $this->fireModelEvent('creating')  === false) {
+            return false;
+        }
+
+        if (!$create && $this->fireModelEvent('updating') === false) {
+            return false;
+        }
+
+        if ($this->usesTimestamps()) {
+            $this->updateTimestamps();
+        }
+
+        $savePromise = $this->newQuery()->saveAsync();
+
+        $savePromise->then(function ($result) use ($create, $options) {
+            if (array_get($result, '@metadata.statusCode') === 200) {
+                $this->exists = true;
+                $this->wasRecentlyCreated = $create;
+                $this->fireModelEvent($create ? 'created' : 'updated', false);
+
+                $this->finishSave($options);
+            }
+        });
+
+        return $savePromise;
+    }
+
     public function update(array $attributes = [], array $options = [])
     {
         return $this->fill($attributes)->save();
+    }
+
+    public function updateAsync(array $attributes = [], array $options = [])
+    {
+        return $this->fill($attributes)->saveAsync();
     }
 
     public static function create(array $attributes = [])
@@ -189,6 +234,29 @@ abstract class DynamoDbModel extends Model
             }
 
             return $success;
+        }
+    }
+
+    public function deleteAsync()
+    {
+        if (is_null($this->getKeyName())) {
+            throw new Exception('No primary key defined on model.');
+        }
+
+        if ($this->exists) {
+            if ($this->fireModelEvent('deleting') === false) {
+                return false;
+            }
+
+            $this->exists = false;
+
+            $deletePromise = $this->newQuery()->deleteAsync();
+
+            $deletePromise->then(function () {
+                $this->fireModelEvent('deleted', false);
+            });
+
+            return $deletePromise;
         }
     }
 

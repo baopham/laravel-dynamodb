@@ -20,8 +20,9 @@ Supports all key types - primary hash key and composite keys.
   * [Conditions](#conditions)
   * [all() and first()](#all-and-first)
   * [Pagination](#pagination)
-  * [Update](#update)
-  * [Save](#save)
+  * [Update](#update) / [updateAsync()](#updateasync)
+  * [Save](#save) / [saveAsync()](#saveasync)
+  * [Delete](#delete) / [deleteAsync()](#deleteasync)
   * [Chunk](#chunk)
   * [limit() and take()](#limit-and-take)
   * [firstOrFail()](#firstorfail)
@@ -93,6 +94,7 @@ Usage
 * Extends your model with `BaoPham\DynamoDb\DynamoDbModel`, then you can use Eloquent methods that are supported. The idea here is that you can switch back to Eloquent without changing your queries.  
 * Or if you want to sync your DB table with a DynamoDb table, use trait `BaoPham\DynamoDb\ModelTrait`, it will call a `PutItem` after the model is saved.
 * Alternatively, you can use the [query builder](#query-builder) facade to build more complex queries.
+* AWS SDK v3 for PHP uses guzzlehttp promises to allow for asynchronous workflows. Using this package you can run eloquent queries like [delete](#find-and-delete), [update](#updateasync), [save](#saveasync) asynchronously on DynamoDb. 
 
 ### Supported features:
 
@@ -101,6 +103,7 @@ Usage
 ```php
 $model->find(<id>);
 $model->delete();
+$model->deleteAsync()->wait();
 ```
 
 #### Conditions
@@ -198,6 +201,13 @@ $nextPage = $query->afterKey($last->getKeys())->limit(2)->all();
 $model->update($attributes);
 ```
 
+#### updateasync()
+
+```php
+// update asynchronously and wait on the promise for completion.
+$model->updateAsync($attributes)->wait();
+```
+
 #### save()
 
 ```php
@@ -206,8 +216,48 @@ $model = new Model();
 $model->fillableAttr1 = 'foo';
 $model->fillableAttr2 = 'foo';
 // DynamoDb doesn't support incremented Id, so you need to use UUID for the primary key.
-$model->id = 'de305d54-75b4-431b-adb2-eb6b9e546014'
+$model->id = 'de305d54-75b4-431b-adb2-eb6b9e546014';
 $model->save();
+```
+
+#### saveasync()
+**Examples**  
+Saving single model asynchronously and waiting on the promise for completion.
+```php
+$model = new Model();
+// Define fillable attributes in your Model class.
+$model->fillableAttr1 = 'foo';
+$model->fillableAttr2 = 'bar';
+// DynamoDb doesn't support incremented Id, so you need to use UUID for the primary key.
+$model->id = 'de305d54-75b4-431b-adb2-eb6b9e546014';
+$model->saveAsync()->wait();
+```  
+Saving multiple models asynchronously and waiting on all of them simultaneously.  
+```php
+for($i = 0; $i < 10; $i++){
+    $model = new Model();
+    // Define fillable attributes in your Model class.
+    $model->fillableAttr1 = 'foo';
+    $model->fillableAttr2 = 'bar';
+    // DynamoDb doesn't support incremented Id, so you need to use UUID for the primary key.
+    $model->id = uniqid();
+    // Returns a promise which you can wait on later.
+    $promises[] = $model->saveAsync();
+}
+
+\GuzzleHttp\Promise\all($promises)->wait();
+```  
+
+#### delete()
+
+```php
+$model->delete();
+```
+
+#### deleteasync()
+
+```php
+$model->deleteAsync()->wait();
 ```
 
 #### chunk()
