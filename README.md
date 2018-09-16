@@ -94,7 +94,7 @@ Usage
 * Extends your model with `BaoPham\DynamoDb\DynamoDbModel`, then you can use Eloquent methods that are supported. The idea here is that you can switch back to Eloquent without changing your queries.  
 * Or if you want to sync your DB table with a DynamoDb table, use trait `BaoPham\DynamoDb\ModelTrait`, it will call a `PutItem` after the model is saved.
 * Alternatively, you can use the [query builder](#query-builder) facade to build more complex queries.
-* AWS SDK v3 for PHP uses guzzlehttp promises to allow for asynchronous workflows. Using this package you can run eloquent queries like [delete](#find-and-delete), [update](#updateasync), [save](#saveasync) asynchronously on DynamoDb. 
+* AWS SDK v3 for PHP uses guzzlehttp promises to allow for asynchronous workflows. Using this package you can run eloquent queries like [delete](#deleteasync), [update](#updateasync), [save](#saveasync) asynchronously on DynamoDb. 
 
 ### Supported features:
 
@@ -201,7 +201,7 @@ $nextPage = $query->afterKey($last->getKeys())->limit(2)->all();
 $model->update($attributes);
 ```
 
-#### updateasync()
+#### updateAsync()
 
 ```php
 // update asynchronously and wait on the promise for completion.
@@ -220,9 +220,10 @@ $model->id = 'de305d54-75b4-431b-adb2-eb6b9e546014';
 $model->save();
 ```
 
-#### saveasync()
-**Examples**  
+#### saveAsync()
+
 Saving single model asynchronously and waiting on the promise for completion.
+
 ```php
 $model = new Model();
 // Define fillable attributes in your Model class.
@@ -232,7 +233,9 @@ $model->fillableAttr2 = 'bar';
 $model->id = 'de305d54-75b4-431b-adb2-eb6b9e546014';
 $model->saveAsync()->wait();
 ```  
+
 Saving multiple models asynchronously and waiting on all of them simultaneously.  
+
 ```php
 for($i = 0; $i < 10; $i++){
     $model = new Model();
@@ -254,7 +257,7 @@ for($i = 0; $i < 10; $i++){
 $model->delete();
 ```
 
-#### deleteasync()
+#### deleteAsync()
 
 ```php
 $model->deleteAsync()->wait();
