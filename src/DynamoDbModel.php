@@ -202,7 +202,7 @@ abstract class DynamoDbModel extends Model
 
     public function updateAsync(array $attributes = [], array $options = [])
     {
-        return $this->fill($attributes)->saveAsync();
+        return $this->fill($attributes)->saveAsync($options);
     }
 
     public static function create(array $attributes = [])
