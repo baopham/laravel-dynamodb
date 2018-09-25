@@ -32,7 +32,7 @@ class ModelObserver
         $this->attributeFilter = $dynamoDb->getAttributeFilter();
     }
 
-    public function saved($model)
+    protected function _save($model)
     {
         $attrs = $model->attributesToArray();
         // $this->attributeFilter->filter($attrs);
@@ -44,5 +44,39 @@ class ModelObserver
         } catch (Exception $e) {
             Log::info($e);
         }
+    }
+
+    protected function _delete($model)
+    {
+        $key = [$model->getKeyName() => $model->getKey()];
+
+        try {
+            $this->dynamoDbClient->deleteItem([
+                'TableName' => $model->getDynamoDbTableName(),
+                'Key' => $this->marshaler->marshalItem($key),
+            ]);
+        } catch (Exception $e) {
+            Log::info($e);
+        }
+    }
+
+    public function created($model)
+    {
+        $this->_save($model);
+    }
+
+    public function updated($model)
+    {
+        $this->_save($model);
+    }
+
+    public function deleted($model)
+    {
+        $this->_delete($model);
+    }
+
+    public function restored($model)
+    {
+        $this->_save($model);
     }
 }
