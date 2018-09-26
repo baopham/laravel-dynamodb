@@ -32,21 +32,21 @@ class ModelObserver
         $this->attributeFilter = $dynamoDb->getAttributeFilter();
     }
 
-    protected function _save($model)
+    private function saveToDynamoDb($model)
     {
         $attrs = $model->attributesToArray();
-        // $this->attributeFilter->filter($attrs);
+        
         try {
             $this->dynamoDbClient->putItem([
                 'TableName' => $model->getDynamoDbTableName(),
                 'Item' => $this->marshaler->marshalItem($attrs),
             ]);
         } catch (Exception $e) {
-            Log::info($e);
+            Log::error($e);
         }
     }
 
-    protected function _delete($model)
+    private function deleteFromDynamoDb($model)
     {
         $key = [$model->getKeyName() => $model->getKey()];
 
@@ -56,27 +56,27 @@ class ModelObserver
                 'Key' => $this->marshaler->marshalItem($key),
             ]);
         } catch (Exception $e) {
-            Log::info($e);
+            Log::error($e);
         }
     }
 
     public function created($model)
     {
-        $this->_save($model);
+        $this->saveToDynamoDb($model);
     }
 
     public function updated($model)
     {
-        $this->_save($model);
+        $this->saveToDynamoDb($model);
     }
 
     public function deleted($model)
     {
-        $this->_delete($model);
+        $this->deleteFromDynamoDb($model);
     }
 
     public function restored($model)
     {
-        $this->_save($model);
+        $this->saveToDynamoDb($model);
     }
 }
