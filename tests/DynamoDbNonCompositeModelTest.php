@@ -786,6 +786,9 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
             ->where('id', 'foo')
             ->removeAttribute('nested.foo');
 
+        $this->assertArrayNotHasKey('foo', $this->testModel->nested);
+        $this->assertFalse($this->testModel->isDirty());
+
         $item = $this->testModel->find('foo');
         $this->assertArrayNotHasKey('foo', $item->nested);
     }
@@ -798,6 +801,9 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
             ->where('id', 'foo')
             ->removeAttribute('description', 'name', 'nested.foo', 'nested.nestedArray[0]', 'nestedArray[0]');
 
+        $this->assertRemoveAttributes($this->testModel);
+        $this->assertFalse($this->testModel->isDirty());
+
         $item = $this->testModel->find('foo');
         $this->assertRemoveAttributes($item);
     }
@@ -808,8 +814,11 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
 
         $item = $this->testModel->first();
         $item->removeAttribute('description', 'name', 'nested.foo', 'nested.nestedArray[0]', 'nestedArray[0]');
-        $item = $this->testModel->first();
 
+        $this->assertRemoveAttributes($item);
+        $this->assertFalse($item->isDirty());
+
+        $item = $this->testModel->first();
         $this->assertRemoveAttributes($item);
     }
 

@@ -586,14 +586,23 @@ class DynamoDbQueryBuilder
 
         $this->resetExpressions();
 
+        /** @var \Aws\Result $result */
         $result = DynamoDb::table($this->model->getTable())
             ->setKey($key)
             ->setUpdateExpression($this->updateExpression->remove($attributes))
             ->setExpressionAttributeNames($this->expressionAttributeNames->all())
+            ->setReturnValues('ALL_NEW')
             ->prepare($this->client)
             ->updateItem();
 
-        return array_get($result, '@metadata.statusCode') === 200;
+        $success = array_get($result, '@metadata.statusCode') === 200;
+
+        if ($success) {
+            $this->model->setRawAttributes(DynamoDb::unmarshalItem($result->get('Attributes')));
+            $this->model->syncOriginal();
+        }
+
+        return $success;
     }
 
     public function delete()
