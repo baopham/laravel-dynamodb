@@ -428,7 +428,7 @@ class DynamoDbQueryBuilder
             $results = $this->getAll([], $chunkSize, false);
 
             if ($results->isNotEmpty()) {
-                if(call_user_func($callback, $results) === false) {
+                if (call_user_func($callback, $results) === false) {
                     return false;
                 }
             }
