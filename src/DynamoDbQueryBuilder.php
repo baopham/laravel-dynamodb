@@ -428,13 +428,17 @@ class DynamoDbQueryBuilder
             $results = $this->getAll([], $chunkSize, false);
 
             if ($results->isNotEmpty()) {
-                call_user_func($callback, $results);
+                if (call_user_func($callback, $results) === false) {
+                    return false;
+                }
             }
 
             if (empty($this->lastEvaluatedKey)) {
                 break;
             }
         }
+
+        return true;
     }
 
     /**
