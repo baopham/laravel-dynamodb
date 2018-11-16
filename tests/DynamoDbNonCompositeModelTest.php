@@ -687,6 +687,22 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
         $this->assertEquals(3, $total_results);
     }
 
+    public function testChunkEarlyReturn()
+    {
+        $this->seed(['name' => ['S' => 'Foo']]);
+        $this->seed(['name' => ['S' => 'Foo2']]);
+        $this->seed(['name' => ['S' => 'Foo3']]);
+
+        $iteration = 1;
+
+        $this->testModel->chunk(2, function () use (&$iteration) {
+            $iteration++;
+            return false;
+        });
+
+        $this->assertEquals(2, $iteration);
+    }
+
     public function testStaticMethods()
     {
         $item = $this->seed(['name' => ['S' => 'Foo'], 'description' => ['S' => 'Bar']]);
