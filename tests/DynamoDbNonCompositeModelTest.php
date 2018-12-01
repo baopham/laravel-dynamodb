@@ -2,7 +2,9 @@
 
 namespace BaoPham\DynamoDb\Tests;
 
+use BaoPham\DynamoDb\DynamoDb\DynamoDbTransaction;
 use BaoPham\DynamoDb\DynamoDbModel;
+use BaoPham\DynamoDb\Facades\DynamoDb;
 use BaoPham\DynamoDb\RawDynamoDbQuery;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -1154,6 +1156,33 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
         $results = $this->testModel->where('nestedArray[1].foo', 'bar')->all();
         $this->assertCount(1, $results);
         $this->assertEquals($item['id']['S'], $results->first()->id);
+    }
+
+    public function testTransactWriteItems() {
+        DynamoDb::transaction('write', function (DynamoDbTransaction $t) {
+            $query = $t->beginTransactItem();
+
+            $query->table('test')
+                ->key(['id' => 'foo1'])
+                ->satisfy('foo', 'bar')
+                ->orSatisfy('foo2', 'bar2')
+                ->delete();
+
+            $query->table('test')
+                ->key(['id' => 'foo3'])
+                ->satisfy('foo', 'bar')
+                ->put([
+                    'id' => 'foo3',
+                    'foo' => 'new bar'
+                ]);
+
+            $query = $t->beginTransactItem();
+
+            $query->table('test')
+                ->key(['id' => 'foo3'])
+                ->satisfy('foo', 'bar')
+                ->check();
+        });
     }
 
     protected function assertRemoveAttributes($item)

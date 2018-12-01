@@ -32,6 +32,7 @@ abstract class DynamoDbTestCase extends TestCase
      */
     protected function getEnvironmentSetUp($app)
     {
+        $app['config']->set('dynamodb.default', 'test');
         $app['config']->set('dynamodb.connections.test', [
             'credentials' => [
                 'key' => 'dynamodb_local',

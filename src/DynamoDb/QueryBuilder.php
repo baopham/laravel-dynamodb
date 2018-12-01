@@ -35,6 +35,7 @@ use BaoPham\DynamoDb\RawDynamoDbQuery;
  * @method QueryBuilder setExpressionAttributeNames(array $mapping)
  * @method QueryBuilder setExpressionAttributeValues(array $mapping)
  * @method QueryBuilder setFilterExpression(string $expression)
+ * @method QueryBuilder setConditionExpression(string $expression)
  * @method QueryBuilder setKeyConditionExpression(string $expression)
  * @method QueryBuilder setProjectionExpression(string $expression)
  * @method QueryBuilder setUpdateExpression(string $expression)
