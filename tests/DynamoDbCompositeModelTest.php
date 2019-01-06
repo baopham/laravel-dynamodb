@@ -80,6 +80,76 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         $this->assertEquals($seedName, $item->name);
     }
 
+    public function testFirstOrNew()
+    {
+        $seed = $this->seed();
+        $seedId = array_get($seed, 'id.S');
+        $seedId2 = array_get($seed, 'id2.S');
+        $seedName = array_get($seed, 'name.S');
+
+        $item = $this->testModel->firstOrNew(['id' => $seedId, 'id2' => $seedId2], ['name' => str_random()]);
+
+        $this->assertNotEmpty($item);
+        $this->assertEquals($seedId, $item->id);
+        $this->assertEquals($seedId2, $item->id2);
+        $this->assertEquals($seedName, $item->name);
+
+        $newId = str_random();
+        $newId2 = str_random();
+        $newName = str_random();
+
+        $newItem = $this->testModel->firstOrNew(['id' => $newId, 'id2' => $newId2], ['name' => $newName]);
+
+        $this->assertNotEmpty($newItem);
+        $this->assertEquals($newId, $newItem->id);
+        $this->assertEquals($newId2, $newItem->id2);
+        $this->assertEquals($newName, $newItem->name);
+        $this->assertFalse($newItem->exists);
+    }
+
+    public function testFirstOrCreate()
+    {
+        $seed = $this->seed();
+        $seedId = array_get($seed, 'id.S');
+        $seedId2 = array_get($seed, 'id2.S');
+        $seedName = array_get($seed, 'name.S');
+
+        $item = $this->testModel->firstOrCreate(['id' => $seedId, 'id2' => $seedId2], ['name' => str_random()]);
+
+        $this->assertNotEmpty($item);
+        $this->assertEquals($seedId, $item->id);
+        $this->assertEquals($seedName, $item->name);
+
+        $newId = str_random();
+        $newId2 = str_random();
+        $newName = str_random();
+
+        $newItem = $this->testModel->firstOrCreate(['id' => $newId, 'id2' => $newId2], ['name' => $newName]);
+
+        $this->assertNotEmpty($newItem);
+        $this->assertEquals($newId, $newItem->id);
+        $this->assertEquals($newId2, $newItem->id2);
+        $this->assertEquals($newName, $newItem->name);
+        $this->assertTrue($newItem->exists);
+    }
+
+    public function testUpdateOrCreate()
+    {
+        $seed = $this->seed();
+        $seedId = array_get($seed, 'id.S');
+        $seedId2 = array_get($seed, 'id2.S');
+
+        $newName = str_random();
+
+        $item = $this->testModel->updateOrCreate(['id' => $seedId, 'id2' => $seedId2], ['name' => $newName]);
+
+        $this->assertNotEmpty($item);
+        $this->assertEquals($seedId, $item->id);
+        $this->assertEquals($seedId2, $item->id2);
+        $this->assertEquals($newName, $item->name);
+        $this->assertTrue($item->exists);
+    }
+
     public function testFindMultiple()
     {
         $hash = ['foo', 'foo1'];
