@@ -530,6 +530,41 @@ class DynamoDbQueryBuilder
         return $collection;
     }
 
+    public function firstOrNew($id, $attributes = [])
+    {
+        $result = $this->find($id);
+
+        if ($this->isMultipleIds($id)) {
+            if (count($result) == count(array_unique($id))) {
+                return $result;
+            }
+        } elseif (!is_null($result)) {
+            return $result;
+        }
+
+        $model = $this->model->newInstance($attributes);
+        $model->setId($id);
+
+        return $model;
+    }
+
+    public function firstOrCreate($id, $attributes = [])
+    {
+        $model = $this->firstOrNew($id, $attributes);
+        $model->save();
+
+        return $model;
+    }
+
+    public function updateOrCreate($id, $attributes = [])
+    {
+        $model = $this->firstOrNew($id, $attributes);
+        $model->fill($attributes);
+        $model->save();
+
+        return $model;
+    }
+    
     public function findOrFail($id, $columns = [])
     {
         $result = $this->find($id, $columns);
