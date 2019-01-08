@@ -530,39 +530,31 @@ class DynamoDbQueryBuilder
         return $collection;
     }
 
-    public function firstOrNew($id, $attributes = [])
+    public function firstOrNew(array $attributes, array $values = [])
     {
-        $result = $this->find($id);
-
-        if ($this->isMultipleIds($id)) {
-            if (count($result) == count(array_unique($id))) {
-                return $result;
-            }
-        } elseif (!is_null($result)) {
-            return $result;
+        if (! is_null($instance = $this->where($attributes)->first())) {
+            return $instance;
         }
 
-        $model = $this->model->newInstance($attributes);
-        $model->setId($id);
-
-        return $model;
+        return $this->model->newInstance($attributes + $values);
     }
 
-    public function firstOrCreate($id, $attributes = [])
+    public function firstOrCreate(array $attributes, array $values = [])
     {
-        $model = $this->firstOrNew($id, $attributes);
-        $model->save();
+        if (! is_null($instance = $this->where($attributes)->first())) {
+            return $instance;
+        }
 
-        return $model;
+        return tap($this->model->newInstance($attributes + $values), function ($instance) {
+            $instance->save();
+        });
     }
 
-    public function updateOrCreate($id, $attributes = [])
+    public function updateOrCreate(array $attributes, array $values = [])
     {
-        $model = $this->firstOrNew($id, $attributes);
-        $model->fill($attributes);
-        $model->save();
-
-        return $model;
+        return tap($this->firstOrNew($attributes), function ($instance) use ($values) {
+            $instance->fill($values)->save();
+        });
     }
     
     public function findOrFail($id, $columns = [])
