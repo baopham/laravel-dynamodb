@@ -82,13 +82,13 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
 
     public function testFirstOrNew()
     {
+        DynamoDbModel::unguard();
         $seed = $this->seed();
         $seedId = array_get($seed, 'id.S');
         $seedId2 = array_get($seed, 'id2.S');
         $seedName = array_get($seed, 'name.S');
 
         $item = $this->testModel->firstOrNew(['id' => $seedId, 'id2' => $seedId2], ['name' => str_random()]);
-
         $this->assertNotEmpty($item);
         $this->assertEquals($seedId, $item->id);
         $this->assertEquals($seedId2, $item->id2);
@@ -105,10 +105,12 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         $this->assertEquals($newId2, $newItem->id2);
         $this->assertEquals($newName, $newItem->name);
         $this->assertFalse($newItem->exists);
+        DynamoDbModel::reguard();
     }
 
     public function testFirstOrCreate()
     {
+        DynamoDbModel::unguard();
         $seed = $this->seed();
         $seedId = array_get($seed, 'id.S');
         $seedId2 = array_get($seed, 'id2.S');
@@ -131,6 +133,7 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         $this->assertEquals($newId2, $newItem->id2);
         $this->assertEquals($newName, $newItem->name);
         $this->assertTrue($newItem->exists);
+        DynamoDbModel::reguard();
     }
 
     public function testUpdateOrCreate()
