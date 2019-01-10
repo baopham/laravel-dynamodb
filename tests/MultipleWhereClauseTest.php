@@ -26,6 +26,7 @@ class MultipleWhereClauseTest extends DynamoDbTestCase
     }
 }
 
+// phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
 /**
  * Class DynamoDbTestModel
  * @package BaoPham\DynamoDb\Tests
@@ -50,3 +51,4 @@ class DynamoDbTestModel extends DynamoDbModel
      */
     protected $connection = 'test';
 }
+// phpcs:enable PSR1.Classes.ClassDeclaration.MultipleClasses
