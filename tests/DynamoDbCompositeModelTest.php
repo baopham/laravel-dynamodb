@@ -573,13 +573,13 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
             $query = $this->testModel->where('id', 'id')->where('id2', '>', '-1');
 
             $this->assertEquals('Query', $query->toDynamoDbQuery()->op);
-    
+
             do {
                 $items = $query->afterKey($afterKey)->limit(2)->all();
                 $paginationResult = $paginationResult->merge($items->pluck('id2'));
                 $afterKey = $getKey($items);
             } while ($afterKey);
-    
+
             $this->assertCount(10, $paginationResult);
             $paginationResult->each(function ($id) {
                 $this->assertGreaterThan('-1', $id);
@@ -750,6 +750,17 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
             ->find(['id' => 'foo', 'id2' => 'bar'], $columns);
 
         $this->assertEquals($expected, $result->toArray());
+    }
+
+    public function testBuilderContainsAllWhereClausesWhenGivenArrayOfConditions()
+    {
+        /** @var DynamoDbQueryBuilder $builder */
+        $builder = $this->getTestModel()->where([
+            "foo" => "bar",
+            "bin" => "baz"
+        ]);
+
+        $this->assertEquals(2, count($builder->wheres));
     }
 
     public function seed($attributes = [], $exclude = [])

@@ -3,6 +3,7 @@
 namespace BaoPham\DynamoDb\Tests;
 
 use BaoPham\DynamoDb\DynamoDbModel;
+use BaoPham\DynamoDb\DynamoDbQueryBuilder;
 use BaoPham\DynamoDb\RawDynamoDbQuery;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -909,7 +910,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
             $this->assertEquals(10, $count);
         });
     }
- 
+
     public function testAfterKeyForScanOperation()
     {
         foreach (range(0, 9) as $i) {
@@ -919,7 +920,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
         $assert = function (callable $getKey) {
             $paginationResult = collect();
             $afterKey = null;
-    
+
             do {
                 $items = $this->testModel
                     ->afterKey($afterKey)
@@ -927,10 +928,10 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
                 $afterKey = $getKey($items);
                 $paginationResult = $paginationResult->merge($items->pluck('count'));
             } while ($afterKey);
-    
+
             $this->assertEquals(range(0, 9), $paginationResult->sort()->values()->toArray());
         };
- 
+
         $assert(function ($items) {
             return $items->lastKey();
         });
@@ -1154,6 +1155,17 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
         $results = $this->testModel->where('nestedArray[1].foo', 'bar')->all();
         $this->assertCount(1, $results);
         $this->assertEquals($item['id']['S'], $results->first()->id);
+    }
+
+    public function testBuilderContainsAllWhereClausesWhenGivenArrayOfConditions()
+    {
+        /** @var DynamoDbQueryBuilder $builder */
+        $builder = $this->getTestModel()->where([
+            "foo" => "bar",
+            "bin" => "baz"
+        ]);
+
+        $this->assertEquals(2, count($builder->wheres));
     }
 
     protected function assertRemoveAttributes($item)
