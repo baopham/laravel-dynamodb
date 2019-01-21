@@ -3,7 +3,6 @@
 namespace BaoPham\DynamoDb\Tests;
 
 use BaoPham\DynamoDb\DynamoDbModel;
-use BaoPham\DynamoDb\DynamoDbQueryBuilder;
 use BaoPham\DynamoDb\RawDynamoDbQuery;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -1159,7 +1158,6 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
 
     public function testBuilderContainsAllWhereClausesWhenGivenArrayOfConditions()
     {
-        /** @var DynamoDbQueryBuilder $builder */
         $builder = $this->getTestModel()->where([
             "foo" => "bar",
             "bin" => "baz"
