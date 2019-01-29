@@ -1177,14 +1177,8 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
             $conditionsFromBuilder[$builderConditions['column']] = $builderConditions['value'];
         }
 
-        /**
-         * @var string $key
-         * @var string $value
-         */
-        foreach ($conditions as $key => $value) {
-            // Assert that the builder has the where-conditions we expect to see
-            $this->assertEquals($conditionsFromBuilder[$key], $value);
-        }
+        // Assert that the builder has the where-conditions we expect to see
+        $this->assertEquals($conditions, $conditionsFromBuilder);
     }
 
     protected function assertRemoveAttributes($item)
