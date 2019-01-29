@@ -1158,12 +1158,15 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
 
     public function testBuilderContainsAllWhereClausesWhenGivenArrayOfConditions()
     {
-        $builder = $this->getTestModel()->where([
+        /** @var array $conditions */
+        $conditions = [
             "foo" => "bar",
             "bin" => "baz"
-        ]);
+        ];
 
-        $this->assertEquals(2, count($builder->wheres));
+        $builder = $this->getTestModel()->where($conditions);
+
+        $this->assertEquals($conditions, $builder->wheres);
     }
 
     protected function assertRemoveAttributes($item)
