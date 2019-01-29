@@ -2,7 +2,6 @@
 
 namespace BaoPham\DynamoDb\Tests;
 
-use BaoPham\DynamoDb\ComparisonOperator;
 use BaoPham\DynamoDb\DynamoDbModel;
 use BaoPham\DynamoDb\DynamoDbQueryBuilder;
 use BaoPham\DynamoDb\RawDynamoDbQuery;
