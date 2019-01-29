@@ -3,7 +3,6 @@
 namespace BaoPham\DynamoDb\Tests;
 
 use BaoPham\DynamoDb\DynamoDbModel;
-use BaoPham\DynamoDb\DynamoDbQueryBuilder;
 use BaoPham\DynamoDb\RawDynamoDbQuery;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -1165,7 +1164,6 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
             "bin" => "baz"
         ];
 
-        /** @var DynamoDbQueryBuilder $builder */
         $builder = $this->getTestModel()->where($conditions);
 
         /** @var array $conditionsFromBuilder */
