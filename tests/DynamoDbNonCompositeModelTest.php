@@ -2,7 +2,9 @@
 
 namespace BaoPham\DynamoDb\Tests;
 
+use BaoPham\DynamoDb\ComparisonOperator;
 use BaoPham\DynamoDb\DynamoDbModel;
+use BaoPham\DynamoDb\DynamoDbQueryBuilder;
 use BaoPham\DynamoDb\RawDynamoDbQuery;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -1164,9 +1166,25 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
             "bin" => "baz"
         ];
 
+        /** @var DynamoDbQueryBuilder $builder */
         $builder = $this->getTestModel()->where($conditions);
 
-        $this->assertEquals($conditions, $builder->wheres);
+        /** @var array $conditionsFromBuilder */
+        $conditionsFromBuilder = [];
+
+        /** @var array $builderConditions */
+        foreach ($builder->wheres as $builderConditions) {
+            $conditionsFromBuilder[$builderConditions['column']] = $builderConditions['value'];
+        }
+
+        /**
+         * @var string $key
+         * @var string $value
+         */
+        foreach ($conditions as $key => $value) {
+            // Assert that the builder has the where-conditions we expect to see
+            $this->assertEquals($conditionsFromBuilder[$key], $value);
+        }
     }
 
     protected function assertRemoveAttributes($item)
