@@ -573,13 +573,13 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
             $query = $this->testModel->where('id', 'id')->where('id2', '>', '-1');
 
             $this->assertEquals('Query', $query->toDynamoDbQuery()->op);
-    
+
             do {
                 $items = $query->afterKey($afterKey)->limit(2)->all();
                 $paginationResult = $paginationResult->merge($items->pluck('id2'));
                 $afterKey = $getKey($items);
             } while ($afterKey);
-    
+
             $this->assertCount(10, $paginationResult);
             $paginationResult->each(function ($id) {
                 $this->assertGreaterThan('-1', $id);

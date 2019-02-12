@@ -211,8 +211,10 @@ class DynamoDbQueryBuilder
         // received when the method was called and pass it into the nested where.
         if (is_array($column)) {
             foreach ($column as $key => $value) {
-                return $this->where($key, '=', $value);
+                $this->where($key, '=', $value, $boolean);
             }
+
+            return $this;
         }
 
         // Here we will make some assumptions about the operator. If only 2 values are
