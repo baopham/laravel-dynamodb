@@ -596,6 +596,9 @@ Q: How to use with factory?
 A: Please see [this issue](https://github.com/baopham/laravel-dynamodb/issues/111)  
 
 
+Q: How do I use with Job? Getting a SerializesModels error
+A: You can either [write your own restoreModel](https://github.com/baopham/laravel-dynamodb/issues/132) or remove the `SerializesModels` trait from your Job.
+
 
 Author and Contributors
 -------
