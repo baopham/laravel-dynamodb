@@ -171,12 +171,14 @@ class Analyzer
         }
 
         $index = null;
+        $keyIntersectionCount = 0;
 
         foreach ($this->model->getDynamoDbIndexKeys() as $name => $keysInfo) {
             $conditionKeys = array_pluck($this->conditions, 'column');
             $keys = array_values($keysInfo);
+            $keyIntersectionCount = count(array_intersect($conditionKeys, $keys));
 
-            if (count(array_intersect($conditionKeys, $keys)) === count($keys)) {
+            if ($keyIntersectionCount === 1 || $keyIntersectionCount === 2) {
                 if (!isset($this->indexName) || $this->indexName === $name) {
                     $index = new Index(
                         $name,
@@ -189,7 +191,7 @@ class Analyzer
             }
         }
 
-        if ($index && !$this->hasValidQueryOperator($index->hash, $index->range)) {
+        if ($index && !$this->hasValidQueryOperator($index->hash, $keyIntersectionCount === 2 ? $index->range : null)) {
             $index = null;
         }
 
