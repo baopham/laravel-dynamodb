@@ -26,7 +26,7 @@ class ConditionExpressionTest extends TestCase
      */
     private $values;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->names = new ExpressionAttributeNames();
