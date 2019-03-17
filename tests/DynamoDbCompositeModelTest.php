@@ -91,7 +91,7 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         $item = $this->testModel->firstOrNew(['id' => $seedId, 'id2' => $seedId2], ['name' => ['S' => str_random()]]);
         $this->assertNotEmpty($item);
         $this->assertTrue($item->exists);
-        $this->assertEquals([$seedId , $seedId2, $seedName], [$item->id, $item->id2, $item->name]);
+        $this->assertEquals([$seedId, $seedId2, $seedName], [$item->id, $item->id2, $item->name]);
     }
 
     public function testFirstOrNewNew()
@@ -125,7 +125,7 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
 
         $this->assertNotEmpty($item);
         $this->assertTrue($item->exists);
-        $this->assertEquals([$seedId, $seedName],[$item->id, $item->name]);
+        $this->assertEquals([$seedId, $seedId2, $seedName],[$item->id, $item->id2, $item->name]);
     }
 
     public function testFirstOrCreateCreate()
@@ -145,10 +145,7 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         Model::reguard();
         $this->assertNotEmpty($item);
         $this->assertTrue($item->exists);
-        $this->assertEquals($attributes['id'], $item->id);
-        $this->assertEquals($attributes['id2'], $item->id2);
-        $this->assertEquals($attributes['count'], $item->count);
-        $this->assertEquals($extra['name'], $item->name);
+        $this->assertEquals([$attributes['id'], $attributes['id2'], $attributes['count'], $extra['name']], [$item->id, $item->id2, $item->count, $item->name]);
     }
 
     public function testUpdateOrCreateUpdate()
