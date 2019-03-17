@@ -5,6 +5,8 @@ namespace BaoPham\DynamoDb\Tests;
 use BaoPham\DynamoDb\DynamoDbModel;
 use BaoPham\DynamoDb\Facades\DynamoDb;
 use BaoPham\DynamoDb\RawDynamoDbQuery;
+use function GuzzleHttp\Psr7\str;
+use Illuminate\Database\Eloquent\Model;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
@@ -80,37 +82,40 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         $this->assertEquals($seedName, $item->name);
     }
 
-    public function testFirstOrNew()
+    public function testFirstOrNewFirst()
     {
-        DynamoDbModel::unguard();
         $seed = $this->seed();
         $seedId = array_get($seed, 'id.S');
         $seedId2 = array_get($seed, 'id2.S');
         $seedName = array_get($seed, 'name.S');
-
-        $item = $this->testModel->firstOrNew(['id' => $seedId, 'id2' => $seedId2], ['name' => str_random()]);
+        $item = $this->testModel->firstOrNew(['id' => $seedId, 'id2' => $seedId2], ['name' => ['S' => str_random()]]);
         $this->assertNotEmpty($item);
-        $this->assertEquals($seedId, $item->id);
-        $this->assertEquals($seedId2, $item->id2);
-        $this->assertEquals($seedName, $item->name);
-
-        $newId = str_random();
-        $newId2 = str_random();
-        $newName = str_random();
-
-        $newItem = $this->testModel->firstOrNew(['id' => $newId, 'id2' => $newId2], ['name' => $newName]);
-
-        $this->assertNotEmpty($newItem);
-        $this->assertEquals($newId, $newItem->id);
-        $this->assertEquals($newId2, $newItem->id2);
-        $this->assertEquals($newName, $newItem->name);
-        $this->assertFalse($newItem->exists);
-        DynamoDbModel::reguard();
+        $this->assertTrue($item->exists);
+        $this->assertEquals([$seedId , $seedId2, $seedName], [$item->id, $item->id2, $item->name]);
     }
 
-    public function testFirstOrCreate()
+    public function testFirstOrNewNew()
     {
-        DynamoDbModel::unguard();
+        $attributes = [
+            'id' => 'id',
+            'id2' => str_random(),
+            'count' => rand()
+        ];
+        $extra = [
+            'name' => str_random()
+        ];
+
+        $item = $this->testModel->firstOrNew($attributes, $extra);
+        $item->id = $attributes['id'];
+        $item->id2 = $attributes['id2'];
+        $this->assertNotEmpty($item);
+        $this->assertEquals([$attributes['count'], $extra['name']], [$item->count, $item->name]);
+        $this->assertFalse($item->exists);
+
+    }
+
+    public function testFirstOrCreateFirst()
+    {
         $seed = $this->seed();
         $seedId = array_get($seed, 'id.S');
         $seedId2 = array_get($seed, 'id2.S');
@@ -119,24 +124,34 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         $item = $this->testModel->firstOrCreate(['id' => $seedId, 'id2' => $seedId2], ['name' => str_random()]);
 
         $this->assertNotEmpty($item);
-        $this->assertEquals($seedId, $item->id);
-        $this->assertEquals($seedName, $item->name);
-
-        $newId = str_random();
-        $newId2 = str_random();
-        $newName = str_random();
-
-        $newItem = $this->testModel->firstOrCreate(['id' => $newId, 'id2' => $newId2], ['name' => $newName]);
-
-        $this->assertNotEmpty($newItem);
-        $this->assertEquals($newId, $newItem->id);
-        $this->assertEquals($newId2, $newItem->id2);
-        $this->assertEquals($newName, $newItem->name);
-        $this->assertTrue($newItem->exists);
-        DynamoDbModel::reguard();
+        $this->assertTrue($item->exists);
+        $this->assertEquals([$seedId, $seedName],[$item->id, $item->name]);
     }
 
-    public function testUpdateOrCreate()
+    public function testFirstOrCreateCreate()
+    {
+        Model::unguard();
+        $attributes = [
+            'id' => 'id',
+            'id2' => str_random(),
+            'count' => rand()
+        ];
+        $extra = [
+            'name' => str_random()
+        ];
+
+        $item = $this->testModel->firstOrCreate($attributes, $extra);
+
+        Model::reguard();
+        $this->assertNotEmpty($item);
+        $this->assertTrue($item->exists);
+        $this->assertEquals($attributes['id'], $item->id);
+        $this->assertEquals($attributes['id2'], $item->id2);
+        $this->assertEquals($attributes['count'], $item->count);
+        $this->assertEquals($extra['name'], $item->name);
+    }
+
+    public function testUpdateOrCreateUpdate()
     {
         $seed = $this->seed();
         $seedId = array_get($seed, 'id.S');
@@ -147,10 +162,31 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         $item = $this->testModel->updateOrCreate(['id' => $seedId, 'id2' => $seedId2], ['name' => $newName]);
 
         $this->assertNotEmpty($item);
-        $this->assertEquals($seedId, $item->id);
-        $this->assertEquals($seedId2, $item->id2);
-        $this->assertEquals($newName, $item->name);
         $this->assertTrue($item->exists);
+        $this->assertEquals([$seedId, $seedId2, $newName], [$item->id , $item->id2, $item->name]);
+    }
+
+    public function testUpdateOrCreateCreate()
+    {
+        Model::unguard();
+        $attributes = [
+            'id' => 'id',
+            'id2' => str_random(),
+            'count' => rand()
+        ];
+        $extra = [
+            'name' => str_random()
+        ];
+
+        $item = $this->testModel->updateOrCreate($attributes, $extra);
+
+        Model::reguard();
+        $this->assertNotEmpty($item);
+        $this->assertTrue($item->exists);
+        $this->assertEquals($attributes['id'], $item->id);
+        $this->assertEquals($attributes['id2'], $item->id2);
+        $this->assertEquals($attributes['count'], $item->count);
+        $this->assertEquals($extra['name'], $item->name);
     }
 
     public function testFindMultiple()
@@ -646,13 +682,13 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
             $query = $this->testModel->where('id', 'id')->where('id2', '>', '-1');
 
             $this->assertEquals('Query', $query->toDynamoDbQuery()->op);
-    
+
             do {
                 $items = $query->afterKey($afterKey)->limit(2)->all();
                 $paginationResult = $paginationResult->merge($items->pluck('id2'));
                 $afterKey = $getKey($items);
             } while ($afterKey);
-    
+
             $this->assertCount(10, $paginationResult);
             $paginationResult->each(function ($id) {
                 $this->assertGreaterThan('-1', $id);
