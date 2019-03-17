@@ -545,16 +545,16 @@ class DynamoDbQueryBuilder
             return $instance;
         }
 
-        return tap($this->model->newInstance($attributes + $values), function ($instance) {
-            $instance->save();
-        });
+        $newInstance = $this->model->newInstance($attributes + $values);
+        $newInstance->save();
+        return $newInstance;
     }
 
     public function updateOrCreate(array $attributes, array $values = [])
     {
-        return tap($this->firstOrNew($attributes), function ($instance) use ($values) {
-            $instance->fill($values)->save();
-        });
+        $instance = $this->firstOrNew($attributes);
+        $instance->fill($values)->save();
+        return $instance;
     }
     
     public function findOrFail($id, $columns = [])
