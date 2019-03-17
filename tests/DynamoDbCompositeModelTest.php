@@ -125,7 +125,7 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
 
         $this->assertNotEmpty($item);
         $this->assertTrue($item->exists);
-        $this->assertEquals([$seedId, $seedId2, $seedName],[$item->id, $item->id2, $item->name]);
+        $this->assertEquals([$seedId, $seedId2, $seedName], [$item->id, $item->id2, $item->name]);
     }
 
     public function testFirstOrCreateCreate()
