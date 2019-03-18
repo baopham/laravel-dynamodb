@@ -5,7 +5,6 @@ namespace BaoPham\DynamoDb\Tests;
 use BaoPham\DynamoDb\DynamoDbModel;
 use BaoPham\DynamoDb\Facades\DynamoDb;
 use BaoPham\DynamoDb\RawDynamoDbQuery;
-use function GuzzleHttp\Psr7\str;
 use Illuminate\Database\Eloquent\Model;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -111,7 +110,6 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         $this->assertNotEmpty($item);
         $this->assertEquals([$attributes['count'], $extra['name']], [$item->count, $item->name]);
         $this->assertFalse($item->exists);
-
     }
 
     public function testFirstOrCreateFirst()
