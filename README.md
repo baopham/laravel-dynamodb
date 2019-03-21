@@ -101,7 +101,8 @@ Usage
 #### find() and delete()
 
 ```php
-$model->find(<id>);
+$model->find($id, array $columns = []);
+$model->findMany($ids, array $columns = []);
 $model->delete();
 $model->deleteAsync()->wait();
 ```
