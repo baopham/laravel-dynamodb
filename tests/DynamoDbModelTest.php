@@ -21,7 +21,7 @@ abstract class DynamoDbModelTest extends DynamoDbTestCase
      */
     protected $marshaler;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 

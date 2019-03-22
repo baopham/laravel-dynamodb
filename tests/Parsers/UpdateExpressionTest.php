@@ -18,7 +18,7 @@ class UpdateExpressionTest extends TestCase
      */
     private $names;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->names = new ExpressionAttributeNames();
