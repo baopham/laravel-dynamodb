@@ -36,10 +36,14 @@ return [
              // if true, it will use Laravel Log.
              // For advanced options, see http://docs.aws.amazon.com/aws-sdk-php/v3/guide/guide/configuration.html
             'debug' => env('DYNAMODB_DEBUG'),
+            // set a prefix on all tables
+            'prefix' => '',
         ],
         'aws_iam_role' => [
             'region' => env('DYNAMODB_REGION'),
             'debug' => true,
+            // set a prefix on all tables
+            'prefix' => '',
         ],
         'local' => [
             'credentials' => [
@@ -50,6 +54,8 @@ return [
              // see http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html
             'endpoint' => env('DYNAMODB_LOCAL_ENDPOINT'),
             'debug' => true,
+            // set a prefix on all tables
+            'prefix' => '',
         ],
         'test' => [
             'credentials' => [
@@ -59,6 +65,8 @@ return [
             'region' => 'test',
             'endpoint' => env('DYNAMODB_LOCAL_ENDPOINT'),
             'debug' => true,
+            // set a prefix on all tables
+            'prefix' => '',
         ],
     ],
 ];
