@@ -5,6 +5,7 @@ namespace BaoPham\DynamoDb\Parsers;
 use BaoPham\DynamoDb\ComparisonOperator;
 use BaoPham\DynamoDb\NotSupportedException;
 use BaoPham\DynamoDb\Facades\DynamoDb;
+use Illuminate\Support\Arr;
 
 class ConditionExpression
 {
@@ -70,9 +71,9 @@ class ConditionExpression
         $parsed = [];
 
         foreach ($where as $condition) {
-            $boolean = array_get($condition, 'boolean');
-            $value = array_get($condition, 'value');
-            $type = array_get($condition, 'type');
+            $boolean = Arr::get($condition, 'boolean');
+            $value = Arr::get($condition, 'value');
+            $type = Arr::get($condition, 'type');
 
             $prefix = '';
 
@@ -86,7 +87,7 @@ class ConditionExpression
             }
 
             $parsed[] = $prefix . $this->parseCondition(
-                array_get($condition, 'column'),
+                Arr::get($condition, 'column'),
                 $type,
                 $value
             );

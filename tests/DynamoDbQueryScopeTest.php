@@ -3,6 +3,7 @@
 namespace BaoPham\DynamoDb\Tests;
 
 use BaoPham\DynamoDb\DynamoDbQueryBuilder;
+use Illuminate\Support\Str;
 
 /**
  * Class DynamoDbQueryScopeTest
@@ -114,11 +115,11 @@ class DynamoDbQueryScopeTest extends DynamoDbModelTest
     public function seed($attributes = [])
     {
         $item = [
-            'id' => ['S' => str_random(36)],
-            'name' => ['S' => str_random(36)],
-            'description' => ['S' => str_random(256)],
+            'id' => ['S' => Str::random(36)],
+            'name' => ['S' => Str::random(36)],
+            'description' => ['S' => Str::random(256)],
             'count' => ['N' => rand()],
-            'author' => ['S' => str_random()],
+            'author' => ['S' => Str::random()],
         ];
 
         $item = array_merge($item, $attributes);

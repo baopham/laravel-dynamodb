@@ -10,6 +10,7 @@ use Closure;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Scope;
+use Illuminate\Support\Arr;
 
 class DynamoDbQueryBuilder
 {
@@ -470,7 +471,7 @@ class DynamoDbQueryBuilder
 
         $item = $query->prepare($this->client)->getItem();
 
-        $item = array_get($item->toArray(), 'Item');
+        $item = Arr::get($item->toArray(), 'Item');
 
         if (empty($item)) {
             return null;
@@ -601,7 +602,7 @@ class DynamoDbQueryBuilder
             ->prepare($this->client)
             ->updateItem();
 
-        $success = array_get($result, '@metadata.statusCode') === 200;
+        $success = Arr::get($result, '@metadata.statusCode') === 200;
 
         if ($success) {
             $this->model->setRawAttributes(DynamoDb::unmarshalItem($result->get('Attributes')));
@@ -618,7 +619,7 @@ class DynamoDbQueryBuilder
             ->prepare($this->client)
             ->deleteItem();
 
-        return array_get($result->toArray(), '@metadata.statusCode') === 200;
+        return Arr::get($result->toArray(), '@metadata.statusCode') === 200;
     }
 
     public function deleteAsync()
@@ -638,7 +639,7 @@ class DynamoDbQueryBuilder
             ->prepare($this->client)
             ->putItem();
 
-        return array_get($result, '@metadata.statusCode') === 200;
+        return Arr::get($result, '@metadata.statusCode') === 200;
     }
 
     public function saveAsync()
@@ -710,7 +711,7 @@ class DynamoDbQueryBuilder
                 $res = $this->client->query($raw->query);
             }
 
-            $this->lastEvaluatedKey = array_get($res, 'LastEvaluatedKey');
+            $this->lastEvaluatedKey = Arr::get($res, 'LastEvaluatedKey');
             $iterator = $res['Items'];
         }
 

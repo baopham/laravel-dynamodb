@@ -5,6 +5,7 @@ namespace BaoPham\DynamoDb;
 use Exception;
 use DateTime;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 
 /**
  * Class DynamoDbModel.
@@ -183,7 +184,7 @@ abstract class DynamoDbModel extends Model
         $savePromise = $this->newQuery()->saveAsync();
 
         $savePromise->then(function ($result) use ($create, $options) {
-            if (array_get($result, '@metadata.statusCode') === 200) {
+            if (Arr::get($result, '@metadata.statusCode') === 200) {
                 $this->exists = true;
                 $this->wasRecentlyCreated = $create;
                 $this->fireModelEvent($create ? 'created' : 'updated', false);
@@ -446,7 +447,7 @@ abstract class DynamoDbModel extends Model
     public function __sleep()
     {
         return array_keys(
-            array_except(get_object_vars($this), ['marshaler', 'attributeFilter'])
+            Arr::except(get_object_vars($this), ['marshaler', 'attributeFilter'])
         );
     }
 
