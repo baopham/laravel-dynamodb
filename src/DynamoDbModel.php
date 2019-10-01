@@ -460,4 +460,19 @@ abstract class DynamoDbModel extends Model
         parent::__wakeup();
         $this->setupDynamoDb();
     }
+
+    /**
+     * Returns approximate count of items in DynamoDB table for current model
+     * This item count is updated every six hours by AWS
+     *
+     * @return int
+     */
+    public static function getItemCount()
+    {
+        $model = new static;
+        $describeTable = $model->getClient()->describeTable([
+            'TableName' => $model->getTable()
+        ]);
+        return $describeTable->get('Table')['ItemCount'];
+    }
 }

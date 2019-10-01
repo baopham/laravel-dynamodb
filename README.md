@@ -19,6 +19,7 @@ Supports all key types - primary hash key and composite keys.
   * [find() and delete()](#find-and-delete) 
   * [Conditions](#conditions)
   * [all() and first()](#all-and-first)
+  * [getItemCount()](#getItemCount)
   * [Pagination](#pagination)
   * [update](#update) / [updateAsync()](#updateasync)
   * [save](#save) / [saveAsync()](#saveasync)
@@ -168,6 +169,13 @@ $model->all();
 
 // Basically a scan but with limit of 1 item.
 $model->first();
+```
+
+#### getItemCount()
+
+```php
+// Returns approximate count of items in DynamoDB table for current model which is updated every six hours
+$model->getItemCount();
 ```
 
 #### Pagination
