@@ -2,5 +2,4 @@
 .DS_Store
 composer.phar
 composer.lock
-local_init.db
 local_test.db
