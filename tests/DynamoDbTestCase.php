@@ -2,13 +2,11 @@
 
 namespace Rennokki\DynamoDb\Tests;
 
-use Rennokki\DynamoDb\DynamoDbServiceProvider;
 use Orchestra\Testbench\TestCase;
+use Rennokki\DynamoDb\DynamoDbServiceProvider;
 
 /**
- * Class DynamoDbTestCase
- *
- * @package Rennokki\DynamoDb\Tests
+ * Class DynamoDbTestCase.
  */
 abstract class DynamoDbTestCase extends TestCase
 {
@@ -44,6 +42,6 @@ abstract class DynamoDbTestCase extends TestCase
 
     protected function setUpDatabase()
     {
-        copy(dirname(__FILE__) . '/../local_init.db', dirname(__FILE__) . '/../local_test.db');
+        copy(dirname(__FILE__).'/../local_init.db', dirname(__FILE__).'/../local_test.db');
     }
 }

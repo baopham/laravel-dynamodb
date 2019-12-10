@@ -35,7 +35,7 @@ class ModelObserver
     private function saveToDynamoDb($model)
     {
         $attrs = $model->attributesToArray();
-        
+
         try {
             $this->dynamoDbClient->putItem([
                 'TableName' => $model->getDynamoDbTableName(),

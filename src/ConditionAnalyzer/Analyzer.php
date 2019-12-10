@@ -8,20 +8,7 @@ use Rennokki\DynamoDb\DynamoDbModel;
 use Rennokki\DynamoDb\H;
 
 /**
- * Class ConditionAnalyzer
- * @package Rennokki\DynamoDb\ConditionAnalyzer
- *
- * Usage:
- *
- * $analyzer = with(new Analyzer)
- *  ->on($model)
- *  ->withIndex($index)
- *  ->analyze($conditions);
- *
- * $analyzer->isExactSearch();
- * $analyzer->keyConditions();
- * $analyzer->filterConditions();
- * $analyzer->index();
+ * Class ConditionAnalyzer.
  */
 class Analyzer
 {
@@ -114,8 +101,8 @@ class Analyzer
 
         $conditions = $this->getConditions($keyNames);
 
-        if (!$this->hasValidQueryOperator(...$keyNames)) {
-            return null;
+        if (! $this->hasValidQueryOperator(...$keyNames)) {
+            return;
         }
 
         return $conditions;
@@ -125,7 +112,7 @@ class Analyzer
     {
         $idConditions = $this->identifierConditions();
 
-        if (!$idConditions) {
+        if (! $idConditions) {
             return [];
         }
 
@@ -168,7 +155,7 @@ class Analyzer
     private function getIndex()
     {
         if (empty($this->conditions)) {
-            return null;
+            return;
         }
 
         $index = null;
@@ -178,7 +165,7 @@ class Analyzer
             $keys = array_values($keysInfo);
 
             if (count(array_intersect($conditionKeys, $keys)) === count($keys)) {
-                if (!isset($this->indexName) || $this->indexName === $name) {
+                if (! isset($this->indexName) || $this->indexName === $name) {
                     $index = new Index(
                         $name,
                         Arr::get($keysInfo, 'hash'),
@@ -190,7 +177,7 @@ class Analyzer
             }
         }
 
-        if ($index && !$this->hasValidQueryOperator($index->hash, $index->range)) {
+        if ($index && ! $this->hasValidQueryOperator($index->hash, $index->range)) {
             $index = null;
         }
 

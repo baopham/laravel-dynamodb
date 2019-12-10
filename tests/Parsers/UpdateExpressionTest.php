@@ -2,9 +2,9 @@
 
 namespace Rennokki\DynamoDb\Tests\Parsers;
 
+use PHPUnit\Framework\TestCase;
 use Rennokki\DynamoDb\Parsers\ExpressionAttributeNames;
 use Rennokki\DynamoDb\Parsers\UpdateExpression;
-use PHPUnit\Framework\TestCase;
 
 class UpdateExpressionTest extends TestCase
 {
@@ -31,7 +31,7 @@ class UpdateExpressionTest extends TestCase
         $this->assertEquals('REMOVE #a, #b, foo.bar, hello[0]', $expression);
         $this->assertEquals([
             '#a' => 'a',
-            '#b' => 'b'
+            '#b' => 'b',
         ], $this->names->all());
     }
 }

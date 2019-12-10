@@ -2,16 +2,14 @@
 
 namespace Rennokki\DynamoDb\Tests;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Rennokki\DynamoDb\DynamoDbModel;
 use Rennokki\DynamoDb\RawDynamoDbQuery;
-use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
- * Class DynamoDbNonCompositeModelTest
- *
- * @package Rennokki\DynamoDb\Tests
+ * Class DynamoDbNonCompositeModelTest.
  */
 class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
 {
@@ -30,7 +28,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
         $query = [
             'TableName' => $this->testModel->getTable(),
             'Key' => [
-                'id' => ['S' => $this->testModel->id]
+                'id' => ['S' => $this->testModel->id],
             ],
         ];
 
@@ -50,7 +48,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
         $query = [
             'TableName' => $this->testModel->getTable(),
             'Key' => [
-                'id' => ['S' => $this->testModel->id]
+                'id' => ['S' => $this->testModel->id],
             ],
         ];
 
@@ -174,7 +172,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
         $query = [
             'TableName' => $this->testModel->getTable(),
             'Key' => [
-                'id' => ['S' => $seedId]
+                'id' => ['S' => $seedId],
             ],
         ];
 
@@ -195,7 +193,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
         $query = [
             'TableName' => $this->testModel->getTable(),
             'Key' => [
-                'id' => ['S' => $seedId]
+                'id' => ['S' => $seedId],
             ],
         ];
 
@@ -218,7 +216,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
         $query = [
             'TableName' => $this->testModel->getTable(),
             'Key' => [
-                'id' => ['S' => $seedId]
+                'id' => ['S' => $seedId],
             ],
         ];
 
@@ -241,7 +239,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
         $query = [
             'TableName' => $this->testModel->getTable(),
             'Key' => [
-                'id' => ['S' => $seedId]
+                'id' => ['S' => $seedId],
             ],
         ];
 
@@ -260,7 +258,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
         $query = [
             'TableName' => $this->testModel->getTable(),
             'Key' => [
-                'id' => ['S' => $seedId]
+                'id' => ['S' => $seedId],
             ],
         ];
 
@@ -279,7 +277,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
         $query = [
             'TableName' => $this->testModel->getTable(),
             'Key' => [
-                'id' => ['S' => $seedId]
+                'id' => ['S' => $seedId],
             ],
         ];
 
@@ -699,6 +697,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
 
         $this->testModel->chunk(2, function () use (&$iteration) {
             $iteration++;
+
             return false;
         });
 
@@ -938,7 +937,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
         });
 
         $assert(function ($items) {
-            return !$items->isEmpty() ? $items->last()->getKeys() : null;
+            return ! $items->isEmpty() ? $items->last()->getKeys() : null;
         });
     }
 
@@ -953,7 +952,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
                 $raw->op = 'Scan';
                 $raw->query['FilterExpression'] = '#count > :count';
                 $raw->query['ExpressionAttributeNames'] = [
-                    '#count' => 'count'
+                    '#count' => 'count',
                 ];
                 $raw->query['ExpressionAttributeValues'] = [
                     ':count' => ['N' => 0],
@@ -1162,8 +1161,8 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
     {
         /** @var array $conditions */
         $conditions = [
-            "foo" => "bar",
-            "bin" => "baz"
+            'foo' => 'bar',
+            'bin' => 'baz',
         ];
 
         $builder = $this->getTestModel()->where($conditions);

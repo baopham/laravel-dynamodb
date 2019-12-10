@@ -7,9 +7,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
- * Class DynamoDbTimestampTest
- *
- * @package Rennokki\DynamoDb\Tests
+ * Class DynamoDbTimestampTest.
  */
 class DynamoDbTimestampTest extends DynamoDbModelTest
 {
@@ -30,7 +28,7 @@ class DynamoDbTimestampTest extends DynamoDbModelTest
         $query = [
             'TableName' => $this->testModel->getTable(),
             'Key' => [
-                'id' => ['S' => $this->testModel->id]
+                'id' => ['S' => $this->testModel->id],
             ],
         ];
 
@@ -56,7 +54,7 @@ class DynamoDbTimestampTest extends DynamoDbModelTest
         $query = [
             'TableName' => $model->getTable(),
             'Key' => [
-                'id' => ['S' => $seedId]
+                'id' => ['S' => $seedId],
             ],
         ];
 

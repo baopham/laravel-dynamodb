@@ -3,12 +3,12 @@
 namespace Rennokki\DynamoDb\Tests\Parsers;
 
 use Illuminate\Support\Arr;
+use PHPUnit\Framework\TestCase;
 use Rennokki\DynamoDb\ComparisonOperator;
 use Rennokki\DynamoDb\Parsers\ConditionExpression;
 use Rennokki\DynamoDb\Parsers\ExpressionAttributeNames;
 use Rennokki\DynamoDb\Parsers\ExpressionAttributeValues;
 use Rennokki\DynamoDb\Parsers\Placeholder;
-use PHPUnit\Framework\TestCase;
 
 class ConditionExpressionTest extends TestCase
 {
@@ -130,15 +130,15 @@ class ConditionExpressionTest extends TestCase
                     ],
                 ],
                 'boolean' => 'and',
-            ]
+            ],
         ];
 
         $this->assertEquals(
-            "#name = :a1 AND #count1 > :a2 OR #count2 >= :a3 AND #count3 < :a4 " .
-            "AND #count4 <= :a5 AND begins_with(#description, :a6) AND (#score BETWEEN :a7 AND :a8) " .
-            "AND #age IN (:a9, :a10) AND contains(#foo, :a11) OR NOT contains(#bar, :a12) " .
-            "AND attribute_not_exists(#gender) AND attribute_exists(#occupation) OR #retired <> :a13 " .
-            "AND (#phone IN (:a14))",
+            '#name = :a1 AND #count1 > :a2 OR #count2 >= :a3 AND #count3 < :a4 '.
+            'AND #count4 <= :a5 AND begins_with(#description, :a6) AND (#score BETWEEN :a7 AND :a8) '.
+            'AND #age IN (:a9, :a10) AND contains(#foo, :a11) OR NOT contains(#bar, :a12) '.
+            'AND attribute_not_exists(#gender) AND attribute_exists(#occupation) OR #retired <> :a13 '.
+            'AND (#phone IN (:a14))',
             $this->parser->parse($where)
         );
 

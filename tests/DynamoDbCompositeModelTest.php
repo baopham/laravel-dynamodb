@@ -2,17 +2,15 @@
 
 namespace Rennokki\DynamoDb\Tests;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Rennokki\DynamoDb\DynamoDbModel;
 use Rennokki\DynamoDb\Facades\DynamoDb;
 use Rennokki\DynamoDb\RawDynamoDbQuery;
-use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
- * Class DynamoDbCompositeModelTest
- *
- * @package Rennokki\DynamoDb\Tests
+ * Class DynamoDbCompositeModelTest.
  */
 class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
 {
@@ -243,7 +241,7 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
             'TableName' => $this->testModel->getTable(),
             'Key' => [
                 'id' => ['S' => $seedId],
-                'id2' => ['S' => $seedId2]
+                'id2' => ['S' => $seedId2],
             ],
         ];
 
@@ -268,7 +266,7 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
             'TableName' => $this->testModel->getTable(),
             'Key' => [
                 'id' => ['S' => $seedId],
-                'id2' => ['S' => $seedId2]
+                'id2' => ['S' => $seedId2],
             ],
         ];
 
@@ -289,7 +287,7 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
             'TableName' => $this->testModel->getTable(),
             'Key' => [
                 'id' => ['S' => $seedId],
-                'id2' => ['S' => $seedId2]
+                'id2' => ['S' => $seedId2],
             ],
         ];
 
@@ -310,7 +308,7 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
             'TableName' => $this->testModel->getTable(),
             'Key' => [
                 'id' => ['S' => $seedId],
-                'id2' => ['S' => $seedId2]
+                'id2' => ['S' => $seedId2],
             ],
         ];
 
@@ -341,15 +339,15 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         $partitionKey = 'foo';
         $item1 = $this->seed([
             'id' => ['S' => $partitionKey],
-            'id2' => ['S' => 'bar_1']
+            'id2' => ['S' => 'bar_1'],
         ]);
         $item2 = $this->seed([
             'id' => ['S' => $partitionKey],
-            'id2' => ['S' => 'bar_2']
+            'id2' => ['S' => 'bar_2'],
         ]);
         $this->seed([
             'id' => ['S' => 'other'],
-            'id2' => ['S' => 'foo_1']
+            'id2' => ['S' => 'foo_1'],
         ]);
 
         $query = $this->testModel
@@ -382,7 +380,7 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
 
         $this->assertEquals($item, $klass::find([
             'id' => $item['id'],
-            'id2' => $item['id2']
+            'id2' => $item['id2'],
         ])->toArray());
     }
 
@@ -489,7 +487,7 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
     {
         $this->seed([
             'id' => ['S' => 'foo'],
-            'id2' => ['S' => 'bar']
+            'id2' => ['S' => 'bar'],
         ]);
 
         $this->testModel
@@ -508,7 +506,7 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
     {
         $this->seed([
             'id' => ['S' => 'foo'],
-            'id2' => ['S' => 'bar']
+            'id2' => ['S' => 'bar'],
         ]);
 
         $this->testModel
@@ -527,7 +525,7 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
     {
         $this->seed([
             'id' => ['S' => 'foo'],
-            'id2' => ['S' => 'bar']
+            'id2' => ['S' => 'bar'],
         ]);
 
         $item = $this->testModel->first();
@@ -593,7 +591,7 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         });
 
         $assert(function ($items) {
-            return !$items->isEmpty() ? $items->last()->getKeys() : null;
+            return ! $items->isEmpty() ? $items->last()->getKeys() : null;
         });
     }
 

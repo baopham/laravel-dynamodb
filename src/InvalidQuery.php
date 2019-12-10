@@ -3,7 +3,7 @@
 namespace Rennokki\DynamoDb;
 
 /**
- * Class InvalidQuery
+ * Class InvalidQuery.
  */
 class InvalidQuery extends \Exception
 {

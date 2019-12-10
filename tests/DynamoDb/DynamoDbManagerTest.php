@@ -4,9 +4,9 @@ namespace Rennokki\DynamoDb\Tests\DynamoDb;
 
 use Aws\DynamoDb\DynamoDbClient;
 use Aws\DynamoDb\Marshaler;
+use Rennokki\DynamoDb\DynamoDb\DynamoDbManager;
 use Rennokki\DynamoDb\DynamoDbClientInterface;
 use Rennokki\DynamoDb\Tests\DynamoDbTestCase;
-use Rennokki\DynamoDb\DynamoDb\DynamoDbManager;
 
 class DynamoDbManagerTest extends DynamoDbTestCase
 {
@@ -101,7 +101,7 @@ class DynamoDbManagerTest extends DynamoDbTestCase
                 'ExpressionAttributeNames' => ['#c' => 'comments', '#t' => 'tags'],
                 'ExpressionAttributeValues' => [
                     ':count' => ['N' => 2],
-                    ':tags' => ['L' => [['S' => 'a'], ['S' => 'b']]]
+                    ':tags' => ['L' => [['S' => 'a'], ['S' => 'b']]],
                 ],
             ]);
 

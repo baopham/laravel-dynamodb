@@ -2,36 +2,15 @@
 
 namespace Rennokki\DynamoDb\DynamoDb;
 
-use Illuminate\Support\Str;
 use Aws\DynamoDb\DynamoDbClient;
 use BadMethodCallException;
+use Illuminate\Support\Str;
 use Rennokki\DynamoDb\DynamoDbClientInterface;
 use Rennokki\DynamoDb\RawDynamoDbQuery;
 
 /**
- * Class QueryBuilder
+ * Class QueryBuilder.
  *
- * @package Rennokki\DynamoDb\DynamoDb
- *
- * Methods are in the form of `set<key_name>`, where `<key_name>`
- * is the key name of the query body to be sent.
- *
- * For example, to build a query:
- * [
- *     'AttributeDefinitions' => ...,
- *     'GlobalSecondaryIndexUpdates' => ...
- *     'TableName' => ...
- * ]
- *
- * Do:
- *
- * $query = $query->setAttributeDefinitions(...)->setGlobalSecondaryIndexUpdates(...)->setTableName(...);
- *
- * When ready:
- *
- * $query->prepare()->updateTable();
- *
- * Common methods:
  *
  * @method QueryBuilder setExpressionAttributeNames(array $mapping)
  * @method QueryBuilder setExpressionAttributeValues(array $mapping)
@@ -61,7 +40,7 @@ class QueryBuilder
     private $service;
 
     /**
-     * Query body to be sent to AWS
+     * Query body to be sent to AWS.
      *
      * @var array
      */
@@ -100,6 +79,7 @@ class QueryBuilder
     public function prepare(DynamoDbClient $client = null)
     {
         $raw = new RawDynamoDbQuery(null, $this->query);
+
         return new ExecutableQuery($client ?: $this->service->getClient(), $raw->finalize()->query);
     }
 

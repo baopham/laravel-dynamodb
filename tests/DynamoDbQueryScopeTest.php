@@ -6,9 +6,7 @@ use Illuminate\Support\Str;
 use Rennokki\DynamoDb\DynamoDbQueryBuilder;
 
 /**
- * Class DynamoDbQueryScopeTest
- *
- * @package Rennokki\DynamoDb\Tests
+ * Class DynamoDbQueryScopeTest.
  */
 class DynamoDbQueryScopeTest extends DynamoDbModelTest
 {

@@ -3,9 +3,7 @@
 namespace Rennokki\DynamoDb;
 
 /**
- * Class RawDynamoDbQuery
- *
- * @package Rennokki\DynamoDb
+ * Class RawDynamoDbQuery.
  */
 class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
 {
@@ -17,7 +15,7 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
     public $op;
 
     /**
-     * The query body being sent to AWS
+     * The query body being sent to AWS.
      *
      * @var array
      */
@@ -38,19 +36,19 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
     public function finalize()
     {
         $this->query = array_filter($this->query, function ($value) {
-            return !empty($value) || is_bool($value) || is_numeric($value);
+            return ! empty($value) || is_bool($value) || is_numeric($value);
         });
 
         return $this;
     }
 
     /**
-     * Whether a offset exists
+     * Whether a offset exists.
      * @link http://php.net/manual/en/arrayaccess.offsetexists.php
      * @param mixed $offset <p>
      * An offset to check for.
      * </p>
-     * @return boolean true on success or false on failure.
+     * @return bool true on success or false on failure.
      * </p>
      * <p>
      * The return value will be casted to boolean if non-boolean was returned.
@@ -62,7 +60,7 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
     }
 
     /**
-     * Offset to retrieve
+     * Offset to retrieve.
      * @link http://php.net/manual/en/arrayaccess.offsetget.php
      * @param mixed $offset <p>
      * The offset to retrieve.
@@ -76,7 +74,7 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
     }
 
     /**
-     * Offset to set
+     * Offset to set.
      * @link http://php.net/manual/en/arrayaccess.offsetset.php
      * @param mixed $offset <p>
      * The offset to assign the value to.
@@ -93,7 +91,7 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
     }
 
     /**
-     * Offset to unset
+     * Offset to unset.
      * @link http://php.net/manual/en/arrayaccess.offsetunset.php
      * @param mixed $offset <p>
      * The offset to unset.
@@ -107,7 +105,7 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
     }
 
     /**
-     * Retrieve an external iterator
+     * Retrieve an external iterator.
      * @link http://php.net/manual/en/iteratoraggregate.getiterator.php
      * @return \Traversable An instance of an object implementing <b>Iterator</b> or
      * <b>Traversable</b>
@@ -119,7 +117,7 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
     }
 
     /**
-     * Count elements of an object
+     * Count elements of an object.
      * @link http://php.net/manual/en/countable.count.php
      * @return int The custom count as an integer.
      * </p>
@@ -133,7 +131,7 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
     }
 
     /**
-     * For backward compatibility, previously we use array to represent the raw query
+     * For backward compatibility, previously we use array to represent the raw query.
      *
      * @var array
      *
