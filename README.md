@@ -1,11 +1,12 @@
 Laravel DynamoDB
 ================
 
-[![Latest Stable Version](https://poser.pugx.org/rennokki/dynamodb/v/stable)](https://packagist.org/packages/rennokki/dynamodb)
-[![Total Downloads](https://poser.pugx.org/rennokki/dynamodb/downloads)](https://packagist.org/packages/rennokki/dynamodb)
-[![Latest Unstable Version](https://poser.pugx.org/rennokki/dynamodb/v/unstable)](https://packagist.org/packages/rennokki/dynamodb)
+[![Latest Stable Version](https://poser.pugx.org/rennokki/laravel-dynamodb/v/stable)](https://packagist.org/packages/rennokki/laravel-dynamodb)
+[![Total Downloads](https://poser.pugx.org/rennokki/laravel-dynamodb/downloads)](https://packagist.org/packages/rennokki/laravel-dynamodb)
+[![Monthly Downloads](https://poser.pugx.org/rennokki/laravel-dynamodb/d/monthly)](https://packagist.org/packages/rennokki/laravel-dynamodb)
 [![Build Status](https://travis-ci.org/rennokki/laravel-dynamodb.svg?branch=master)](https://travis-ci.org/rennokki/laravel-dynamodb)
-[![Code Coverage](https://scrutinizer-ci.com/g/rennokki/laravel-dynamodb/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/rennokki/laravel-dynamodb/?branch=master)
+[![codecov](https://codecov.io/gh/rennokki/laravel-dynamodb/branch/master/graph/badge.svg)](https://codecov.io/gh/rennokki/laravel-dynamodb/branch/master)
+[![StyleCI](https://github.styleci.io/repos/223236785/shield?branch=master)](https://github.styleci.io/repos/223236785)
 [![License](https://poser.pugx.org/rennokki/dynamodb/license)](https://packagist.org/packages/rennokki/dynamodb)
 
 Forked from [Bao Pham](https://github.com/baopham/laravel-dynamodb) to add support for Laravel 6.0^
