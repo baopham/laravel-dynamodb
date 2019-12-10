@@ -1,6 +1,6 @@
 <?php
 
-namespace BaoPham\DynamoDb\Parsers;
+namespace Rennokki\DynamoDb\Parsers;
 
 class ProjectionExpression
 {

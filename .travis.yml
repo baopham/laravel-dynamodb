@@ -2,27 +2,27 @@ sudo: false
 
 language: php
 
-stages:
-  - linter
-  - test
-
 php:
-  - '7.1'
-  - '7.2'
-  - '7.3'
+  - 7.2
+  - 7.3
+  - 7.4
+
+env:
+  matrix:
+    - COMPOSER_FLAGS=""
+
+cache:
+  directories:
+    - $HOME/.composer/cache
 
 before_script:
-  - java -Djava.library.path=./DynamoDBLocal_lib -jar dynamodb_local/DynamoDBLocal.jar --port 3000 &
+  - java -Djava.library.path=./DynamoDBLocal_lib -jar local/DynamoDBLocal.jar --port 3000 &
   - sleep 2
-  - composer self-update
-  - composer install
+  - travis_retry composer self-update
+  - travis_retry composer update ${COMPOSER_FLAGS} --no-interaction --prefer-source
 
-script: phpunit
+script:
+  - phpunit --coverage-text --coverage-clover=coverage.xml
 
-jobs:
-  include:
-    - stage: linter
-      php: 7.2
-      before_script: source ./scripts/dev-setup.sh
-      script: phpcs -s {src/*,tests/*}
-
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

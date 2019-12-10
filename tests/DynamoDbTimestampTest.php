@@ -1,13 +1,15 @@
 <?php
 
-namespace BaoPham\DynamoDb\Tests;
+namespace Rennokki\DynamoDb\Tests;
 
 use Carbon\Carbon;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 /**
  * Class DynamoDbTimestampTest
  *
- * @package BaoPham\DynamoDb\Tests
+ * @package Rennokki\DynamoDb\Tests
  */
 class DynamoDbTimestampTest extends DynamoDbModelTest
 {
@@ -20,7 +22,7 @@ class DynamoDbTimestampTest extends DynamoDbModelTest
     {
         Carbon::setTestNow(Carbon::create(2017, 06, 24, 5, 30, 0));
         $now = new Carbon;
-        $this->testModel->id = str_random(36);
+        $this->testModel->id = Str::random(36);
         $this->testModel->name = 'Test Create';
         $this->testModel->count = 1;
         $this->testModel->save();
@@ -43,7 +45,7 @@ class DynamoDbTimestampTest extends DynamoDbModelTest
         Carbon::setTestNow(Carbon::create(2017, 03, 01, 8, 30, 0));
         $now = new Carbon();
         $seed = $this->seed();
-        $seedId = array_get($seed, 'id.S');
+        $seedId = Arr::get($seed, 'id.S');
 
         $newName = 'New Name';
         $model = $this->testModel->find($seedId);
@@ -67,11 +69,11 @@ class DynamoDbTimestampTest extends DynamoDbModelTest
     public function seed($attributes = [])
     {
         $item = [
-            'id' => ['S' => str_random(36)],
-            'name' => ['S' => str_random(36)],
-            'description' => ['S' => str_random(256)],
+            'id' => ['S' => Str::random(36)],
+            'name' => ['S' => Str::random(36)],
+            'description' => ['S' => Str::random(256)],
             'count' => ['N' => rand()],
-            'author' => ['S' => str_random()],
+            'author' => ['S' => Str::random()],
         ];
 
         $item = array_merge($item, $attributes);
@@ -85,8 +87,7 @@ class DynamoDbTimestampTest extends DynamoDbModelTest
     }
 }
 
-// phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
-class TimestampModel extends \BaoPham\DynamoDb\DynamoDbModel
+class TimestampModel extends \Rennokki\DynamoDb\DynamoDbModel
 {
     protected $fillable = ['name', 'description', 'count'];
 
@@ -102,4 +103,3 @@ class TimestampModel extends \BaoPham\DynamoDb\DynamoDbModel
         ],
     ];
 }
-// phpcs:enable PSR1.Classes.ClassDeclaration.MultipleClasses

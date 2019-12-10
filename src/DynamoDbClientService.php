@@ -1,7 +1,8 @@
 <?php
 
-namespace BaoPham\DynamoDb;
+namespace Rennokki\DynamoDb;
 
+use Illuminate\Support\Arr;
 use Aws\DynamoDb\DynamoDbClient;
 use Aws\DynamoDb\Marshaler;
 use Illuminate\Support\Facades\Log;
@@ -19,7 +20,7 @@ class DynamoDbClientService implements DynamoDbClientInterface
     protected $marshaler;
 
     /**
-     * @var \BaoPham\DynamoDb\EmptyAttributeFilter
+     * @var \Rennokki\DynamoDb\EmptyAttributeFilter
      */
     protected $attributeFilter;
 
@@ -43,7 +44,7 @@ class DynamoDbClientService implements DynamoDbClientInterface
 
         $config = config("dynamodb.connections.$connection", []);
         $config['version'] = '2012-08-10';
-        $config['debug'] = $this->getDebugOptions(array_get($config, 'debug'));
+        $config['debug'] = $this->getDebugOptions(Arr::get($config, 'debug'));
 
         $client = new DynamoDbClient($config);
 
@@ -61,7 +62,7 @@ class DynamoDbClientService implements DynamoDbClientInterface
     }
 
     /**
-     * @return \BaoPham\DynamoDb\EmptyAttributeFilter
+     * @return \Rennokki\DynamoDb\EmptyAttributeFilter
      */
     public function getAttributeFilter()
     {

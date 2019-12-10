@@ -1,9 +1,10 @@
 <?php
 
-namespace BaoPham\DynamoDb;
+namespace Rennokki\DynamoDb;
 
 use Exception;
 use DateTime;
+use Illuminate\Support\Arr;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -19,7 +20,7 @@ abstract class DynamoDbModel extends Model
     public $incrementing = false;
 
     /**
-     * @var \BaoPham\DynamoDb\DynamoDbClientInterface
+     * @var \Rennokki\DynamoDb\DynamoDbClientInterface
      */
     protected static $dynamoDb;
 
@@ -31,7 +32,7 @@ abstract class DynamoDbModel extends Model
 
     /**
      * @deprecated
-     * @var \BaoPham\DynamoDb\EmptyAttributeFilter
+     * @var \Rennokki\DynamoDb\EmptyAttributeFilter
      */
     protected $attributeFilter;
 
@@ -183,7 +184,7 @@ abstract class DynamoDbModel extends Model
         $savePromise = $this->newQuery()->saveAsync();
 
         $savePromise->then(function ($result) use ($create, $options) {
-            if (array_get($result, '@metadata.statusCode') === 200) {
+            if (Arr::get($result, '@metadata.statusCode') === 200) {
                 $this->exists = true;
                 $this->wasRecentlyCreated = $create;
                 $this->fireModelEvent($create ? 'created' : 'updated', false);
@@ -446,7 +447,7 @@ abstract class DynamoDbModel extends Model
     public function __sleep()
     {
         return array_keys(
-            array_except(get_object_vars($this), ['marshaler', 'attributeFilter'])
+            Arr::except(get_object_vars($this), ['marshaler', 'attributeFilter'])
         );
     }
 

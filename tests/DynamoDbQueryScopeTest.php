@@ -1,13 +1,14 @@
 <?php
 
-namespace BaoPham\DynamoDb\Tests;
+namespace Rennokki\DynamoDb\Tests;
 
-use BaoPham\DynamoDb\DynamoDbQueryBuilder;
+use Illuminate\Support\Str;
+use Rennokki\DynamoDb\DynamoDbQueryBuilder;
 
 /**
  * Class DynamoDbQueryScopeTest
  *
- * @package BaoPham\DynamoDb\Tests
+ * @package Rennokki\DynamoDb\Tests
  */
 class DynamoDbQueryScopeTest extends DynamoDbModelTest
 {
@@ -114,11 +115,11 @@ class DynamoDbQueryScopeTest extends DynamoDbModelTest
     public function seed($attributes = [])
     {
         $item = [
-            'id' => ['S' => str_random(36)],
-            'name' => ['S' => str_random(36)],
-            'description' => ['S' => str_random(256)],
+            'id' => ['S' => Str::random(36)],
+            'name' => ['S' => Str::random(36)],
+            'description' => ['S' => Str::random(256)],
             'count' => ['N' => rand()],
-            'author' => ['S' => str_random()],
+            'author' => ['S' => Str::random()],
         ];
 
         $item = array_merge($item, $attributes);
@@ -139,8 +140,7 @@ class DynamoDbQueryScopeTest extends DynamoDbModelTest
     }
 }
 
-// phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
-class ModelWithQueryScopes extends \BaoPham\DynamoDb\DynamoDbModel
+class ModelWithQueryScopes extends \Rennokki\DynamoDb\DynamoDbModel
 {
     protected $fillable = ['name', 'description', 'count'];
 
@@ -175,4 +175,3 @@ class ModelWithQueryScopes extends \BaoPham\DynamoDb\DynamoDbModel
         return $builder->where('count', '<', $count);
     }
 }
-// phpcs:enable PSR1.Classes.ClassDeclaration.MultipleClasses

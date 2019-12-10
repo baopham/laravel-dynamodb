@@ -1,16 +1,17 @@
 <?php
 
-namespace BaoPham\DynamoDb\DynamoDb;
+namespace Rennokki\DynamoDb\DynamoDb;
 
+use Illuminate\Support\Str;
 use Aws\DynamoDb\DynamoDbClient;
 use BadMethodCallException;
-use BaoPham\DynamoDb\DynamoDbClientInterface;
-use BaoPham\DynamoDb\RawDynamoDbQuery;
+use Rennokki\DynamoDb\DynamoDbClientInterface;
+use Rennokki\DynamoDb\RawDynamoDbQuery;
 
 /**
  * Class QueryBuilder
  *
- * @package BaoPham\DynamoDb\DynamoDb
+ * @package Rennokki\DynamoDb\DynamoDb
  *
  * Methods are in the form of `set<key_name>`, where `<key_name>`
  * is the key name of the query body to be sent.
@@ -109,7 +110,7 @@ class QueryBuilder
      */
     public function __call($method, $parameters)
     {
-        if (starts_with($method, 'set')) {
+        if (Str::startsWith($method, 'set')) {
             $key = array_reverse(explode('set', $method, 2))[0];
             $this->query[$key] = current($parameters);
 

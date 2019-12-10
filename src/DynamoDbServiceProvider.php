@@ -1,9 +1,9 @@
 <?php
 
-namespace BaoPham\DynamoDb;
+namespace Rennokki\DynamoDb;
 
 use Aws\DynamoDb\Marshaler;
-use BaoPham\DynamoDb\DynamoDb\DynamoDbManager;
+use Rennokki\DynamoDb\DynamoDb\DynamoDbManager;
 use Illuminate\Support\ServiceProvider;
 
 class DynamoDbServiceProvider extends ServiceProvider
@@ -15,7 +15,9 @@ class DynamoDbServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        DynamoDbModel::setDynamoDbClientService($this->app->make(DynamoDbClientInterface::class));
+        DynamoDbModel::setDynamoDbClientService(
+            $this->app->make(DynamoDbClientInterface::class)
+        );
 
         $this->publishes([
             __DIR__.'/../config/dynamodb.php' => app()->basePath('config/dynamodb.php'),

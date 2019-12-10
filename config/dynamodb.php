@@ -43,21 +43,21 @@ return [
         ],
         'local' => [
             'credentials' => [
-                'key' => 'dynamodb_local',
+                'key' => 'local',
                 'secret' => 'secret',
             ],
             'region' => 'stub',
              // see http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html
-            'endpoint' => env('DYNAMODB_LOCAL_ENDPOINT'),
+            'endpoint' => env('local_ENDPOINT'),
             'debug' => true,
         ],
         'test' => [
             'credentials' => [
-                'key' => 'dynamodb_local',
+                'key' => 'local',
                 'secret' => 'secret',
             ],
             'region' => 'test',
-            'endpoint' => env('DYNAMODB_LOCAL_ENDPOINT'),
+            'endpoint' => env('local_ENDPOINT'),
             'debug' => true,
         ],
     ],

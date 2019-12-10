@@ -1,14 +1,14 @@
 <?php
 
-namespace BaoPham\DynamoDb;
+namespace Rennokki\DynamoDb;
 
 use Illuminate\Database\Eloquent\Collection;
-use BaoPham\DynamoDb\ConditionAnalyzer\Index;
+use Rennokki\DynamoDb\ConditionAnalyzer\Index;
 
 class DynamoDbCollection extends Collection
 {
     /**
-     * @var \BaoPham\DynamoDb\ConditionAnalyzer\Index
+     * @var \Rennokki\DynamoDb\ConditionAnalyzer\Index
      */
     private $conditionIndex = null;
 

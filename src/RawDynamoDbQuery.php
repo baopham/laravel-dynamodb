@@ -1,11 +1,11 @@
 <?php
 
-namespace BaoPham\DynamoDb;
+namespace Rennokki\DynamoDb;
 
 /**
  * Class RawDynamoDbQuery
  *
- * @package BaoPham\DynamoDb
+ * @package Rennokki\DynamoDb
  */
 class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
 {

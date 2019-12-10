@@ -1,12 +1,13 @@
 <?php
 
-namespace BaoPham\DynamoDb\Tests\Parsers;
+namespace Rennokki\DynamoDb\Tests\Parsers;
 
-use BaoPham\DynamoDb\ComparisonOperator;
-use BaoPham\DynamoDb\Parsers\ConditionExpression;
-use BaoPham\DynamoDb\Parsers\ExpressionAttributeNames;
-use BaoPham\DynamoDb\Parsers\ExpressionAttributeValues;
-use BaoPham\DynamoDb\Parsers\Placeholder;
+use Illuminate\Support\Arr;
+use Rennokki\DynamoDb\ComparisonOperator;
+use Rennokki\DynamoDb\Parsers\ConditionExpression;
+use Rennokki\DynamoDb\Parsers\ExpressionAttributeNames;
+use Rennokki\DynamoDb\Parsers\ExpressionAttributeValues;
+use Rennokki\DynamoDb\Parsers\Placeholder;
 use PHPUnit\Framework\TestCase;
 
 class ConditionExpressionTest extends TestCase
@@ -156,7 +157,7 @@ class ConditionExpressionTest extends TestCase
         $this->assertEquals(['BOOL' => true], $this->values->get(':a13'));
         $this->assertEquals(['S' => 'android'], $this->values->get(':a14'));
 
-        $columns = array_filter(array_pluck($where, 'column'));
+        $columns = array_filter(Arr::pluck($where, 'column'));
 
         foreach ($columns as $column) {
             $this->assertEquals($column, $this->names->get("#{$column}"));

@@ -1,6 +1,6 @@
 <?php
 
-namespace BaoPham\DynamoDb;
+namespace Rennokki\DynamoDb;
 
 use Illuminate\Support\Facades\App;
 
@@ -13,13 +13,13 @@ trait ModelTrait
         $observer = static::getObserverClassName();
 
         static::observe(new $observer(
-            App::make('BaoPham\DynamoDb\DynamoDbClientInterface')
+            App::make('Rennokki\DynamoDb\DynamoDbClientInterface')
         ));
     }
 
     public static function getObserverClassName()
     {
-        return 'BaoPham\DynamoDb\ModelObserver';
+        return 'Rennokki\DynamoDb\ModelObserver';
     }
 
     public function getDynamoDbTableName()

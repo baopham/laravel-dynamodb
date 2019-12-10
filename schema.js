@@ -117,7 +117,11 @@ params = {
         // ... more global secondary indexes ...
     ]
 };
+
 dynamodb.createTable(params, function(err, data) {
-    if (err) print(err); // an error occurred
-    else print(data); // successful response
+    if (err) {
+        print(err);
+    } else {
+        print(data);
+    }
 });

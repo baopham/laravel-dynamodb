@@ -1,11 +1,11 @@
 <?php
 
-namespace BaoPham\DynamoDb\Tests\Facades;
+namespace Rennokki\DynamoDb\Tests\Facades;
 
 use Aws\DynamoDb\DynamoDbClient;
-use BaoPham\DynamoDb\DynamoDb\QueryBuilder;
-use BaoPham\DynamoDb\Facades\DynamoDb;
-use BaoPham\DynamoDb\Tests\DynamoDbTestCase;
+use Rennokki\DynamoDb\DynamoDb\QueryBuilder;
+use Rennokki\DynamoDb\Facades\DynamoDb;
+use Rennokki\DynamoDb\Tests\DynamoDbTestCase;
 
 class DynamoDbFacadeTest extends DynamoDbTestCase
 {

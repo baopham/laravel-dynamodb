@@ -1,6 +1,6 @@
 <?php
 
-namespace BaoPham\DynamoDb\ConditionAnalyzer;
+namespace Rennokki\DynamoDb\ConditionAnalyzer;
 
 class Index
 {

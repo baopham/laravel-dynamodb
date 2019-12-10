@@ -1,40 +1,48 @@
 {
-    "name": "baopham/dynamodb",
-    "description": "Eloquent syntax for DynamoDB",
-    "keywords": ["laravel", "dynamodb", "aws"],
+    "name": "rennokki/dynamodb",
+    "description": "AWS DynamoDB Eloquent ORM for Laravel 6+",
+    "keywords": ["laravel", "dynamodb", "aws", "amazon", "query"],
     "require": {
         "aws/aws-sdk-php": "^3.0.0",
-        "illuminate/support": "5.1.* || 5.2.* || 5.3.* || 5.4.* || 5.5.* || 5.6.* || 5.7.* || 5.8.*",
-        "illuminate/database": "5.1.* || 5.2.* || 5.3.* || 5.4.* || 5.5.* || 5.6.* || 5.7.* || 5.8.*"
+        "illuminate/support": "^6.0",
+        "illuminate/database": "^6.0"
     },
     "license": "MIT",
     "authors": [
         {
             "name": "Bao Pham",
             "email": "gbaopham@gmail.com"
+        },
+        {
+            "name": "Alex Renoki",
+            "email": "rennokki@gmail.com",
+            "homepage": "https://twitter.com/rennokki",
+            "role": "Developer"
         }
     ],
     "autoload": {
         "psr-4": {
-            "BaoPham\\DynamoDb\\": "src/"
+            "Rennokki\\DynamoDb\\": "src/"
         }
     },
     "require-dev": {
-        "orchestra/testbench": "~3.0"
+        "phpunit/phpunit": "^6.2|^7.0|^8.0",
+        "orchestra/testbench": "~3.5.0|~3.6.0|~4.0.0",
+        "orchestra/database": "~3.5.0|~3.6.0|~4.0.0"
     },
     "scripts": {
         "test": "phpunit",
-        "dynamodb_local": "java -Djava.library.path=./DynamoDBLocal_lib -jar dynamodb_local/DynamoDBLocal.jar --port 3000"
+        "local": "java -Djava.library.path=./DynamoDBLocal_lib -jar local/DynamoDBLocal.jar --port 3000"
     },
     "autoload-dev": {
         "psr-4": {
-            "BaoPham\\DynamoDb\\Tests\\": "tests/"
+            "Rennokki\\DynamoDb\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "BaoPham\\DynamoDb\\DynamoDbServiceProvider"
+                "Rennokki\\DynamoDb\\DynamoDbServiceProvider"
             ]
         }
     }

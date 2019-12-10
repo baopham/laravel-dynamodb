@@ -1,13 +1,13 @@
 <?php
 
-namespace BaoPham\DynamoDb\DynamoDb;
+namespace Rennokki\DynamoDb\DynamoDb;
 
-use BaoPham\DynamoDb\DynamoDbClientInterface;
+use Rennokki\DynamoDb\DynamoDbClientInterface;
 
 /**
  * Class DynamoDb
  *
- * @package BaoPham\DynamoDb\DynamoDb
+ * @package Rennokki\DynamoDb\DynamoDb
  */
 class DynamoDbManager
 {

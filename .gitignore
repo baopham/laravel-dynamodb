@@ -1,8 +1,6 @@
-vendor
+/vendor
+.DS_Store
+composer.phar
 composer.lock
-dynamodb_local_test.db
-/nbproject
-*.log
-.php_cs.cache
-
-.phpunit.result.cache
+local_init.db
+local_test.db

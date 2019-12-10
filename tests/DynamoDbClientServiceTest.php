@@ -1,15 +1,15 @@
 <?php
 
-namespace BaoPham\DynamoDb\Tests;
+namespace Rennokki\DynamoDb\Tests;
 
-use BaoPham\DynamoDb\DynamoDbClientInterface;
-use BaoPham\DynamoDb\DynamoDbModel;
+use Rennokki\DynamoDb\DynamoDbClientInterface;
+use Rennokki\DynamoDb\DynamoDbModel;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Class DynamoDbClientServiceTest
  *
- * @package BaoPham\DynamoDb\Tests
+ * @package Rennokki\DynamoDb\Tests
  */
 class DynamoDbClientServiceTest extends TestCase
 {

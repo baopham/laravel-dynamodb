@@ -1,14 +1,14 @@
 <?php
 
-namespace BaoPham\DynamoDb\Tests;
+namespace Rennokki\DynamoDb\Tests;
 
-use BaoPham\DynamoDb\DynamoDbServiceProvider;
+use Rennokki\DynamoDb\DynamoDbServiceProvider;
 use Orchestra\Testbench\TestCase;
 
 /**
  * Class DynamoDbTestCase
  *
- * @package BaoPham\DynamoDb\Tests
+ * @package Rennokki\DynamoDb\Tests
  */
 abstract class DynamoDbTestCase extends TestCase
 {
@@ -34,7 +34,7 @@ abstract class DynamoDbTestCase extends TestCase
     {
         $app['config']->set('dynamodb.connections.test', [
             'credentials' => [
-                'key' => 'dynamodb_local',
+                'key' => 'local',
                 'secret' => 'secret',
             ],
             'region' => 'test',
@@ -44,6 +44,6 @@ abstract class DynamoDbTestCase extends TestCase
 
     protected function setUpDatabase()
     {
-        copy(dirname(__FILE__) . '/../dynamodb_local_init.db', dirname(__FILE__) . '/../dynamodb_local_test.db');
+        copy(dirname(__FILE__) . '/../local_init.db', dirname(__FILE__) . '/../local_test.db');
     }
 }

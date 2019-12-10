@@ -1,19 +1,19 @@
 <?php
 
-namespace BaoPham\DynamoDb\Tests;
+namespace Rennokki\DynamoDb\Tests;
 
 use PHPUnit\Framework\TestCase;
 
 /**
  * Class EmptyAttributeFilterTest
  *
- * @package BaoPham\DynamoDb\Tests
+ * @package Rennokki\DynamoDb\Tests
  */
 class EmptyAttributeFilterTest extends TestCase
 {
     public function testEmptyAttributeFilter()
     {
-        $filter = new \BaoPham\DynamoDb\EmptyAttributeFilter();
+        $filter = new \Rennokki\DynamoDb\EmptyAttributeFilter();
 
         $attributes = [
             'attr1' => [],

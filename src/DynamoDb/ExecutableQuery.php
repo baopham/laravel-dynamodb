@@ -1,13 +1,13 @@
 <?php
 
-namespace BaoPham\DynamoDb\DynamoDb;
+namespace Rennokki\DynamoDb\DynamoDb;
 
 use Aws\DynamoDb\DynamoDbClient;
 
 /**
  * Class ExecutableQuery
  *
- * @package BaoPham\DynamoDb\DynamoDb
+ * @package Rennokki\DynamoDb\DynamoDb
  *
  * @method \Aws\Result batchGetItem()
  * @method \GuzzleHttp\Promise\Promise batchGetItemAsync()

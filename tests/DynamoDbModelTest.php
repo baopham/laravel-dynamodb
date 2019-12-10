@@ -1,18 +1,18 @@
 <?php
 
-namespace BaoPham\DynamoDb\Tests;
+namespace Rennokki\DynamoDb\Tests;
 
 use Aws\DynamoDb\Marshaler;
 
 /**
  * Class DynamoDbModelTest
  *
- * @package BaoPham\DynamoDb\Tests
+ * @package Rennokki\DynamoDb\Tests
  */
 abstract class DynamoDbModelTest extends DynamoDbTestCase
 {
     /**
-     * @var \BaoPham\DynamoDb\DynamoDbModel
+     * @var \Rennokki\DynamoDb\DynamoDbModel
      */
     protected $testModel;
 

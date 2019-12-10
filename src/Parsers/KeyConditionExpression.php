@@ -1,14 +1,15 @@
 <?php
 
-namespace BaoPham\DynamoDb\Parsers;
+namespace Rennokki\DynamoDb\Parsers;
 
-use BaoPham\DynamoDb\ComparisonOperator;
+use Illuminate\Support\Arr;
+use Rennokki\DynamoDb\ComparisonOperator;
 
 class KeyConditionExpression extends ConditionExpression
 {
     protected function getSupportedOperators()
     {
-        return array_only(static::OPERATORS, [
+        return Arr::only(static::OPERATORS, [
             ComparisonOperator::EQ,
             ComparisonOperator::LE,
             ComparisonOperator::LT,

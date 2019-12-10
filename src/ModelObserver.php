@@ -1,6 +1,6 @@
 <?php
 
-namespace BaoPham\DynamoDb;
+namespace Rennokki\DynamoDb;
 
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -21,7 +21,7 @@ class ModelObserver
     protected $marshaler;
 
     /**
-     * @var \BaoPham\DynamoDb\EmptyAttributeFilter
+     * @var \Rennokki\DynamoDb\EmptyAttributeFilter
      */
     protected $attributeFilter;
 

@@ -1,22 +1,22 @@
-laravel-dynamodb
+Laravel DynamoDB
 ================
 
-[![Latest Stable Version](https://poser.pugx.org/baopham/dynamodb/v/stable)](https://packagist.org/packages/baopham/dynamodb)
-[![Total Downloads](https://poser.pugx.org/baopham/dynamodb/downloads)](https://packagist.org/packages/baopham/dynamodb)
-[![Latest Unstable Version](https://poser.pugx.org/baopham/dynamodb/v/unstable)](https://packagist.org/packages/baopham/dynamodb)
-[![Build Status](https://travis-ci.org/baopham/laravel-dynamodb.svg?branch=master)](https://travis-ci.org/baopham/laravel-dynamodb)
-[![Code Coverage](https://scrutinizer-ci.com/g/baopham/laravel-dynamodb/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/baopham/laravel-dynamodb/?branch=master)
-[![License](https://poser.pugx.org/baopham/dynamodb/license)](https://packagist.org/packages/baopham/dynamodb)
+[![Latest Stable Version](https://poser.pugx.org/rennokki/dynamodb/v/stable)](https://packagist.org/packages/rennokki/dynamodb)
+[![Total Downloads](https://poser.pugx.org/rennokki/dynamodb/downloads)](https://packagist.org/packages/rennokki/dynamodb)
+[![Latest Unstable Version](https://poser.pugx.org/rennokki/dynamodb/v/unstable)](https://packagist.org/packages/rennokki/dynamodb)
+[![Build Status](https://travis-ci.org/rennokki/laravel-dynamodb.svg?branch=master)](https://travis-ci.org/rennokki/laravel-dynamodb)
+[![Code Coverage](https://scrutinizer-ci.com/g/rennokki/laravel-dynamodb/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/rennokki/laravel-dynamodb/?branch=master)
+[![License](https://poser.pugx.org/rennokki/dynamodb/license)](https://packagist.org/packages/rennokki/dynamodb)
+
+Forked from [Bao Pham](https://github.com/baopham/laravel-dynamodb) to add support for Laravel 6.0^
 
 Supports all key types - primary hash key and composite keys.
 
-> For advanced users only. If you're not familiar with Laravel, Laravel Eloquent and DynamoDB, then I suggest that you get familiar with those first. 
-
-**Breaking changes in v2: config no longer lives in config/services.php**
+> For advanced users only. If you're not familiar with Laravel, Laravel Eloquent and DynamoDB, then I suggest that you get familiar with those first.
 
 * [Install](#install)
 * [Usage](#usage)
-  * [find() and delete()](#find-and-delete) 
+  * [find() and delete()](#find-and-delete)
   * [Conditions](#conditions)
   * [all() and first()](#all-and-first)
   * [Pagination](#pagination)
@@ -36,7 +36,6 @@ Supports all key types - primary hash key and composite keys.
 * [Composite Keys](#composite-keys)
 * [Query Builder](#query-builder)
 * [Requirements](#requirements)
-* [Migrate from v1 to v2](#migrate-from-v1-to-v2)
 * [FAQ](#faq)
 * [License](LICENSE)
 * [Author and Contributors](#author-and-contributors)
@@ -46,9 +45,9 @@ Install
 
 * Composer install
     ```bash
-    composer require baopham/dynamodb
+    composer require rennokki/dynamodb
     ```
- 
+
 * Install service provider:
 
     ```php
@@ -56,33 +55,33 @@ Install
 
     'providers' => [
         ...
-        BaoPham\DynamoDb\DynamoDbServiceProvider::class,
+        Rennokki\DynamoDb\DynamoDbServiceProvider::class,
         ...
     ];
-    ``` 
-    
+    ```
+
 * Run
 
     ```php
     php artisan vendor:publish
-    ``` 
-    
+    ```
+
 * Update DynamoDb config in [config/dynamodb.php](config/dynamodb.php)
 
 **For Lumen**
 
 * Try [this](https://github.com/laravelista/lumen-vendor-publish) to install the `vendor:publish` command
-  
+
 * Load configuration file and enable Eloquent support in `bootstrap/app.php`:
-  
+
   ```php
   $app = new Laravel\Lumen\Application(
       realpath(__DIR__.'/../')
   );
-   
+
   // Load dynamodb config file
   $app->configure('dynamodb');
-   
+
   // Enable Eloquent support
   $app->withEloquent();
   ```
@@ -91,10 +90,10 @@ Install
 
 Usage
 -----
-* Extends your model with `BaoPham\DynamoDb\DynamoDbModel`, then you can use Eloquent methods that are supported. The idea here is that you can switch back to Eloquent without changing your queries.  
-* Or if you want to sync your DB table with a DynamoDb table, use trait `BaoPham\DynamoDb\ModelTrait`, it will call a `PutItem` after the model is saved.
+* Extends your model with `Rennokki\DynamoDb\DynamoDbModel`, then you can use Eloquent methods that are supported. The idea here is that you can switch back to Eloquent without changing your queries.
+* Or if you want to sync your DB table with a DynamoDb table, use trait `Rennokki\DynamoDb\ModelTrait`, it will call a `PutItem` after the model is saved.
 * Alternatively, you can use the [query builder](#query-builder) facade to build more complex queries.
-* AWS SDK v3 for PHP uses guzzlehttp promises to allow for asynchronous workflows. Using this package you can run eloquent queries like [delete](#deleteasync), [update](#updateasync), [save](#saveasync) asynchronously on DynamoDb. 
+* AWS SDK v3 for PHP uses guzzlehttp promises to allow for asynchronous workflows. Using this package you can run eloquent queries like [delete](#deleteasync), [update](#updateasync), [save](#saveasync) asynchronously on DynamoDb.
 
 ### Supported features:
 
@@ -121,12 +120,12 @@ $model->where(['key' => 'key value']);
 $model->where('foo', 'bar')
     ->where('foo2', '!=' 'bar2')
     ->get();
-    
+
 // Chainable for 'OR'.
 $model->where('foo', 'bar')
     ->orWhere('foo2', '!=' 'bar2')
     ->get();
- 
+
 // Other types of conditions
 $model->where('count', '>', 0)->get();
 $model->where('count', '>=', 0)->get();
@@ -152,8 +151,8 @@ $model->where('nestedMap.foo', 'bar')->where('list[0]', 'baz')->get();
 
 ##### whereNull() and whereNotNull()
 
-> NULL and NOT_NULL only check for the attribute presence not its value being null  
-> See: http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Condition.html  
+> NULL and NOT_NULL only check for the attribute presence not its value being null
+> See: http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Condition.html
 
 ```php
 $model->whereNull('name');
@@ -173,7 +172,7 @@ $model->first();
 #### Pagination
 
 Unfortunately, offset of how many records to skip does not make sense for DynamoDb.
-Instead, provide the last result of the previous query as the starting point for the next query.  
+Instead, provide the last result of the previous query as the starting point for the next query.
 
 **Examples:**
 
@@ -233,9 +232,9 @@ $model->fillableAttr2 = 'bar';
 // DynamoDb doesn't support incremented Id, so you need to use UUID for the primary key.
 $model->id = 'de305d54-75b4-431b-adb2-eb6b9e546014';
 $model->saveAsync()->wait();
-```  
+```
 
-Saving multiple models asynchronously and waiting on all of them simultaneously.  
+Saving multiple models asynchronously and waiting on all of them simultaneously.
 
 ```php
 for($i = 0; $i < 10; $i++){
@@ -250,7 +249,7 @@ for($i = 0; $i < 10; $i++){
 }
 
 \GuzzleHttp\Promise\all($promises)->wait();
-```  
+```
 
 #### delete()
 
@@ -421,7 +420,7 @@ protected $dynamoDbIndexKeys = [
 ];
 ```
 
-Note that order of index matters when a key exists in multiple indexes.  
+Note that order of index matters when a key exists in multiple indexes.
 For example, we have this
 
 ```php
@@ -489,7 +488,7 @@ Query Builder
 Use `DynamoDb` facade to build raw queries
 
 ```php
-use BaoPham\DynamoDb\Facades\DynamoDb;
+use Rennokki\DynamoDb\Facades\DynamoDb;
 
 DynamoDb::table('articles')
     // call set<key_name> to build the query body to be sent to AWS
@@ -499,7 +498,7 @@ DynamoDb::table('articles')
     ->prepare()
     // the query body will be sent upon calling this.
     ->scan(); // supports any DynamoDbClient methods (e.g. batchWriteItem, batchGetItem, etc.)
-  
+
 DynamoDb::table('articles')
     ->setIndex('author_name')
     ->setKeyConditionExpression('#name = :name')
@@ -538,7 +537,7 @@ DynamoDb::client();
 DynamoDb::client('test');
 ```
 
-The query builder methods are in the form of `set<key_name>`, where `<key_name>` is the key name of the query body to be sent.  
+The query builder methods are in the form of `set<key_name>`, where `<key_name>` is the key name of the query body to be sent.
 
 For example, to build an [`UpdateTable`](https://docs.aws.amazon.com/aws-sdk-php/v3/api/api-dynamodb-2012-08-10.html#updatetable) query:
 
@@ -566,38 +565,24 @@ $query->prepare()->updateTable();
 
 Requirements
 -------------
-Laravel ^5.1
-
-
-Migrate from v1 to v2
----------------------
-
-Follow these steps:
-
-1. Update your `composer.json` to use v2
-1. Run `composer update`
-1. Run `php artisan vendor:publish`
-1. Move your DynamoDb config in `config/services.php` to the new config file `config/dynamodb.php` as one of the connections
-    1. Move `key`, `secret`, `token` inside `credentials`
-    1. Rename `local_endpoint` to `endpoint`
-    1. Remove `local` field
+Laravel ^6.0
 
 
 FAQ
 ---
-Q: Cannot assign `id` property if its not in the fillable array  
-A: Try [this](https://github.com/baopham/laravel-dynamodb/issues/10)?  
+Q: Cannot assign `id` property if its not in the fillable array
+A: Try [this](https://github.com/baopham/laravel-dynamodb/issues/10)?
 
 
-Q: How to create migration?  
-A: Please see [this issue](https://github.com/baopham/laravel-dynamodb/issues/90)  
+Q: How to create migration?
+A: Please see [this issue](https://github.com/baopham/laravel-dynamodb/issues/90)
 
 
-Q: How to use with factory?  
-A: Please see [this issue](https://github.com/baopham/laravel-dynamodb/issues/111)  
+Q: How to use with factory?
+A: Please see [this issue](https://github.com/baopham/laravel-dynamodb/issues/111)
 
 
-Q: How do I use with Job? Getting a SerializesModels error  
+Q: How do I use with Job? Getting a SerializesModels error
 A: You can either [write your own restoreModel](https://github.com/baopham/laravel-dynamodb/issues/132) or remove the `SerializesModels` trait from your Job.
 
 
@@ -609,3 +594,4 @@ Author and Contributors
 * [Quang Ngo](https://github.com/vanquang9387)
 * [David Higgins](https://github.com/zoul0813)
 * [Damon Williams](https://github.com/footballencarta)
+* [Alex Renoki](https://github.com/rennokki)
