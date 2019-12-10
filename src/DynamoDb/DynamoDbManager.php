@@ -5,9 +5,7 @@ namespace Rennokki\DynamoDb\DynamoDb;
 use Rennokki\DynamoDb\DynamoDbClientInterface;
 
 /**
- * Class DynamoDb
- *
- * @package Rennokki\DynamoDb\DynamoDb
+ * Class DynamoDb.
  */
 class DynamoDbManager
 {

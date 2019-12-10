@@ -5,9 +5,7 @@ namespace Rennokki\DynamoDb\Tests;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Class EmptyAttributeFilterTest
- *
- * @package Rennokki\DynamoDb\Tests
+ * Class EmptyAttributeFilterTest.
  */
 class EmptyAttributeFilterTest extends TestCase
 {

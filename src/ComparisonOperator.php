@@ -95,6 +95,7 @@ class ComparisonOperator
     public static function is($op, $dynamoDbOperator)
     {
         $mapping = static::getOperatorMapping();
+
         return $mapping[strtolower($op)] === $dynamoDbOperator;
     }
 }

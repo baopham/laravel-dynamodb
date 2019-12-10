@@ -3,12 +3,10 @@
 namespace Rennokki\DynamoDb;
 
 /**
- * Class H
+ * Class H.
  *
  * Short for "Helper".
  * We often get breaking changes from Laravel Helpers, so to ensure this won't happen again, we port the helpers here.
- *
- * @package Rennokki\DynamoDb
  */
 class H
 {
@@ -27,6 +25,7 @@ class H
                 return $value;
             }
         }
+
         return static::value($default);
     }
 

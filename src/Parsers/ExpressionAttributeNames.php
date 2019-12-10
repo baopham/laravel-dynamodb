@@ -29,6 +29,7 @@ class ExpressionAttributeNames
     {
         if ($this->isNested($name)) {
             $this->nested[] = $name;
+
             return;
         }
         $this->mapping["{$this->prefix}{$name}"] = $name;
@@ -45,6 +46,7 @@ class ExpressionAttributeNames
         if (isset($this->mapping[$placeholder])) {
             return $placeholder;
         }
+
         return $name;
     }
 

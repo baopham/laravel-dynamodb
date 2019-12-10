@@ -3,8 +3,8 @@
 namespace Rennokki\DynamoDb;
 
 use Aws\DynamoDb\Marshaler;
-use Rennokki\DynamoDb\DynamoDb\DynamoDbManager;
 use Illuminate\Support\ServiceProvider;
+use Rennokki\DynamoDb\DynamoDb\DynamoDbManager;
 
 class DynamoDbServiceProvider extends ServiceProvider
 {

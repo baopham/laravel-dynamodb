@@ -25,6 +25,6 @@ class UpdateExpression
             $this->names->set($attribute);
         }
 
-        return 'REMOVE ' . implode(', ', $this->names->placeholders());
+        return 'REMOVE '.implode(', ', $this->names->placeholders());
     }
 }

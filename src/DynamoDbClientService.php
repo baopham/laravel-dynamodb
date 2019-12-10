@@ -2,9 +2,9 @@
 
 namespace Rennokki\DynamoDb;
 
-use Illuminate\Support\Arr;
 use Aws\DynamoDb\DynamoDbClient;
 use Aws\DynamoDb\Marshaler;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 
 class DynamoDbClientService implements DynamoDbClientInterface

@@ -2,14 +2,12 @@
 
 namespace Rennokki\DynamoDb\Tests;
 
+use PHPUnit\Framework\TestCase;
 use Rennokki\DynamoDb\DynamoDbClientInterface;
 use Rennokki\DynamoDb\DynamoDbModel;
-use PHPUnit\Framework\TestCase;
 
 /**
- * Class DynamoDbClientServiceTest
- *
- * @package Rennokki\DynamoDb\Tests
+ * Class DynamoDbClientServiceTest.
  */
 class DynamoDbClientServiceTest extends TestCase
 {
@@ -36,7 +34,7 @@ class DynamoDbClientServiceTest extends TestCase
     }
 
     /**
-     * Test that the getter and setter behave as expected for the DynamoDbClientService
+     * Test that the getter and setter behave as expected for the DynamoDbClientService.
      *
      * @test
      */
@@ -56,7 +54,7 @@ class DynamoDbClientServiceTest extends TestCase
     }
 
     /**
-     * The unset method for the DynamoDbClientService should cause the internal DynamoDbClientService to be set to null
+     * The unset method for the DynamoDbClientService should cause the internal DynamoDbClientService to be set to null.
      *
      * @test
      */
@@ -73,7 +71,7 @@ class DynamoDbClientServiceTest extends TestCase
     }
 
     /**
-     * Make sure we are not leaving any values set on the DynamoDbModel
+     * Make sure we are not leaving any values set on the DynamoDbModel.
      */
     public function tearDown(): void
     {

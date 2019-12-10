@@ -5,9 +5,8 @@ namespace Rennokki\DynamoDb\DynamoDb;
 use Aws\DynamoDb\DynamoDbClient;
 
 /**
- * Class ExecutableQuery
+ * Class ExecutableQuery.
  *
- * @package Rennokki\DynamoDb\DynamoDb
  *
  * @method \Aws\Result batchGetItem()
  * @method \GuzzleHttp\Promise\Promise batchGetItemAsync()

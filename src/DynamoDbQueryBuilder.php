@@ -2,15 +2,14 @@
 
 namespace Rennokki\DynamoDb;
 
-use Illuminate\Support\Arr;
-use Rennokki\DynamoDb\Concerns\HasParsers;
-use Rennokki\DynamoDb\ConditionAnalyzer\Analyzer;
-use Rennokki\DynamoDb\Facades\DynamoDb;
-use Rennokki\DynamoDb\H;
 use Closure;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Scope;
+use Illuminate\Support\Arr;
+use Rennokki\DynamoDb\Concerns\HasParsers;
+use Rennokki\DynamoDb\ConditionAnalyzer\Analyzer;
+use Rennokki\DynamoDb\Facades\DynamoDb;
 
 class DynamoDbQueryBuilder
 {
@@ -174,7 +173,7 @@ class DynamoDbQueryBuilder
      * Similar to after(), but instead of using the model instance, the model's keys are used.
      * Use $collection->lastKey() or $model->getKeys() to retrieve the value.
      *
-     * @param  Array  $key
+     * @param  array  $key
      *   Examples:
      *
      *   For query such as
@@ -190,11 +189,12 @@ class DynamoDbQueryBuilder
     public function afterKey($key = null)
     {
         $this->lastEvaluatedKey = empty($key) ? null : DynamoDb::marshalItem($key);
+
         return $this;
     }
 
     /**
-     * Set the index name manually
+     * Set the index name manually.
      *
      * @param string $index The index name
      * @return $this
@@ -202,6 +202,7 @@ class DynamoDbQueryBuilder
     public function withIndex($index)
     {
         $this->index = $index;
+
         return $this;
     }
 
@@ -222,7 +223,7 @@ class DynamoDbQueryBuilder
         // passed to the method, we will assume that the operator is an equals sign
         // and keep going. Otherwise, we'll require the operator to be passed in.
         if (func_num_args() == 2) {
-            list($value, $operator) = [$operator, '='];
+            [$value, $operator] = [$operator, '='];
         }
 
         // If the columns is actually a Closure instance, we will assume the developer
@@ -235,8 +236,8 @@ class DynamoDbQueryBuilder
         // If the given operator is not found in the list of valid operators we will
         // assume that the developer is just short-cutting the '=' operators and
         // we will set the operators to '=' and set the values appropriately.
-        if (!ComparisonOperator::isValidOperator($operator)) {
-            list($value, $operator) = [$operator, '='];
+        if (! ComparisonOperator::isValidOperator($operator)) {
+            [$value, $operator] = [$operator, '='];
         }
 
         // If the value is a Closure, it means the developer is performing an entire
@@ -420,7 +421,7 @@ class DynamoDbQueryBuilder
     }
 
     /**
-     * Implements the Query Chunk method
+     * Implements the Query Chunk method.
      *
      * @param int $chunkSize
      * @param callable $callback
@@ -430,7 +431,7 @@ class DynamoDbQueryBuilder
         while (true) {
             $results = $this->getAll([], $chunkSize, false);
 
-            if (!$results->isEmpty()) {
+            if (! $results->isEmpty()) {
                 if (call_user_func($callback, $results) === false) {
                     return false;
                 }
@@ -463,7 +464,7 @@ class DynamoDbQueryBuilder
             ->setKey(DynamoDb::marshalItem($this->model->getKeys()))
             ->setConsistentRead(true);
 
-        if (!empty($columns)) {
+        if (! empty($columns)) {
             $query
                 ->setProjectionExpression($this->projectionExpression->parse($columns))
                 ->setExpressionAttributeNames($this->expressionAttributeNames->all());
@@ -474,7 +475,7 @@ class DynamoDbQueryBuilder
         $item = Arr::get($item->toArray(), 'Item');
 
         if (empty($item)) {
-            return null;
+            return;
         }
 
         $item = DynamoDb::unmarshalItem($item);
@@ -568,7 +569,7 @@ class DynamoDbQueryBuilder
     }
 
     /**
-     * Remove attributes from an existing item
+     * Remove attributes from an existing item.
      *
      * @param array ...$attributes
      * @return bool
@@ -576,12 +577,12 @@ class DynamoDbQueryBuilder
      */
     public function removeAttribute(...$attributes)
     {
-        $keySet = !empty(array_filter($this->model->getKeys()));
+        $keySet = ! empty(array_filter($this->model->getKeys()));
 
-        if (!$keySet) {
+        if (! $keySet) {
             $analyzer = $this->getConditionAnalyzer();
 
-            if (!$analyzer->isExactSearch()) {
+            if (! $analyzer->isExactSearch()) {
                 throw new InvalidQuery('Need to provide the key in your query');
             }
 
@@ -660,7 +661,8 @@ class DynamoDbQueryBuilder
     public function all($columns = [])
     {
         $limit = isset($this->limit) ? $this->limit : static::MAX_LIMIT;
-        return $this->getAll($columns, $limit, !isset($this->limit));
+
+        return $this->getAll($columns, $limit, ! isset($this->limit));
     }
 
     public function count()
@@ -680,13 +682,14 @@ class DynamoDbQueryBuilder
     public function decorate(Closure $closure)
     {
         $this->decorator = $closure;
+
         return $this;
     }
 
     protected function getAll(
         $columns = [],
-        $limit = DynamoDbQueryBuilder::MAX_LIMIT,
-        $useIterator = DynamoDbQueryBuilder::DEFAULT_TO_ITERATOR
+        $limit = self::MAX_LIMIT,
+        $useIterator = self::DEFAULT_TO_ITERATOR
     ) {
         $analyzer = $this->getConditionAnalyzer();
 
@@ -728,7 +731,7 @@ class DynamoDbQueryBuilder
     }
 
     /**
-     * Return the raw DynamoDb query
+     * Return the raw DynamoDb query.
      *
      * @param array $columns
      * @param int $limit
@@ -736,7 +739,7 @@ class DynamoDbQueryBuilder
      */
     public function toDynamoDbQuery(
         $columns = [],
-        $limit = DynamoDbQueryBuilder::MAX_LIMIT
+        $limit = self::MAX_LIMIT
     ) {
         $this->applyScopes();
 
@@ -771,7 +774,7 @@ class DynamoDbQueryBuilder
             $queryBuilder->setLimit($limit);
         }
 
-        if (!empty($columns)) {
+        if (! empty($columns)) {
             // Either we try to get the count or specific columns
             if ($columns == ['count(*)']) {
                 $queryBuilder->setSelect('COUNT');
@@ -780,7 +783,7 @@ class DynamoDbQueryBuilder
             }
         }
 
-        if (!empty($this->lastEvaluatedKey)) {
+        if (! empty($this->lastEvaluatedKey)) {
             $queryBuilder->setExclusiveStartKey($this->lastEvaluatedKey);
         }
 
@@ -814,7 +817,7 @@ class DynamoDbQueryBuilder
 
         // could be ['id' => 'foo'], ['id1' => 'foo', 'id2' => 'bar']
         $single = $keys->first(function ($name) use ($id) {
-            return !isset($id[$name]);
+            return ! isset($id[$name]);
         }) === null;
 
         if ($single) {
@@ -925,7 +928,7 @@ class DynamoDbQueryBuilder
                 continue;
             }
 
-            $builder->callScope(function (DynamoDbQueryBuilder $builder) use ($scope) {
+            $builder->callScope(function (self $builder) use ($scope) {
                 // If the scope is a Closure we will just go ahead and call the scope with the
                 // builder instance. The "callScope" method will properly group the clauses
                 // that are added to this query so "where" clauses maintain proper logic.

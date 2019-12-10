@@ -24,7 +24,7 @@ class DynamoDbCollection extends Collection
         $after = $this->last();
 
         if (empty($after)) {
-            return null;
+            return;
         }
 
         $afterKey = $after->getKeys();

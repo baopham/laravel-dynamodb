@@ -2,10 +2,10 @@
 
 namespace Rennokki\DynamoDb;
 
-use Exception;
 use DateTime;
-use Illuminate\Support\Arr;
+use Exception;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 
 /**
  * Class DynamoDbModel.
@@ -46,7 +46,7 @@ abstract class DynamoDbModel extends Model
      *          'hash' => '<index_hash_key>',
      *          'range' => '<index_range_key>'
      *     ],
-     *   ]
+     *   ].
      *
      * @var array
      */
@@ -54,7 +54,7 @@ abstract class DynamoDbModel extends Model
 
     /**
      * Array of your composite key.
-     * ['<hash>', '<range>']
+     * ['<hash>', '<range>'].
      *
      * @var array
      */
@@ -62,10 +62,9 @@ abstract class DynamoDbModel extends Model
 
     /**
      * Default Date format
-     * ISO 8601 Compliant
+     * ISO 8601 Compliant.
      */
     protected $dateFormat = DateTime::ATOM;
-
 
     public function __construct(array $attributes = [])
     {
@@ -123,17 +122,17 @@ abstract class DynamoDbModel extends Model
 
     public function save(array $options = [])
     {
-        $create = !$this->exists;
+        $create = ! $this->exists;
 
         if ($this->fireModelEvent('saving') === false) {
             return false;
         }
 
-        if ($create && $this->fireModelEvent('creating')  === false) {
+        if ($create && $this->fireModelEvent('creating') === false) {
             return false;
         }
 
-        if (!$create && $this->fireModelEvent('updating') === false) {
+        if (! $create && $this->fireModelEvent('updating') === false) {
             return false;
         }
 
@@ -143,7 +142,7 @@ abstract class DynamoDbModel extends Model
 
         $saved = $this->newQuery()->save();
 
-        if (!$saved) {
+        if (! $saved) {
             return $saved;
         }
 
@@ -157,23 +156,23 @@ abstract class DynamoDbModel extends Model
     }
 
     /**
-     * Saves the model to DynamoDb asynchronously and returns a promise
+     * Saves the model to DynamoDb asynchronously and returns a promise.
      * @param array $options
      * @return bool|\GuzzleHttp\Promise\Promise
      */
     public function saveAsync(array $options = [])
     {
-        $create = !$this->exists;
+        $create = ! $this->exists;
 
         if ($this->fireModelEvent('saving') === false) {
             return false;
         }
 
-        if ($create && $this->fireModelEvent('creating')  === false) {
+        if ($create && $this->fireModelEvent('creating') === false) {
             return false;
         }
 
-        if (!$create && $this->fireModelEvent('updating') === false) {
+        if (! $create && $this->fireModelEvent('updating') === false) {
             return false;
         }
 
@@ -299,7 +298,7 @@ abstract class DynamoDbModel extends Model
 
     public function hasCompositeKey()
     {
-        return !empty($this->compositeKey);
+        return ! empty($this->compositeKey);
     }
 
     /**
@@ -334,7 +333,7 @@ abstract class DynamoDbModel extends Model
 
     public function setId($id)
     {
-        if (!is_array($id)) {
+        if (! is_array($id)) {
             $this->setAttribute($this->getKeyName(), $id);
 
             return $this;
