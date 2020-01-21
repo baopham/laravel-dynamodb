@@ -82,7 +82,10 @@ Install
    
   // Load dynamodb config file
   $app->configure('dynamodb');
-   
+
+  // Enable Facade support
+  $app->withFacades();
+
   // Enable Eloquent support
   $app->withEloquent();
   ```
