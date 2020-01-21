@@ -6,6 +6,7 @@ use Aws\DynamoDb\DynamoDbClient;
 use BadMethodCallException;
 use BaoPham\DynamoDb\DynamoDbClientInterface;
 use BaoPham\DynamoDb\RawDynamoDbQuery;
+use Illuminate\Support\Str;
 
 /**
  * Class QueryBuilder
@@ -109,7 +110,7 @@ class QueryBuilder
      */
     public function __call($method, $parameters)
     {
-        if (starts_with($method, 'set')) {
+        if (Str::startsWith($method, 'set')) {
             $key = array_reverse(explode('set', $method, 2))[0];
             $this->query[$key] = current($parameters);
 
