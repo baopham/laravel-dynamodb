@@ -504,7 +504,7 @@ DynamoDb::table('articles')
     ->scan(); // supports any DynamoDbClient methods (e.g. batchWriteItem, batchGetItem, etc.)
   
 DynamoDb::table('articles')
-    ->setIndex('author_name')
+    ->setIndexName('author_name')
     ->setKeyConditionExpression('#name = :name')
     ->setProjectionExpression('id, author_name')
     // Can set the attribute mapping one by one instead
