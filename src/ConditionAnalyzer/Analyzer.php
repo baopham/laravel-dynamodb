@@ -199,16 +199,11 @@ class Analyzer
 
     private function hasValidQueryOperator($hash, $range = null)
     {
-        $hashCondition = $this->getCondition($hash);
-
-        $validQueryOp = ComparisonOperator::isValidQueryDynamoDbOperator($hashCondition['type'] ?? null);
+        $hashConditionType = $this->getCondition($hash)['type'] ?? null;
+        $validQueryOp = ComparisonOperator::isValidQueryDynamoDbOperator($hashConditionType);
 
         if ($validQueryOp && $range) {
             $rangeConditionType = $this->getCondition($range)['type'] ?? null;
-            if ($rangeConditionType === null) {
-                return false;
-            }
-
             $validQueryOp = ComparisonOperator::isValidQueryDynamoDbOperator(
                 $rangeConditionType,
                 true
