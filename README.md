@@ -122,12 +122,12 @@ $model->where(['key' => 'key value']);
 
 // Chainable for 'AND'.
 $model->where('foo', 'bar')
-    ->where('foo2', '!=' 'bar2')
+    ->where('foo2', '!=', 'bar2')
     ->get();
     
 // Chainable for 'OR'.
 $model->where('foo', 'bar')
-    ->orWhere('foo2', '!=' 'bar2')
+    ->orWhere('foo2', '!=', 'bar2')
     ->get();
  
 // Other types of conditions
