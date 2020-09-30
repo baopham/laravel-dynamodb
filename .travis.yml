@@ -9,6 +9,7 @@ stages:
 php:
   - '7.2'
   - '7.3'
+  - '7.4'
 
 before_script:
   - java -Djava.library.path=./DynamoDBLocal_lib -jar dynamodb_local/DynamoDBLocal.jar --port 3000 &
