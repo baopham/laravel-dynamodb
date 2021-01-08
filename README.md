@@ -49,7 +49,7 @@ Install
     composer require baopham/dynamodb
     ```
  
-* Install service provider:
+* Install service provider (< Laravel 5.5):
 
     ```php
     // config/app.php
@@ -64,7 +64,7 @@ Install
 * Run
 
     ```php
-    php artisan vendor:publish
+    php artisan vendor:publish --provider 'BaoPham\DynamoDb\DynamoDbServiceProvider'
     ``` 
     
 * Update DynamoDb config in [config/dynamodb.php](config/dynamodb.php)
