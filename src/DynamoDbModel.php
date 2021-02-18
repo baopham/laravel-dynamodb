@@ -352,7 +352,7 @@ abstract class DynamoDbModel extends Model
      */
     public function getClient()
     {
-        return static::$dynamoDb->getClient($this->connection);
+        return static::$dynamoDb->getClient($this->getConnectionName());
     }
 
     /**
