@@ -77,9 +77,9 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
     public function testFirstOrNewFirst()
     {
         $seed = $this->seed();
-        $seedId = array_get($seed, 'id.S');
-        $seedName = array_get($seed, 'name.S');
-        $item = $this->testModel->firstOrNew(['id' => $seedId], ['name' => ['S' => str_random()]]);
+        $seedId = Arr::get($seed, 'id.S');
+        $seedName = Arr::get($seed, 'name.S');
+        $item = $this->testModel->firstOrNew(['id' => $seedId], ['name' => ['S' => Str::random()]]);
         $this->assertNotEmpty($item);
         $this->assertTrue($item->exists);
         $this->assertEquals([$seedId, $seedName], [$item->id, $item->name]);
@@ -92,7 +92,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
             'count' => rand()
         ];
         $extra = [
-            'name' => str_random()
+            'name' => Str::random()
         ];
 
         $item = $this->testModel->firstOrNew($attributes, $extra);
@@ -105,10 +105,10 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
     public function testFirstOrCreateFirst()
     {
         $seed = $this->seed();
-        $seedId = array_get($seed, 'id.S');
-        $seedName = array_get($seed, 'name.S');
+        $seedId = Arr::get($seed, 'id.S');
+        $seedName = Arr::get($seed, 'name.S');
 
-        $item = $this->testModel->firstOrCreate(['id' => $seedId], ['name' => str_random()]);
+        $item = $this->testModel->firstOrCreate(['id' => $seedId], ['name' => Str::random()]);
 
         $this->assertNotEmpty($item);
         $this->assertTrue($item->exists);
@@ -123,7 +123,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
             'count' => rand()
         ];
         $extra = [
-            'name' => str_random()
+            'name' => Str::random()
         ];
 
         $item = $this->testModel->firstOrCreate($attributes, $extra);
@@ -139,9 +139,9 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
     public function testUpdateOrCreateUpdate()
     {
         $seed = $this->seed();
-        $seedId = array_get($seed, 'id.S');
+        $seedId = Arr::get($seed, 'id.S');
 
-        $newName = str_random();
+        $newName = Str::random();
 
         $item = $this->testModel->updateOrCreate(['id' => $seedId], ['name' => $newName]);
 
@@ -158,7 +158,7 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
             'count' => rand()
         ];
         $extra = [
-            'name' => str_random()
+            'name' => Str::random()
         ];
 
         $item = $this->testModel->updateOrCreate($attributes, $extra);
