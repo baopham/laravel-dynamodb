@@ -5,6 +5,7 @@ namespace BaoPham\DynamoDb\ConditionAnalyzer;
 use BaoPham\DynamoDb\ComparisonOperator;
 use BaoPham\DynamoDb\DynamoDbModel;
 use BaoPham\DynamoDb\H;
+use Illuminate\Support\Arr;
 
 /**
  * Class ConditionAnalyzer
@@ -71,7 +72,7 @@ class Analyzer
         }
 
         foreach ($this->conditions as $condition) {
-            if (array_get($condition, 'type') !== ComparisonOperator::EQ) {
+            if (Arr::get($condition, 'type') !== ComparisonOperator::EQ) {
                 return false;
             }
         }
@@ -173,15 +174,15 @@ class Analyzer
         $index = null;
 
         foreach ($this->model->getDynamoDbIndexKeys() as $name => $keysInfo) {
-            $conditionKeys = array_pluck($this->conditions, 'column');
+            $conditionKeys = Arr::pluck($this->conditions, 'column');
             $keys = array_values($keysInfo);
 
             if (count(array_intersect($conditionKeys, $keys)) === count($keys)) {
                 if (!isset($this->indexName) || $this->indexName === $name) {
                     $index = new Index(
                         $name,
-                        array_get($keysInfo, 'hash'),
-                        array_get($keysInfo, 'range')
+                        Arr::get($keysInfo, 'hash'),
+                        Arr::get($keysInfo, 'range')
                     );
 
                     break;
@@ -198,15 +199,13 @@ class Analyzer
 
     private function hasValidQueryOperator($hash, $range = null)
     {
-        $hashCondition = $this->getCondition($hash);
-
-        $validQueryOp = ComparisonOperator::isValidQueryDynamoDbOperator($hashCondition['type']);
+        $hashConditionType = $this->getCondition($hash)['type'] ?? null;
+        $validQueryOp = ComparisonOperator::isValidQueryDynamoDbOperator($hashConditionType);
 
         if ($validQueryOp && $range) {
-            $rangeCondition = $this->getCondition($range);
-
+            $rangeConditionType = $this->getCondition($range)['type'] ?? null;
             $validQueryOp = ComparisonOperator::isValidQueryDynamoDbOperator(
-                $rangeCondition['type'],
+                $rangeConditionType,
                 true
             );
         }

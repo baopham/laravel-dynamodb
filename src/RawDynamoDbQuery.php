@@ -136,6 +136,8 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
      * For backward compatibility, previously we use array to represent the raw query
      *
      * @var array
+     *
+     * @return array
      */
     private function internal()
     {

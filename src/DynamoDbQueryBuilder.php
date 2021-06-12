@@ -10,6 +10,7 @@ use Closure;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Scope;
+use Illuminate\Support\Arr;
 
 class DynamoDbQueryBuilder
 {
@@ -211,8 +212,10 @@ class DynamoDbQueryBuilder
         // received when the method was called and pass it into the nested where.
         if (is_array($column)) {
             foreach ($column as $key => $value) {
-                return $this->where($key, '=', $value);
+                $this->where($key, '=', $value, $boolean);
             }
+
+            return $this;
         }
 
         // Here we will make some assumptions about the operator. If only 2 values are
@@ -427,7 +430,7 @@ class DynamoDbQueryBuilder
         while (true) {
             $results = $this->getAll([], $chunkSize, false);
 
-            if ($results->isNotEmpty()) {
+            if (!$results->isEmpty()) {
                 if (call_user_func($callback, $results) === false) {
                     return false;
                 }
@@ -468,7 +471,7 @@ class DynamoDbQueryBuilder
 
         $item = $query->prepare($this->client)->getItem();
 
-        $item = array_get($item->toArray(), 'Item');
+        $item = Arr::get($item->toArray(), 'Item');
 
         if (empty($item)) {
             return null;
@@ -626,7 +629,7 @@ class DynamoDbQueryBuilder
             ->prepare($this->client)
             ->updateItem();
 
-        $success = array_get($result, '@metadata.statusCode') === 200;
+        $success = Arr::get($result, '@metadata.statusCode') === 200;
 
         if ($success) {
             $this->model->setRawAttributes(DynamoDb::unmarshalItem($result->get('Attributes')));
@@ -643,7 +646,7 @@ class DynamoDbQueryBuilder
             ->prepare($this->client)
             ->deleteItem();
 
-        return array_get($result->toArray(), '@metadata.statusCode') === 200;
+        return Arr::get($result->toArray(), '@metadata.statusCode') === 200;
     }
 
     public function deleteAsync()
@@ -663,7 +666,7 @@ class DynamoDbQueryBuilder
             ->prepare($this->client)
             ->putItem();
 
-        return array_get($result, '@metadata.statusCode') === 200;
+        return Arr::get($result, '@metadata.statusCode') === 200;
     }
 
     public function saveAsync()
@@ -735,7 +738,7 @@ class DynamoDbQueryBuilder
                 $res = $this->client->query($raw->query);
             }
 
-            $this->lastEvaluatedKey = array_get($res, 'LastEvaluatedKey');
+            $this->lastEvaluatedKey = Arr::get($res, 'LastEvaluatedKey');
             $iterator = $res['Items'];
         }
 

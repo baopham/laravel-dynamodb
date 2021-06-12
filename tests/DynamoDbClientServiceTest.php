@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
  */
 class DynamoDbClientServiceTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -75,7 +75,7 @@ class DynamoDbClientServiceTest extends TestCase
     /**
      * Make sure we are not leaving any values set on the DynamoDbModel
      */
-    public function tearDown()
+    public function tearDown(): void
     {
         parent::tearDown();
 

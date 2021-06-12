@@ -49,7 +49,7 @@ Install
     composer require baopham/dynamodb
     ```
  
-* Install service provider:
+* Install service provider (< Laravel 5.5):
 
     ```php
     // config/app.php
@@ -64,7 +64,7 @@ Install
 * Run
 
     ```php
-    php artisan vendor:publish
+    php artisan vendor:publish --provider 'BaoPham\DynamoDb\DynamoDbServiceProvider'
     ``` 
     
 * Update DynamoDb config in [config/dynamodb.php](config/dynamodb.php)
@@ -82,7 +82,10 @@ Install
    
   // Load dynamodb config file
   $app->configure('dynamodb');
-   
+
+  // Enable Facade support
+  $app->withFacades();
+
   // Enable Eloquent support
   $app->withEloquent();
   ```
@@ -101,7 +104,8 @@ Usage
 #### find() and delete()
 
 ```php
-$model->find(<id>);
+$model->find($id, array $columns = []);
+$model->findMany($ids, array $columns = []);
 $model->delete();
 $model->deleteAsync()->wait();
 ```
@@ -118,12 +122,12 @@ $model->where(['key' => 'key value']);
 
 // Chainable for 'AND'.
 $model->where('foo', 'bar')
-    ->where('foo2', '!=' 'bar2')
+    ->where('foo2', '!=', 'bar2')
     ->get();
     
 // Chainable for 'OR'.
 $model->where('foo', 'bar')
-    ->orWhere('foo2', '!=' 'bar2')
+    ->orWhere('foo2', '!=', 'bar2')
     ->get();
  
 // Other types of conditions
@@ -500,7 +504,7 @@ DynamoDb::table('articles')
     ->scan(); // supports any DynamoDbClient methods (e.g. batchWriteItem, batchGetItem, etc.)
   
 DynamoDb::table('articles')
-    ->setIndex('author_name')
+    ->setIndexName('author_name')
     ->setKeyConditionExpression('#name = :name')
     ->setProjectionExpression('id, author_name')
     // Can set the attribute mapping one by one instead
@@ -596,6 +600,9 @@ Q: How to use with factory?
 A: Please see [this issue](https://github.com/baopham/laravel-dynamodb/issues/111)  
 
 
+Q: How do I use with Job? Getting a SerializesModels error  
+A: You can either [write your own restoreModel](https://github.com/baopham/laravel-dynamodb/issues/132) or remove the `SerializesModels` trait from your Job.
+
 
 Author and Contributors
 -------
@@ -604,3 +611,5 @@ Author and Contributors
 * [Alexander Ward](https://github.com/cthos)
 * [Quang Ngo](https://github.com/vanquang9387)
 * [David Higgins](https://github.com/zoul0813)
+* [Damon Williams](https://github.com/footballencarta)
+* [David Palmer](https://github.com/dp88)

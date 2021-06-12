@@ -7,18 +7,17 @@ stages:
   - test
 
 php:
-  - '5.6'
-  - '7.0'
-  - '7.1'
   - '7.2'
+  - '7.3'
+  - '7.4'
 
 before_script:
   - java -Djava.library.path=./DynamoDBLocal_lib -jar dynamodb_local/DynamoDBLocal.jar --port 3000 &
   - sleep 2
   - composer self-update
-  - composer install
+  - COMPOSER_MEMORY_LIMIT=-1 travis_retry composer install --prefer-dist --no-interaction
 
-script: phpunit
+script: ./vendor/bin/phpunit
 
 jobs:
   include:
