@@ -5,6 +5,7 @@ namespace BaoPham\DynamoDb\Tests;
 use BaoPham\DynamoDb\DynamoDbModel;
 use BaoPham\DynamoDb\Facades\DynamoDb;
 use BaoPham\DynamoDb\RawDynamoDbQuery;
+use Illuminate\Database\Eloquent\Model;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -80,6 +81,109 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         $this->assertEquals($seedId, $item->id);
         $this->assertEquals($seedId2, $item->id2);
         $this->assertEquals($seedName, $item->name);
+    }
+
+    public function testFirstOrNewFirst()
+    {
+        $seed = $this->seed();
+        $seedId = Arr::get($seed, 'id.S');
+        $seedId2 = Arr::get($seed, 'id2.S');
+        $seedName = Arr::get($seed, 'name.S');
+        $item = $this->testModel->firstOrNew(['id' => $seedId, 'id2' => $seedId2], ['name' => ['S' => Str::random()]]);
+        $this->assertNotEmpty($item);
+        $this->assertTrue($item->exists);
+        $this->assertEquals([$seedId, $seedId2, $seedName], [$item->id, $item->id2, $item->name]);
+    }
+
+    public function testFirstOrNewNew()
+    {
+        $attributes = [
+            'id' => 'id',
+            'id2' => Str::random(),
+            'count' => rand()
+        ];
+        $extra = [
+            'name' => Str::random()
+        ];
+
+        $item = $this->testModel->firstOrNew($attributes, $extra);
+        $item->id = $attributes['id'];
+        $item->id2 = $attributes['id2'];
+        $this->assertNotEmpty($item);
+        $this->assertEquals([$attributes['count'], $extra['name']], [$item->count, $item->name]);
+        $this->assertFalse($item->exists);
+    }
+
+    public function testFirstOrCreateFirst()
+    {
+        $seed = $this->seed();
+        $seedId = Arr::get($seed, 'id.S');
+        $seedId2 = Arr::get($seed, 'id2.S');
+        $seedName = Arr::get($seed, 'name.S');
+
+        $item = $this->testModel->firstOrCreate(['id' => $seedId, 'id2' => $seedId2], ['name' => Str::random()]);
+
+        $this->assertNotEmpty($item);
+        $this->assertTrue($item->exists);
+        $this->assertEquals([$seedId, $seedId2, $seedName], [$item->id, $item->id2, $item->name]);
+    }
+
+    public function testFirstOrCreateCreate()
+    {
+        Model::unguard();
+        $attributes = [
+            'id' => 'id',
+            'id2' => Str::random(),
+            'count' => rand()
+        ];
+        $extra = [
+            'name' => Str::random()
+        ];
+
+        $item = $this->testModel->firstOrCreate($attributes, $extra);
+
+        Model::reguard();
+        $this->assertNotEmpty($item);
+        $this->assertTrue($item->exists);
+        $this->assertEquals([$attributes['id'], $attributes['id2'], $attributes['count'], $extra['name']], [$item->id, $item->id2, $item->count, $item->name]);
+    }
+
+    public function testUpdateOrCreateUpdate()
+    {
+        $seed = $this->seed();
+        $seedId = Arr::get($seed, 'id.S');
+        $seedId2 = Arr::get($seed, 'id2.S');
+
+        $newName = Str::random();
+
+        $item = $this->testModel->updateOrCreate(['id' => $seedId, 'id2' => $seedId2], ['name' => $newName]);
+
+        $this->assertNotEmpty($item);
+        $this->assertTrue($item->exists);
+        $this->assertEquals([$seedId, $seedId2, $newName], [$item->id , $item->id2, $item->name]);
+    }
+
+    public function testUpdateOrCreateCreate()
+    {
+        Model::unguard();
+        $attributes = [
+            'id' => 'id',
+            'id2' => Str::random(),
+            'count' => rand()
+        ];
+        $extra = [
+            'name' => Str::random()
+        ];
+
+        $item = $this->testModel->updateOrCreate($attributes, $extra);
+
+        Model::reguard();
+        $this->assertNotEmpty($item);
+        $this->assertTrue($item->exists);
+        $this->assertEquals($attributes['id'], $item->id);
+        $this->assertEquals($attributes['id2'], $item->id2);
+        $this->assertEquals($attributes['count'], $item->count);
+        $this->assertEquals($extra['name'], $item->name);
     }
 
     public function testFindMultiple()
