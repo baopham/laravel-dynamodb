@@ -71,6 +71,10 @@ class Analyzer
             return false;
         }
 
+        if (count($this->conditions) !== count($this->model->getKeyNames())) {
+            return false;
+        }
+
         foreach ($this->conditions as $condition) {
             if (Arr::get($condition, 'type') !== ComparisonOperator::EQ) {
                 return false;
@@ -202,7 +206,7 @@ class Analyzer
         $hashConditionType = $this->getCondition($hash)['type'] ?? null;
         $validQueryOp = ComparisonOperator::isValidQueryDynamoDbOperator($hashConditionType);
 
-        if ($validQueryOp && $range) {
+        if ($validQueryOp && $range && $this->getCondition($range)) {
             $rangeConditionType = $this->getCondition($range)['type'] ?? null;
             $validQueryOp = ComparisonOperator::isValidQueryDynamoDbOperator(
                 $rangeConditionType,
