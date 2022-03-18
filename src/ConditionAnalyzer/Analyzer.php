@@ -79,6 +79,10 @@ class Analyzer
             if (Arr::get($condition, 'type') !== ComparisonOperator::EQ) {
                 return false;
             }
+
+            if (!array_search(Arr::get($condition, 'column'), $this->model->getKeyNames())) {
+                return false;
+            }
         }
 
         return true;
