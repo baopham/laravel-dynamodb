@@ -80,7 +80,7 @@ class Analyzer
                 return false;
             }
 
-            if (!array_search(Arr::get($condition, 'column'), $this->model->getKeyNames())) {
+            if (array_search(Arr::get($condition, 'column'), $this->model->getKeyNames()) === false) {
                 return false;
             }
         }
