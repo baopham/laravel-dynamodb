@@ -4,6 +4,8 @@ namespace BaoPham\DynamoDb;
 
 use Aws\DynamoDb\DynamoDbClient;
 use Aws\DynamoDb\Marshaler;
+use Aws\Sts\StsClient;
+use Aws\Sts\Exception\StsException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 
@@ -45,6 +47,26 @@ class DynamoDbClientService implements DynamoDbClientInterface
         $config = config("dynamodb.connections.$connection", []);
         $config['version'] = '2012-08-10';
         $config['debug'] = $this->getDebugOptions(Arr::get($config, 'debug'));
+
+        if (array_key_exists('assume_role_arn', $config)) {
+            try {
+                $stsClient = new StsClient($config);
+                $result = $stsClient->AssumeRole([
+                    'DurationSeconds' => 300,
+                    'RoleArn' => $config['assume_role_arn'],
+                    'RoleSessionName' => config('app.name') . '-dynamodb',
+                ]);
+            } catch (StsException $e) {
+                Log::error($e->getTraceAsString());
+                return false;
+            }
+
+            $config['credentials'] = [
+                'key' => $result['Credentials']['AccessKeyId'],
+                'secret' => $result['Credentials']['SecretAccessKey'],
+                'token' => $result['Credentials']['SessionToken'],
+            ];
+        }
 
         $client = new DynamoDbClient($config);
 
