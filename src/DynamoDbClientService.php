@@ -54,7 +54,7 @@ class DynamoDbClientService implements DynamoDbClientInterface
                 $stsConfig['version'] = "2011-06-15";
                 $stsClient = new StsClient($stsConfig);
                 $result = $stsClient->AssumeRole([
-                    'DurationSeconds' => 300,
+                    'DurationSeconds' => 900,
                     'RoleArn' => $config['assume_role_arn'],
                     'RoleSessionName' => config('app.name') . '-dynamodb',
                 ]);
