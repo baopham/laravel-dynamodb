@@ -45,12 +45,14 @@ class DynamoDbClientService implements DynamoDbClientInterface
         }
 
         $config = config("dynamodb.connections.$connection", []);
-        // $config['version'] = '2012-08-10';
+        $config['version'] = '2012-08-10';
         $config['debug'] = $this->getDebugOptions(Arr::get($config, 'debug'));
 
         if (array_key_exists('assume_role_arn', $config)) {
             try {
-                $stsClient = new StsClient($config);
+                $stsConfig = $config;
+                $stsConfig['version'] = "2011-06-15";
+                $stsClient = new StsClient($stsConfig);
                 $result = $stsClient->AssumeRole([
                     'DurationSeconds' => 300,
                     'RoleArn' => $config['assume_role_arn'],
