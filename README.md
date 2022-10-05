@@ -24,6 +24,7 @@ Supports all key types - primary hash key and composite keys.
   * [save](#save) / [saveAsync()](#saveasync)
   * [delete](#delete) / [deleteAsync()](#deleteasync)
   * [chunk](#chunk)
+  * [pagedCount](#pagedcount)
   * [limit() and take()](#limit-and-take)
   * [firstOrFail()](#firstorfail)
   * [findOrFail()](#findorfail)
@@ -275,6 +276,17 @@ $model->chunk(10, function ($records) {
 
     }
 });
+```
+
+#### pagedCount()
+
+```php
+$countResult = $model->pagedCount();
+if($countResult->lastKey) {
+  $countResultNext = $model->setExclusiveStartKey($countResult->lastKey);
+  //...
+}
+
 ```
 
 #### limit() and take()
