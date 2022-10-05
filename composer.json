@@ -1,6 +1,6 @@
 {
-    "name": "baopham/dynamodb",
-    "description": "Eloquent syntax for DynamoDB",
+    "name": "thebatclaudio/dynamodb",
+    "description": "Eloquent syntax for DynamoDB (fork of baopham/dynamodb that is abandoned)",
     "keywords": ["laravel", "dynamodb", "aws"],
     "require": {
         "aws/aws-sdk-php": "^3.0.0",
@@ -9,6 +9,10 @@
     },
     "license": "MIT",
     "authors": [
+        {
+            "name": "Claudio La Barbera",
+            "email": "hello@thebatclaud.io"
+        },
         {
             "name": "Bao Pham",
             "email": "gbaopham@gmail.com"
