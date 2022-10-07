@@ -284,10 +284,8 @@ $model->chunk(10, function ($records) {
 $countResult = $model->pagedCount();
 if($countResult->lastKey) {
   //lastEvaluatedKey is already set to $model
+  //$countResultNext will contain counts from next page
   $countResultNext = $model->pagedCount();
-  //...
-  //or create new fresh query builder instance $model2 and manually set lastKey:
-  $countResultNext = $model2->afterKey($countResult->lastKey);
   //...
 }
 
