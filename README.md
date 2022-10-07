@@ -283,7 +283,11 @@ $model->chunk(10, function ($records) {
 ```php
 $countResult = $model->pagedCount();
 if($countResult->lastKey) {
-  $countResultNext = $model->setExclusiveStartKey($countResult->lastKey);
+  //lastEvaluatedKey is already set to $model
+  $countResultNext = $model->pagedCount();
+  //...
+  //or create new fresh query builder instance $model2 and manually set lastKey:
+  $countResultNext = $model2->afterKey($countResult->lastKey);
   //...
 }
 
