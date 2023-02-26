@@ -39,7 +39,7 @@ return [
         ],
         'aws_iam_role' => [
             'region' => env('DYNAMODB_REGION'),
-            'debug' => true,
+            'debug' => env('DYNAMODB_DEBUG'),
         ],
         'local' => [
             'credentials' => [
