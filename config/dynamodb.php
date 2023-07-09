@@ -43,7 +43,7 @@ return [
         ],
         'local' => [
             'credentials' => [
-                'key' => 'dynamodb_local',
+                'key' => 'dynamodblocal',
                 'secret' => 'secret',
             ],
             'region' => 'stub',
@@ -53,7 +53,7 @@ return [
         ],
         'test' => [
             'credentials' => [
-                'key' => 'dynamodb_local',
+                'key' => 'dynamodblocal',
                 'secret' => 'secret',
             ],
             'region' => 'test',
