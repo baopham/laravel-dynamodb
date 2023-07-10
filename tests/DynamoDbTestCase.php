@@ -34,7 +34,7 @@ abstract class DynamoDbTestCase extends TestCase
     {
         $app['config']->set('dynamodb.connections.test', [
             'credentials' => [
-                'key' => 'dynamodb_local',
+                'key' => 'dynamodblocal',
                 'secret' => 'secret',
             ],
             'region' => 'test',
