@@ -451,7 +451,7 @@ class DynamoDbQueryBuilder
      */
     public function find($id, array $columns = [])
     {
-        if ($this->isMultipleIds($id)) {
+        if (is_array($id) && $this->isMultipleIds($id)) {
             return $this->findMany($id, $columns);
         }
 
