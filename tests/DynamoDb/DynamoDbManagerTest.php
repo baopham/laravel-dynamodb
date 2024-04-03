@@ -7,6 +7,7 @@ use Aws\DynamoDb\Marshaler;
 use BaoPham\DynamoDb\DynamoDbClientInterface;
 use BaoPham\DynamoDb\Tests\DynamoDbTestCase;
 use BaoPham\DynamoDb\DynamoDb\DynamoDbManager;
+use BaoPham\DynamoDb\Tests\Mocks\DynamoDbClientMock;
 
 class DynamoDbManagerTest extends DynamoDbTestCase
 {
@@ -25,9 +26,9 @@ class DynamoDbManagerTest extends DynamoDbTestCase
         parent::setUp();
 
         $this->mockedClient = $this
-            ->getMockBuilder(DynamoDbClient::class)
+            ->getMockBuilder(DynamoDbClientMock::class)
             ->disableOriginalConstructor()
-            ->setMethods(['putItem', 'updateItem', 'deleteItem', 'scan', 'query', 'batchWriteItem'])
+            ->onlyMethods(['putItem', 'updateItem', 'deleteItem', 'scan', 'query', 'batchWriteItem'])
             ->getMock();
 
         $service = $this->getMockBuilder(DynamoDbClientInterface::class)->getMock();
