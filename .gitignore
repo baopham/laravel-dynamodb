@@ -7,3 +7,5 @@ dynamodb_local_test.db
 .idea
 
 .phpunit.result.cache
+
+/node_modules
