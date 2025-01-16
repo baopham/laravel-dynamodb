@@ -9,7 +9,7 @@ use Aws\DynamoDb\Marshaler;
  *
  * @package BaoPham\DynamoDb\Tests
  */
-abstract class DynamoDbModelTest extends DynamoDbTestCase
+abstract class DynamoDbModelTestBase extends DynamoDbTestCase
 {
     /**
      * @var \BaoPham\DynamoDb\DynamoDbModel

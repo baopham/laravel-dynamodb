@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
  *
  * @package BaoPham\DynamoDb\Tests
  */
-class DynamoDbTimestampTest extends DynamoDbModelTest
+class DynamoDbTimestampTest extends DynamoDbModelTestBase
 {
     protected function getTestModel()
     {

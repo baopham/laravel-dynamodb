@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
  *
  * @package BaoPham\DynamoDb\Tests
  */
-class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
+class DynamoDbNonCompositeModelTest extends DynamoDbModelTestBase
 {
     protected function getTestModel()
     {

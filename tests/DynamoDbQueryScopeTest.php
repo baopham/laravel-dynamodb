@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
  *
  * @package BaoPham\DynamoDb\Tests
  */
-class DynamoDbQueryScopeTest extends DynamoDbModelTest
+class DynamoDbQueryScopeTest extends DynamoDbModelTestBase
 {
     protected function getTestModel()
     {
