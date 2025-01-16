@@ -9,3 +9,7 @@ dynamodb_local_test.db
 .phpunit.result.cache
 
 /node_modules
+.composer
+.bash_history
+.phpunit.cache
+dynamodblocal_test.db
