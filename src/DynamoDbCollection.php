@@ -12,7 +12,7 @@ class DynamoDbCollection extends Collection
      */
     private $conditionIndex = null;
 
-    public function __construct(array $items = [], Index $conditionIndex = null)
+    public function __construct(array $items = [], ?Index $conditionIndex = null)
     {
         parent::__construct($items);
 

@@ -13,7 +13,7 @@ namespace BaoPham\DynamoDb;
 // phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
 class H
 {
-    public static function array_first($array, callable $callback = null, $default = null)
+    public static function array_first($array, ?callable $callback = null, $default = null)
     {
         if (is_null($callback)) {
             if (empty($array)) {
