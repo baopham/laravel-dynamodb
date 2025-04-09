@@ -56,6 +56,7 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
      * The return value will be casted to boolean if non-boolean was returned.
      * @since 5.0.0
      */
+    #[\ReturnTypeWillChange]
     public function offsetExists($offset)
     {
         return isset($this->internal()[$offset]);
@@ -70,6 +71,7 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
      * @return mixed Can return all value types.
      * @since 5.0.0
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->internal()[$offset];
@@ -87,6 +89,7 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
      * @return void
      * @since 5.0.0
      */
+    #[\ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         $this->internal()[$offset] = $value;
@@ -101,6 +104,7 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
      * @return void
      * @since 5.0.0
      */
+    #[\ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         unset($this->internal()[$offset]);
@@ -113,6 +117,7 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
      * <b>Traversable</b>
      * @since 5.0.0
      */
+    #[\ReturnTypeWillChange]
     public function getIterator()
     {
         return new \ArrayObject($this->internal());
@@ -127,6 +132,7 @@ class RawDynamoDbQuery implements \IteratorAggregate, \ArrayAccess, \Countable
      * The return value is cast to an integer.
      * @since 5.1.0
      */
+    #[\ReturnTypeWillChange]
     public function count()
     {
         return count($this->internal());

@@ -71,8 +71,16 @@ class Analyzer
             return false;
         }
 
+        if (count($this->conditions) !== count($this->model->getKeyNames())) {
+            return false;
+        }
+
         foreach ($this->conditions as $condition) {
             if (Arr::get($condition, 'type') !== ComparisonOperator::EQ) {
+                return false;
+            }
+
+            if (array_search(Arr::get($condition, 'column'), $this->model->getKeyNames()) === false) {
                 return false;
             }
         }
@@ -202,8 +210,8 @@ class Analyzer
         $hashConditionType = $this->getCondition($hash)['type'] ?? null;
         $validQueryOp = ComparisonOperator::isValidQueryDynamoDbOperator($hashConditionType);
 
-        if ($validQueryOp && $range) {
-            $rangeConditionType = $this->getCondition($range)['type'] ?? null;
+        if ($validQueryOp && $range && $this->getCondition($range) !== null) {
+            $rangeConditionType = $this->getCondition($range)['type'];
             $validQueryOp = ComparisonOperator::isValidQueryDynamoDbOperator(
                 $rangeConditionType,
                 true
