@@ -176,21 +176,28 @@ $model->first();
 #### Pagination
 
 Unfortunately, offset of how many records to skip does not make sense for DynamoDb.
-Instead, provide the last result of the previous query as the starting point for the next query.  
+However, you can use the `paginate` function on the query builder to get a CursorPaginator, which will
+handle passing the last evaluated key around:
 
-**Examples:**
+```PHP
+$paginator = $model->paginate();
+```
 
-For query such as:
+The paginator implements laravel's pagination interface, so it supports automatic link generation as usual.
+It will also try to extract the cursor from the request parameters automatically, so if you use the rendered
+pagination links or resource collections, pagination should be seamless!
+
+See https://laravel.com/docs/11.x/pagination#cursor-pagination and 
+https://laravel.com/docs/11.x/pagination#cursor-paginator-instance-methods for details.
+
+If you need to manage the last evaluated key manually, you can use the `after` and `afterKey` methods to provide
+a model or the raw key respectively:
 
 ```php
 $query = $model->where('count', 10)->limit(2);
 $items = $query->all();
 $last = $items->last();
-```
 
-Take the last item of this query result as the next "offset":
-
-```php
 $nextPage = $query->after($last)->limit(2)->all();
 // or
 $nextPage = $query->afterKey($items->lastKey())->limit(2)->all();
