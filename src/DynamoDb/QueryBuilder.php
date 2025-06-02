@@ -97,7 +97,7 @@ class QueryBuilder
      * @param DynamoDbClient|null $client
      * @return ExecutableQuery
      */
-    public function prepare(DynamoDbClient $client = null)
+    public function prepare(?DynamoDbClient $client = null)
     {
         $raw = new RawDynamoDbQuery(null, $this->query);
         return new ExecutableQuery($client ?: $this->service->getClient(), $raw->finalize()->query);
