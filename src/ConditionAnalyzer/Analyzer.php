@@ -173,7 +173,7 @@ class Analyzer
     /**
      * @return Index|null
      */
-    public function getIndex()
+    private function getIndex()
     {
         if (empty($this->conditions)) {
             return null;
