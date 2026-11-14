@@ -457,6 +457,56 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         $this->assertEquals('Query', $raw->op);
     }
 
+    public function testWithIndexQueriesCompositeIndexWithPartitionKeyOnlyAndLimit()
+    {
+        $this->seed(['id' => ['S' => 'id1'], 'count' => ['N' => 10]]);
+        $this->seed(['id' => ['S' => 'id1'], 'count' => ['N' => 20]]);
+        $this->seed(['id' => ['S' => 'id1'], 'count' => ['N' => 30]]);
+
+        $query = $this->testModel
+            ->withIndex('id_count_index')
+            ->where('id', 'id1')
+            ->limit(2);
+
+        $raw = $query->toDynamoDbQuery([], 2);
+
+        $this->assertEquals('Query', $raw->op);
+        $this->assertEquals('id_count_index', Arr::get($raw->query, 'IndexName'));
+        $this->assertEquals('#id = :a1', Arr::get($raw->query, 'KeyConditionExpression'));
+        $this->assertArrayNotHasKey('FilterExpression', $raw->query);
+        $this->assertEquals(2, Arr::get($raw->query, 'Limit'));
+
+        $items = $query->get();
+        $this->assertCount(2, $items);
+    }
+
+    public function testCompositeGsiWithDedicatedKeysQueriesWithPartitionKeyOnlyAndLimit()
+    {
+        $model = new CompositeGsiPartitionKeyModel();
+
+        $withIndexRaw = $model
+            ->withIndex('TasksByStatusIndex')
+            ->where('GSI1PK', 'STATUS#OPEN')
+            ->limit(2)
+            ->toDynamoDbQuery([], 2);
+
+        $this->assertEquals('Query', $withIndexRaw->op);
+        $this->assertEquals('TasksByStatusIndex', Arr::get($withIndexRaw->query, 'IndexName'));
+        $this->assertEquals('#GSI1PK = :a1', Arr::get($withIndexRaw->query, 'KeyConditionExpression'));
+        $this->assertArrayNotHasKey('FilterExpression', $withIndexRaw->query);
+        $this->assertEquals(2, Arr::get($withIndexRaw->query, 'Limit'));
+
+        $autoRaw = $model
+            ->where('GSI1PK', 'STATUS#OPEN')
+            ->limit(2)
+            ->toDynamoDbQuery([], 2);
+
+        $this->assertEquals('Query', $autoRaw->op);
+        $this->assertEquals('TasksByStatusIndex', Arr::get($autoRaw->query, 'IndexName'));
+        $this->assertEquals('#GSI1PK = :a1', Arr::get($autoRaw->query, 'KeyConditionExpression'));
+        $this->assertEquals(2, Arr::get($autoRaw->query, 'Limit'));
+    }
+
     public function testConditionsNotContainingAllCompositeKeys()
     {
         $this->seed([
@@ -837,5 +887,21 @@ class CompositeKeyWithoutIndex extends DynamoDbModel
     protected $connection = 'test';
 
     protected $compositeKey = ['id', 'id2'];
+}
+
+class CompositeGsiPartitionKeyModel extends DynamoDbModel
+{
+    protected $table = 'composite_test_model';
+
+    protected $connection = 'test';
+
+    protected $compositeKey = ['PK', 'SK'];
+
+    protected $dynamoDbIndexKeys = [
+        'TasksByStatusIndex' => [
+            'hash' => 'GSI1PK',
+            'range' => 'GSI1SK',
+        ],
+    ];
 }
 // phpcs:enable PSR1.Classes.ClassDeclaration.MultipleClasses
