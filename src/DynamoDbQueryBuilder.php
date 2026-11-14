@@ -693,7 +693,7 @@ class DynamoDbQueryBuilder
         if ($analyzer->isExactSearch()) {
             $item = $this->find($analyzer->identifierConditionValues(), $columns);
 
-            return $this->getModel()->newCollection([$item]);
+            return $this->getModel()->newCollection($item ? [$item] : []);
         }
 
         $raw = $this->toDynamoDbQuery($columns, $limit);

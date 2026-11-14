@@ -69,11 +69,7 @@ abstract class DynamoDbModel extends Model
 
     public function __construct(array $attributes = [])
     {
-        $this->bootIfNotBooted();
-
-        $this->syncOriginal();
-
-        $this->fill($attributes);
+        parent::__construct($attributes);
 
         $this->setupDynamoDb();
     }
