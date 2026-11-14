@@ -79,6 +79,10 @@ class DynamoDbClientService implements DynamoDbClientInterface
             return ['logfn' => $logfn];
         }
 
-        return $debug;
+        if (is_array($debug)) {
+            return $debug;
+        }
+
+        return (bool) $debug;
     }
 }

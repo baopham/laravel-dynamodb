@@ -1226,6 +1226,39 @@ class DynamoDbNonCompositeModelTest extends DynamoDbModelTest
 
         return $item;
     }
+
+    public function testQueryWithDebugEnabledExecutesWithoutTraceMiddlewareTypeError()
+    {
+        $item = $this->seed();
+        $logs = [];
+
+        \Illuminate\Support\Facades\Log::shouldReceive('info')
+            ->atLeast()
+            ->once()
+            ->andReturnUsing(function ($msg) use (&$logs) {
+                $logs[] = $msg;
+            });
+
+        $this->app['config']->set('dynamodb.connections.test_debug', [
+            'credentials' => [
+                'key' => 'dynamodblocal',
+                'secret' => 'secret',
+            ],
+            'region' => 'test',
+            'endpoint' => 'http://localhost:3000',
+            'debug' => true,
+        ]);
+
+        $client = DynamoDbModel::getDynamoDbClientService()->getClient('test_debug');
+        $result = $client->scan([
+            'TableName' => $this->testModel->getTable(),
+            'Limit' => 1,
+        ])->toArray();
+
+        $this->assertArrayHasKey('Items', $result);
+        $this->assertNotEmpty($result['Items']);
+        $this->assertNotEmpty($logs);
+    }
 }
 
 // phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
