@@ -179,22 +179,70 @@ class Analyzer
             return null;
         }
 
-        $index = null;
+        $indexKeys = $this->model->getDynamoDbIndexKeys();
+        $conditionKeys = Arr::pluck($this->conditions, 'column');
 
-        foreach ($this->model->getDynamoDbIndexKeys() as $name => $keysInfo) {
-            $conditionKeys = Arr::pluck($this->conditions, 'column');
-            $keys = array_values($keysInfo);
+        $candidates = [];
+        foreach ($indexKeys as $name => $keysInfo) {
+            if (empty($keysInfo['hash'])) {
+                // no hash key? Yeah, no index
+                continue;
+            }
 
-            if (count(array_intersect($conditionKeys, $keys)) === count($keys)) {
-                if (!isset($this->indexName) || $this->indexName === $name) {
-                    $index = new Index(
-                        $name,
-                        Arr::get($keysInfo, 'hash'),
-                        Arr::get($keysInfo, 'range')
-                    );
-
-                    break;
+            if (is_array($keysInfo['hash'])) {
+                // check each hash component, to ensure *all* match.
+                foreach ($keysInfo['hash'] as $hash_component) {
+                    if(!in_array($hash_component, $conditionKeys)) {
+                        //one of the hash components is *not* in the list of conditions
+                        //so this index won't work.
+                        continue 2; //we need to break out of *this* foreach as well as the parent one
+                    }
                 }
+            } else if (!in_array($keysInfo['hash'], $conditionKeys)) {
+                // no match on hash key - this index won't work, period
+                continue;
+            }
+
+            $weight = 1;
+
+            if (!empty($keysInfo['range'])) {
+                if (is_array($keysInfo['range'])) {
+                    //we need to walk elements left-to-right, stopping as soon as there's no match
+                    // the "weight" we will get is dependent upon how many range elements there are.
+                    // if all match, it's +1. If none match, it's +0. If you have 4 elements, and
+                    // only *3* match (from left-to-right), then it's +0.75
+                    $component_count = count($keysInfo['range']);
+                    $matched_count = 0;
+                    foreach($keysInfo['range'] as $range_component) {
+                        if(!in_array($range_component, $conditionKeys)) {
+                            break;
+                        }
+                        $matched_count++;
+                    }
+                    $weight += ($matched_count / $component_count);
+                } else if (in_array($keysInfo['range'], $conditionKeys)) {
+                    $weight++;
+                }
+            }
+            // lack of range key doesn't mean this isn't a candidate
+
+            $candidates[$name] = $weight;
+        }
+
+        // now, run through the candidates and find the one with the highest 'weight' - use that one
+        arsort($candidates, SORT_NUMERIC);
+
+        $index = null;
+        foreach ($candidates as $name => $weight) {
+            // still allow an overridden index to take precedence
+            if (!isset($this->indexName) || $this->indexName === $name) {
+                $keysInfo = $indexKeys[$name];
+                $index = new Index(
+                    $name,
+                    Arr::get($keysInfo, 'hash'),
+                    Arr::get($keysInfo, 'range')
+                );
+                break; // got one! Don't need to go through the rest
             }
         }
 
@@ -204,7 +252,6 @@ class Analyzer
 
         return $index;
     }
-
     private function hasValidQueryOperator($hash, $range = null)
     {
         $hashConditionType = $this->getCondition($hash)['type'] ?? null;
