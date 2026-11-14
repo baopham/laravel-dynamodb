@@ -7,9 +7,12 @@ use BaoPham\DynamoDb\ConditionAnalyzer\Analyzer;
 use BaoPham\DynamoDb\Facades\DynamoDb;
 use BaoPham\DynamoDb\H;
 use Closure;
+use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Scope;
+use Illuminate\Pagination\Cursor;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Arr;
 
 class DynamoDbQueryBuilder
@@ -442,6 +445,34 @@ class DynamoDbQueryBuilder
         }
 
         return true;
+    }
+
+    public function paginate($perPage = 15, $columns = [], $cursorName = 'cursor', $cursor = null): CursorPaginator
+    {
+        if (! $cursor instanceof Cursor) {
+            $cursor = is_string($cursor)
+                ? Cursor::fromEncoded($cursor)
+                : DynamoDbCursorPaginator::resolveCurrentCursor($cursorName, $cursor);
+        }
+
+        $this->limit($perPage);
+
+        if ($cursor && $cursor->pointsToNextItems()) {
+            $this->afterKey(json_decode($cursor->parameter('lastEvaluatedKey')));
+        }
+
+        $items = $this->get($columns);
+
+        return new DynamoDbCursorPaginator(
+            $items,
+            $perPage,
+            $cursor,
+            [
+                'path' => Paginator::resolveCurrentPath(),
+                'cursorName' => $cursorName,
+            ],
+            $this->lastEvaluatedKey,
+        );
     }
 
     /**

@@ -38,7 +38,7 @@ abstract class DynamoDbTestCase extends TestCase
                 'secret' => 'secret',
             ],
             'region' => 'test',
-            'endpoint' => 'http://localhost:3000',
+            'endpoint' => env('DYNAMODB_LOCAL_ENDPOINT', 'http://localhost:3000'),
         ]);
     }
 
