@@ -69,7 +69,11 @@ trait HasParsers
 
         $this->projectionExpression = new ProjectionExpression($this->expressionAttributeNames);
 
-        $this->updateExpression = new UpdateExpression($this->expressionAttributeNames);
+        $this->updateExpression = new UpdateExpression(
+            $this->expressionAttributeNames,
+            $this->expressionAttributeValues,
+            $this->placeholder
+        );
     }
 
     public function resetExpressions()

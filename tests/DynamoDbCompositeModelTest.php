@@ -227,6 +227,65 @@ class DynamoDbCompositeModelTest extends DynamoDbNonCompositeModelTest
         $this->assertEquals($newName, Arr::get($record, 'Item.name.S'));
     }
 
+    public function testUpdateWithPartialProjectionPreservesUnprojectedAttributes()
+    {
+        $seed = $this->seed([
+            'description' => ['S' => 'Keep me intact'],
+            'author' => ['S' => 'Original Author'],
+            'count' => ['N' => '7'],
+        ]);
+        $seedId = Arr::get($seed, 'id.S');
+        $seedId2 = Arr::get($seed, 'id2.S');
+
+        $projected = $this->testModel->find(['id' => $seedId, 'id2' => $seedId2], ['id', 'id2', 'name']);
+        $this->assertNull($projected->description);
+        $this->assertNull($projected->author);
+
+        $updated = $projected->update(['name' => 'Projected Update']);
+        $this->assertTrue($updated);
+
+        // Saving again with no dirty attributes should be a safe no-op
+        $this->assertTrue($projected->save());
+
+        $record = $this->getClient()->getItem([
+            'TableName' => $this->testModel->getTable(),
+            'Key' => [
+                'id' => ['S' => $seedId],
+                'id2' => ['S' => $seedId2],
+            ],
+        ])->toArray();
+
+        $this->assertEquals('Projected Update', Arr::get($record, 'Item.name.S'));
+        $this->assertEquals('Keep me intact', Arr::get($record, 'Item.description.S'));
+        $this->assertEquals('Original Author', Arr::get($record, 'Item.author.S'));
+        $this->assertEquals('7', Arr::get($record, 'Item.count.N'));
+    }
+
+    public function testUpdateAsyncWithPartialProjectionPreservesUnprojectedAttributes()
+    {
+        $seed = $this->seed([
+            'description' => ['S' => 'Async intact'],
+            'author' => ['S' => 'Async Author'],
+        ]);
+        $seedId = Arr::get($seed, 'id.S');
+        $seedId2 = Arr::get($seed, 'id2.S');
+
+        $projected = $this->testModel->find(['id' => $seedId, 'id2' => $seedId2], ['id', 'id2', 'name']);
+        $projected->updateAsync(['name' => 'Projected Async Update'])->wait();
+
+        $record = $this->getClient()->getItem([
+            'TableName' => $this->testModel->getTable(),
+            'Key' => [
+                'id' => ['S' => $seedId],
+                'id2' => ['S' => $seedId2],
+            ],
+        ])->toArray();
+
+        $this->assertEquals('Projected Async Update', Arr::get($record, 'Item.name.S'));
+        $this->assertEquals('Async intact', Arr::get($record, 'Item.description.S'));
+        $this->assertEquals('Async Author', Arr::get($record, 'Item.author.S'));
+    }
+
     public function testSaveRecord()
     {
         $seed = $this->seed();
