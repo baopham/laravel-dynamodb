@@ -175,34 +175,79 @@ class Analyzer
      */
     private function getIndex()
     {
-        if (empty($this->conditions)) {
+        if (empty($this->conditions) || $this->hasOrCondition()) {
             return null;
         }
 
-        $index = null;
+        $indexKeys = $this->model->getDynamoDbIndexKeys();
+        $conditionKeys = Arr::pluck($this->conditions, 'column');
 
-        foreach ($this->model->getDynamoDbIndexKeys() as $name => $keysInfo) {
-            $conditionKeys = Arr::pluck($this->conditions, 'column');
-            $keys = array_values($keysInfo);
+        if (isset($this->indexName)) {
+            $keysInfo = Arr::get($indexKeys, $this->indexName);
 
-            if (count(array_intersect($conditionKeys, $keys)) === count($keys)) {
-                if (!isset($this->indexName) || $this->indexName === $name) {
-                    $index = new Index(
-                        $name,
-                        Arr::get($keysInfo, 'hash'),
-                        Arr::get($keysInfo, 'range')
-                    );
+            if (empty($keysInfo)) {
+                return null;
+            }
 
-                    break;
-                }
+            $hash = Arr::get($keysInfo, 'hash');
+            $range = Arr::get($keysInfo, 'range');
+
+            if (!$hash || !in_array($hash, $conditionKeys, true) || !$this->hasValidQueryOperator($hash, $range)) {
+                return null;
+            }
+
+            return new Index($this->indexName, $hash, $range);
+        }
+
+        $bestIndex = null;
+        $bestScore = 0;
+
+        foreach ($indexKeys as $name => $keysInfo) {
+            $hash = Arr::get($keysInfo, 'hash');
+            $range = Arr::get($keysInfo, 'range');
+
+            if (!$hash || !in_array($hash, $conditionKeys, true)) {
+                continue;
+            }
+
+            if (!$this->hasValidQueryOperator($hash, $range)) {
+                continue;
+            }
+
+            $score = ($range && in_array($range, $conditionKeys, true)) ? 2 : 1;
+
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $bestIndex = new Index($name, $hash, $range);
             }
         }
 
-        if ($index && !$this->hasValidQueryOperator($index->hash, $index->range)) {
-            $index = null;
+        if ($bestIndex && $bestScore === 1 && $this->matchesPrimaryPartitionKey($conditionKeys)) {
+            return null;
         }
 
-        return $index;
+        return $bestIndex;
+    }
+
+    private function matchesPrimaryPartitionKey(array $conditionKeys)
+    {
+        $keyNames = $this->model->getKeyNames();
+        $primaryHash = $keyNames[0] ?? null;
+
+        return $primaryHash
+            && in_array($primaryHash, $conditionKeys, true)
+            && $this->hasValidQueryOperator($primaryHash);
+    }
+
+    private function hasOrCondition()
+    {
+        foreach ($this->conditions as $condition) {
+            if (strtolower((string) Arr::get($condition, 'boolean')) === 'or') {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function hasValidQueryOperator($hash, $range = null)
