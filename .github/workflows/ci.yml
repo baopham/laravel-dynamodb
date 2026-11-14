@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - 7.x
+  pull_request:
+    branches:
+      - master
+      - 7.x
+
+jobs:
+  tests:
+    name: PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: "8.2"
+            laravel: "^11.0"
+            testbench: "^9.0"
+          - php: "8.2"
+            laravel: "^12.0"
+            testbench: "^10.0"
+          - php: "8.3"
+            laravel: "^11.0"
+            testbench: "^9.0"
+          - php: "8.3"
+            laravel: "^12.0"
+            testbench: "^10.0"
+          - php: "8.3"
+            laravel: "^13.0"
+            testbench: "^11.0"
+          - php: "8.4"
+            laravel: "^11.0"
+            testbench: "^9.0"
+          - php: "8.4"
+            laravel: "^12.0"
+            testbench: "^10.0"
+          - php: "8.4"
+            laravel: "^13.0"
+            testbench: "^11.0"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java for DynamoDB Local
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, xml, curl, json, zip
+          tools: composer:v2
+          coverage: none
+
+      - name: Install dependencies
+        run: |
+          composer require --no-update "illuminate/support:${{ matrix.laravel }}" "illuminate/database:${{ matrix.laravel }}"
+          composer require --dev --no-update "orchestra/testbench:${{ matrix.testbench }}"
+          composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Start DynamoDB Local
+        run: |
+          java -Djava.library.path=./dynamodb_local/DynamoDBLocal_lib -jar dynamodb_local/DynamoDBLocal.jar --port 3000 &
+          for i in $(seq 1 30); do
+            if curl -s http://localhost:3000 >/dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "DynamoDB Local failed to start on port 3000"
+          exit 1
+
+      - name: Run PHPUnit test suite
+        run: |
+          if ./vendor/bin/phpunit --help | grep -q -- "--do-not-fail-on-phpunit-warning"; then
+            ./vendor/bin/phpunit --do-not-fail-on-phpunit-warning
+          else
+            ./vendor/bin/phpunit
+          fi
