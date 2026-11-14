@@ -2,11 +2,13 @@
 
 namespace BaoPham\DynamoDb;
 
+use Aws\Result;
 use BaoPham\DynamoDb\Concerns\HasParsers;
 use BaoPham\DynamoDb\ConditionAnalyzer\Analyzer;
 use BaoPham\DynamoDb\Facades\DynamoDb;
 use BaoPham\DynamoDb\H;
 use Closure;
+use GuzzleHttp\Promise\Create;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Scope;
@@ -634,6 +636,18 @@ class DynamoDbQueryBuilder
 
     public function save()
     {
+        if ($this->model->exists) {
+            $dirty = Arr::except($this->model->getDirty(), $this->model->getKeyNames());
+
+            if (empty($dirty)) {
+                return true;
+            }
+
+            $result = $this->prepareUpdateItemQuery($dirty)->updateItem();
+
+            return Arr::get($result, '@metadata.statusCode') === 200;
+        }
+
         $result = DynamoDb::table($this->model->getTable())
             ->setItem(DynamoDb::marshalItem($this->model->getAttributes()))
             ->prepare($this->client)
@@ -644,12 +658,40 @@ class DynamoDbQueryBuilder
 
     public function saveAsync()
     {
+        if ($this->model->exists) {
+            $dirty = Arr::except($this->model->getDirty(), $this->model->getKeyNames());
+
+            if (empty($dirty)) {
+                $result = new Result(['@metadata' => ['statusCode' => 200]]);
+
+                return class_exists(Create::class)
+                    ? Create::promiseFor($result)
+                    : \GuzzleHttp\Promise\promise_for($result);
+            }
+
+            return $this->prepareUpdateItemQuery($dirty)->updateItemAsync();
+        }
+
         $promise = DynamoDb::table($this->model->getTable())
             ->setItem(DynamoDb::marshalItem($this->model->getAttributes()))
             ->prepare($this->client)
             ->putItemAsync();
 
         return $promise;
+    }
+
+    protected function prepareUpdateItemQuery(array $attributes)
+    {
+        $key = DynamoDb::marshalItem($this->model->getKeys());
+
+        $this->resetExpressions();
+
+        return DynamoDb::table($this->model->getTable())
+            ->setKey($key)
+            ->setUpdateExpression($this->updateExpression->set($attributes))
+            ->setExpressionAttributeNames($this->expressionAttributeNames->all())
+            ->setExpressionAttributeValues($this->expressionAttributeValues->all())
+            ->prepare($this->client);
     }
 
     public function get($columns = [])
