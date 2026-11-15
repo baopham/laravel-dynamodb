@@ -2,8 +2,11 @@
 
 namespace BaoPham\DynamoDb\Tests;
 
+use Aws\DynamoDb\Marshaler;
 use BaoPham\DynamoDb\DynamoDbClientInterface;
+use BaoPham\DynamoDb\DynamoDbClientService;
 use BaoPham\DynamoDb\DynamoDbModel;
+use BaoPham\DynamoDb\EmptyAttributeFilter;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -70,6 +73,27 @@ class DynamoDbClientServiceTest extends TestCase
             $dynamoDbClientService,
             'After un-setting the DynamoDbClientService on the DynamoDbModel the getter should return null.'
         );
+    }
+
+    public function testDebugOptionsNormalization()
+    {
+        $service = new class (new Marshaler(), new EmptyAttributeFilter()) extends DynamoDbClientService {
+            public function exposeDebugOptions($debug = false)
+            {
+                return $this->getDebugOptions($debug);
+            }
+        };
+
+        $this->assertFalse($service->exposeDebugOptions(null));
+        $this->assertFalse($service->exposeDebugOptions(false));
+
+        $trueDebug = $service->exposeDebugOptions(true);
+        $this->assertIsArray($trueDebug);
+        $this->assertArrayHasKey('logfn', $trueDebug);
+        $this->assertIsCallable($trueDebug['logfn']);
+
+        $custom = ['http' => false];
+        $this->assertSame($custom, $service->exposeDebugOptions($custom));
     }
 
     /**
